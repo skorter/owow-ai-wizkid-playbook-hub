@@ -1,10 +1,10 @@
 const express = require("express");
-const { authReady } = require("../controllers/authController");
+const { categoryReady } = require("../controllers/categoryController");
 
 const router = express.Router();
 
 // Placeholder (Phase 2): confirms module wiring works
-router.get("/", authReady);
+router.get("/", categoryReady);
 
 module.exports = router;
 

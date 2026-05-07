@@ -1,0 +1,13 @@
+.playbookLayout {
+  display: grid;
+  grid-template-rows: 0.1fr 1fr auto;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main {
+  display: grid;
+  grid-template-columns: 0.4fr 1fr;
+  height: 100%;
+  overflow-y: auto;
+}
