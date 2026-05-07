@@ -1,3 +1,5 @@
+const { prisma } = require("../config/prisma");
+
 function getHealth(req, res) {
   res.status(200).json({
     success: true,
@@ -6,4 +8,20 @@ function getHealth(req, res) {
   });
 }
 
-module.exports = { getHealth };
+async function getDatabaseHealth(req, res, next) {
+  try {
+    // Simple, safe connectivity check
+    await prisma.$queryRaw`SELECT 1`;
+
+    res.status(200).json({
+      success: true,
+      message: "Database connection is healthy",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    err.statusCode = 500;
+    next(err);
+  }
+}
+
+module.exports = { getHealth, getDatabaseHealth };
