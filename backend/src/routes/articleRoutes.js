@@ -1,10 +1,17 @@
 const express = require("express");
-const { articleReady } = require("../controllers/articleController");
+const {
+  getArticles,
+  getArticle,
+  getArticleBySlugParam,
+} = require("../controllers/articleController");
 
 const router = express.Router();
 
-// Placeholder (Phase 2): confirms module wiring works
-router.get("/", articleReady);
+// slug route must come before /:id so "slug" is not interpreted as id
+router.get("/slug/:slug", getArticleBySlugParam);
+
+router.get("/", getArticles);
+
+router.get("/:id", getArticle);
 
 module.exports = router;
-
