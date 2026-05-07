@@ -1,10 +1,18 @@
 const path = require("path");
+const bcrypt = require("bcryptjs");
 
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const { prisma } = require("../src/config/prisma");
 
-const PASSWORD_HASH_PLACEHOLDER = "fake_password_hash_phase5_not_bcrypt";
+/** Demo login password for seeded users — matches bcrypt used by POST /api/auth/login */
+const SEED_USER_PASSWORD = "Password123";
+
+function getSeedSaltRounds() {
+  const raw = process.env.BCRYPT_SALT_ROUNDS;
+  const n = raw != null ? parseInt(String(raw), 10) : 10;
+  return Number.isFinite(n) && n > 0 ? n : 10;
+}
 
 const CATEGORY_SEEDS = [
   { name: "OWOW General", slug: "owow-general" },
@@ -161,17 +169,23 @@ const ONBOARDING_SEEDS = [
 async function upsertUsers() {
   const map = {};
 
+  const passwordHash = await bcrypt.hash(
+    SEED_USER_PASSWORD,
+    getSeedSaltRounds(),
+  );
+
   for (const u of USER_SEEDS) {
     const saved = await prisma.user.upsert({
       where: { email: u.email },
       update: {
         fullName: u.fullName,
         role: u.role,
+        passwordHash,
       },
       create: {
         email: u.email,
         fullName: u.fullName,
-        passwordHash: PASSWORD_HASH_PLACEHOLDER,
+        passwordHash,
         role: u.role,
       },
     });

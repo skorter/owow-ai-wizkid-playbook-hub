@@ -1,9 +1,44 @@
-function authReady(req, res) {
-  res.status(200).json({
+const authService = require("../services/authService");
+
+async function register(req, res, next) {
+  try {
+    const result = await authService.register(req.body || {});
+
+    if (!result.ok) {
+      return res.status(result.status).json(result.body);
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: result.data,
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+async function login(req, res, next) {
+  try {
+    const result = await authService.login(req.body || {});
+
+    if (!result.ok) {
+      return res.status(result.status).json(result.body);
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: result.data,
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+function me(req, res) {
+  return res.status(200).json({
     success: true,
-    message: "Auth module is ready",
+    data: req.user,
   });
 }
 
-module.exports = { authReady };
-
+module.exports = { register, login, me };

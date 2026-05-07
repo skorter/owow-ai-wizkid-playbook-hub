@@ -1,8 +1,19 @@
-// Phase 2 placeholder: JWT generation will be implemented later.
+const jwt = require("jsonwebtoken");
 
+/**
+ * @param {{ id: string, role: string }} payload
+ */
 function generateToken(payload) {
-  return null;
+  const secret = process.env.JWT_SECRET;
+  const expiresIn = process.env.JWT_EXPIRES_IN || "1d";
+
+  if (!secret) {
+    throw new Error("JWT_SECRET is not configured");
+  }
+
+  return jwt.sign({ id: payload.id, role: payload.role }, secret, {
+    expiresIn,
+  });
 }
 
 module.exports = { generateToken };
-
