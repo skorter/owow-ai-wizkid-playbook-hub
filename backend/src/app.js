@@ -31,6 +31,7 @@ function createApp() {
 
   // Routes
   app.use("/api/health", healthRoutes);
+  // Auth: POST /register, POST /login, GET /me
   app.use("/api/auth", authRoutes);
   app.use("/api/articles", articleRoutes);
   app.use("/api/categories", categoryRoutes);
