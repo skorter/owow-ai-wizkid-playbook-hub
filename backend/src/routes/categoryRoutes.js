@@ -1,10 +1,9 @@
 const express = require("express");
-const { categoryReady } = require("../controllers/categoryController");
+const { getCategories, getCategory } = require("../controllers/categoryController");
 
 const router = express.Router();
 
-// Placeholder (Phase 2): confirms module wiring works
-router.get("/", categoryReady);
+router.get("/", getCategories);
+router.get("/:id", getCategory);
 
 module.exports = router;
-
