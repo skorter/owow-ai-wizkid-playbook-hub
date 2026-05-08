@@ -7,6 +7,7 @@ const articleRoutes = require("./routes/articleRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
+const missingInfoRoutes = require("./routes/missingInfoRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 const onboardingRoutes = require("./routes/onboardingRoutes");
 const { notFound, errorMiddleware } = require("./middleware/errorMiddleware");
@@ -37,6 +38,7 @@ function createApp() {
   app.use("/api/categories", categoryRoutes);
   app.use("/api/ai", aiRoutes);
   app.use("/api/feedback", feedbackRoutes);
+  app.use("/api/missing-info", missingInfoRoutes);
   app.use("/api/analytics", analyticsRoutes);
   app.use("/api/onboarding", onboardingRoutes);
 

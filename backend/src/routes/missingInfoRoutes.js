@@ -1,11 +1,11 @@
 const express = require("express");
 const {
-  submitFeedback,
-  listFeedback,
-  getFeedback,
-  updateFeedback,
-  deleteFeedback,
-} = require("../controllers/feedbackController");
+  submitMissingInfo,
+  listMissingInfo,
+  getMissingInfo,
+  updateMissingInfo,
+  deleteMissingInfo,
+} = require("../controllers/missingInfoController");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const { roleMiddleware } = require("../middleware/roleMiddleware");
 
@@ -13,21 +13,21 @@ const router = express.Router();
 
 const adminRoles = ["HR_ADMIN"];
 
-router.post("/", authMiddleware, submitFeedback);
-router.get("/", authMiddleware, roleMiddleware(adminRoles), listFeedback);
+router.post("/", authMiddleware, submitMissingInfo);
+router.get("/", authMiddleware, roleMiddleware(adminRoles), listMissingInfo);
 
-router.get("/:id", authMiddleware, roleMiddleware(adminRoles), getFeedback);
+router.get("/:id", authMiddleware, roleMiddleware(adminRoles), getMissingInfo);
 router.put(
   "/:id",
   authMiddleware,
   roleMiddleware(adminRoles),
-  updateFeedback,
+  updateMissingInfo,
 );
 router.delete(
   "/:id",
   authMiddleware,
   roleMiddleware(adminRoles),
-  deleteFeedback,
+  deleteMissingInfo,
 );
 
 module.exports = router;

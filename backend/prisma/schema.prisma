@@ -28,12 +28,21 @@ enum FeedbackType {
   GENERAL
   ARTICLE
   BUG
+  AI_RESPONSE
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  RESOLVED
 }
 
 enum MissingInfoType {
   MISSING_ARTICLE
   OUTDATED_INFO
   WRONG_INFO
+  OUTDATED_INFORMATION
+  INCORRECT_INFORMATION
   OTHER
 }
 
@@ -115,9 +124,12 @@ model Feedback {
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([articleId])
   @@index([userId])
+  @@index([type])
+  @@index([createdAt])
 }
 
 model MissingInfoReport {
@@ -126,6 +138,7 @@ model MissingInfoReport {
   title       String?
   description String
 
+  status    ReportStatus @default(OPEN)
   articleId String?
   article   Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
 
@@ -133,9 +146,12 @@ model MissingInfoReport {
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([articleId])
   @@index([userId])
+  @@index([status])
+  @@index([type])
   @@index([createdAt])
 }
 
