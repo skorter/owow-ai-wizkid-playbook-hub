@@ -1,10 +1,25 @@
 const express = require("express");
-const { analyticsReady } = require("../controllers/analyticsController");
+const {
+  getOverview,
+  getSearches,
+  getPopularQuestions,
+  getFeedbackAnalytics,
+  getMissingInfoAnalytics,
+} = require("../controllers/analyticsController");
+const { authMiddleware } = require("../middleware/authMiddleware");
+const { roleMiddleware } = require("../middleware/roleMiddleware");
 
 const router = express.Router();
 
-// Placeholder (Phase 2): confirms module wiring works
-router.get("/", analyticsReady);
+const adminOnly = ["HR_ADMIN"];
+
+router.use(authMiddleware);
+router.use(roleMiddleware(adminOnly));
+
+router.get("/overview", getOverview);
+router.get("/searches", getSearches);
+router.get("/popular-questions", getPopularQuestions);
+router.get("/feedback", getFeedbackAnalytics);
+router.get("/missing-info", getMissingInfoAnalytics);
 
 module.exports = router;
-
