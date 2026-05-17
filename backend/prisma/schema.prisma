@@ -170,4 +170,5 @@ model OnboardingStep {
   updatedAt DateTime @updatedAt
 
   @@index([articleId])
+  @@index([isActive])
 }
