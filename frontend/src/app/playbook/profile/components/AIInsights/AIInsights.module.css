@@ -1,0 +1,60 @@
+.aiInsights {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background-color: #161616;
+  border: 1px solid #262626;
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.aiInsights .header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.aiInsights .header .trendingIcon {
+  width: 20px;
+  height: 20px;
+  color: #ffd500;
+  flex-shrink: 0;
+}
+
+.aiInsights .header .title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.aiInsights .grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.aiInsights .grid .card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background-color: #1e1e1e;
+  border: 1px solid #262626;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+.aiInsights .grid .card .icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.aiInsights .grid .card .label {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.aiInsights .grid .card .value {
+  font-size: 1.25rem;
+  font-weight: 700;
+}

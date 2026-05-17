@@ -1,0 +1,15 @@
+.dashboardPage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  color: #fff;
+}
+
+.dashboardPage .footer {
+  text-align: center;
+  color: #888;
+  font-size: 0.9rem;
+  margin-top: auto;
+}

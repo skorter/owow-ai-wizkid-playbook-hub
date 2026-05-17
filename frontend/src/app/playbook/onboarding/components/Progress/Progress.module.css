@@ -1,0 +1,17 @@
+.progressBar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progressBar .progress {
+  height: 6px;
+  background-color: #ffd500;
+  border-radius: 1rem;
+  transition: width 0.3s ease;
+}
+
+.progressBar .progressLabel {
+  font-size: 0.8rem;
+  color: #888;
+}

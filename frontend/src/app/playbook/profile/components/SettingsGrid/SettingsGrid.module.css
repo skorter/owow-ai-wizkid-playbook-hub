@@ -1,0 +1,206 @@
+.settingsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.settingsGrid .card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background-color: #161616;
+  border: 1px solid #262626;
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.settingsGrid .card .header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.settingsGrid .card .header .sunIcon,
+.settingsGrid .card .header .shieldIcon,
+.settingsGrid .card .header .globeIcon,
+.settingsGrid .card .header .accessibilityIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.settingsGrid .card .header .sunIcon {
+  color: #ffd500;
+}
+
+.settingsGrid .card .header .shieldIcon {
+  color: #ff5c5c;
+}
+
+.settingsGrid .card .header .globeIcon {
+  color: #09b9f9;
+}
+
+.settingsGrid .card .header .accessibilityIcon {
+  color: #19ff20;
+}
+
+.settingsGrid .card .header .title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.settingsGrid .card .themeButtons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.settingsGrid .card .themeButtons .themeButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #333;
+  background: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.settingsGrid .card .themeButtons .themeButton.active {
+  border-color: #ffd500;
+  color: #ffd500;
+  background-color: rgba(255, 213, 0, 0.08);
+}
+
+.settingsGrid .card .themeButtons .themeButton .themeIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.settingsGrid .card .links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settingsGrid .card .links .linkButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: #1e1e1e;
+  border: 1px solid #262626;
+  border-radius: 0.75rem;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.settingsGrid .card .links .linkButton:hover {
+  border-color: #ff5c5c;
+}
+
+.settingsGrid .card .links .linkButton .arrowIcon {
+  width: 16px;
+  height: 16px;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.settingsGrid .card .fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settingsGrid .card .fields .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settingsGrid .card .fields .field .label {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.settingsGrid .card .fields .field .select {
+  background-color: #1e1e1e;
+  border: 1px solid #262626;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.settingsGrid .card .fields .field .select:focus {
+  border-color: #09b9f9;
+}
+
+.settingsGrid .card .toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settingsGrid .card .toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.settingsGrid .card .toggle .label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.settingsGrid .card .toggle .description {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 0.1rem;
+}
+
+.settingsGrid .card .toggle .toggleButton {
+  width: 44px;
+  height: 24px;
+  border-radius: 2rem;
+  border: none;
+  background-color: #333;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+}
+
+.settingsGrid .card .toggle .toggleButton::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #fff;
+  transition: transform 0.2s ease;
+}
+
+.settingsGrid .card .toggle .toggleButton.on {
+  background-color: #ffd500;
+}
+
+.settingsGrid .card .toggle .toggleButton.on::after {
+  transform: translateX(20px);
+}

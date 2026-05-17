@@ -1,0 +1,15 @@
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hero .title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.hero .description {
+  color: #888;
+}
