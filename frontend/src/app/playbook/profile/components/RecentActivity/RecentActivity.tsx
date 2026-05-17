@@ -1,39 +1,7 @@
 import styles from "./RecentActivity.module.css";
 import Link from "next/link";
-import { History, Search, BookOpen, Bookmark } from "lucide-react";
-
-const activities = [
-  {
-    type: "search",
-    label: "How do I request time off?",
-    time: "2h ago",
-    slug: null,
-  },
-  {
-    type: "view",
-    label: "Time Off Policy",
-    time: "2h ago",
-    slug: "time-off-policy",
-  },
-  {
-    type: "search",
-    label: "Simplicate login guide",
-    time: "Yesterday",
-    slug: null,
-  },
-  {
-    type: "save",
-    label: "Remote Work Guidelines",
-    time: "2 days ago",
-    slug: "remote-work-guidelines",
-  },
-];
-
-const iconMap = {
-  search: Search,
-  view: BookOpen,
-  save: Bookmark,
-};
+import { History } from "lucide-react";
+import { activities } from "@/lib/data/profile";
 
 export default function RecentActivity() {
   return (
@@ -45,7 +13,7 @@ export default function RecentActivity() {
 
       <ul className={styles.list}>
         {activities.map((activity, index) => {
-          const Icon = iconMap[activity.type as keyof typeof iconMap];
+          const Icon = activity.icon;
           const content = (
             <>
               <Icon className={styles.typeIcon} />

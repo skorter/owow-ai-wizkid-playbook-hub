@@ -1,5 +1,6 @@
 import Image from "next/image";
 import styles from "./Greeting.module.css";
+import { user } from "@/lib/data/user";
 
 export default function Greeting() {
   return (
@@ -12,7 +13,7 @@ export default function Greeting() {
         className={styles.avatar}
       />
       <h1 className={styles.label}>
-        Good evening, <span className={styles.name}>John</span>
+        Good evening, <span className={styles.name}>{user.firstName}</span>
       </h1>
     </div>
   );

@@ -1,15 +1,14 @@
 import styles from "./TopicsList.module.css";
 import Link from "next/link";
-import { FileText, LucideIcon } from "lucide-react";
+import { FileText } from "lucide-react";
 import { Category } from "@/types/playbook";
-import { categories, iconMap } from "@/lib/constants/categories";
 
 type TopicsListProps = {
   category: Category;
 };
 
 export default function TopicsList({ category }: TopicsListProps) {
-  const Icon = iconMap[category.icon];
+  const Icon = category.icon;
 
   return (
     <li className={styles.section}>
@@ -23,9 +22,12 @@ export default function TopicsList({ category }: TopicsListProps) {
       <ul className={styles.articles}>
         {category.pages.map((page) => (
           <li key={page.slug} className={styles.article}>
-            <Link href={`/playbook/${page.slug}`} className={styles.card}>
+            <Link
+              href={`/playbook/${page.slug}?from=topics`}
+              className={styles.card}
+            >
               <div className={styles.title}>
-                <FileText className={styles.fileTextIcon} />
+                <FileText className={styles.icon} />
                 <p className={styles.label}>{page.label}</p>
               </div>
               <p className={styles.description}>{page.description}</p>

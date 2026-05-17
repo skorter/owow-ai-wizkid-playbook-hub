@@ -27,18 +27,37 @@
   gap: 0.25rem;
 }
 
-.modal .content .header .title {
+.modal .content .title {
   font-size: 1.25rem;
   font-weight: 700;
   color: #fff;
 }
 
-.modal .content .header .subtitle {
+.modal .content .subtitle {
   color: #888;
   font-size: 0.9rem;
 }
 
-.modal .content .textarea {
+.modal .content .editGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  row-gap: 1rem;
+  column-gap: 1.5rem;
+}
+
+.modal .content .editGrid .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.modal .content .editGrid .field .label {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.modal .content .editGrid .field .input {
   background-color: #1e1e1e;
   border: 1px solid #333;
   border-radius: 0.5rem;
@@ -46,11 +65,6 @@
   color: #fff;
   font-size: 0.95rem;
   outline: none;
-  resize: none;
-}
-
-.modal .content .textarea:focus {
-  border-color: #ffd500;
 }
 
 .modal .content .actions {

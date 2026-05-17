@@ -21,9 +21,7 @@
   border-color: #ffd500;
 }
 
-.cards .card .searchIcon,
-.cards .card .bookIcon,
-.cards .card .graduationCapIcon {
+.cards .card .icon {
   color: #ffd500;
   width: 28px;
   height: 28px;

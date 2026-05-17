@@ -1,3 +1,5 @@
+import { LucideIcon } from "lucide-react";
+
 export type Subpage = {
   label: string;
   slug: string;
@@ -14,6 +16,6 @@ export type Category = {
   label: string;
   slug: string;
   description: string;
-  icon: string;
+  icon: LucideIcon;
   pages: Page[];
 };

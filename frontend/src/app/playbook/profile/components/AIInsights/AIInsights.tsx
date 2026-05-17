@@ -1,22 +1,6 @@
 import styles from "./AIInsights.module.css";
-import { TrendingUp, Clock, CheckCircle, BookOpen } from "lucide-react";
-
-const insights = [
-  {
-    icon: TrendingUp,
-    label: "Most Searched",
-    value: "HR Policies",
-    color: "#ffd500",
-  },
-  { icon: Clock, label: "Avg Response Time", value: "1.2s", color: "#4ecdc4" },
-  {
-    icon: CheckCircle,
-    label: "Questions Solved",
-    value: "94%",
-    color: "#00ff85",
-  },
-  { icon: BookOpen, label: "Articles Read", value: "47", color: "#09b9f9" },
-];
+import { TrendingUp } from "lucide-react";
+import { aiInsights } from "@/lib/data/profile";
 
 export default function AIInsights() {
   return (
@@ -26,7 +10,7 @@ export default function AIInsights() {
         <h2 className={styles.title}>AI Insights & Analytics</h2>
       </div>
       <div className={styles.grid}>
-        {insights.map((insight) => (
+        {aiInsights.map((insight) => (
           <article key={insight.label} className={styles.card}>
             <insight.icon
               className={styles.icon}

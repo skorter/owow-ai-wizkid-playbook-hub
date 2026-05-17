@@ -5,7 +5,8 @@
   background-color: #161616;
   border: 1px solid #262626;
   border-radius: 1rem;
-  padding: 2rem;
+  padding: 1.5rem;
+  height: 100%;
 }
 
 .personalInformation .header {

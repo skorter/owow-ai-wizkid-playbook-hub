@@ -1,25 +1,12 @@
 import type { Category } from "@/types/playbook";
-import {
-  Building2,
-  Briefcase,
-  TrendingUp,
-  ShieldCheck,
-  LucideIcon,
-} from "lucide-react";
-
-export const iconMap: Record<string, LucideIcon> = {
-  Building2,
-  Briefcase,
-  TrendingUp,
-  ShieldCheck,
-};
+import { Building2, Briefcase, TrendingUp, ShieldCheck } from "lucide-react";
 
 export const categories: Category[] = [
   {
     label: "OWOW General",
     slug: "owow-general",
     description: "Information gap closing in 3... 2... 1...",
-    icon: "Building2",
+    icon: Building2,
     pages: [
       {
         label: "Welcome to OWOW",
@@ -81,7 +68,7 @@ export const categories: Category[] = [
     label: "Practical Information",
     slug: "practical-information",
     description: "How does it work to work for OWOW?",
-    icon: "Briefcase",
+    icon: Briefcase,
     pages: [
       {
         label: "Simplicate",
@@ -137,7 +124,7 @@ export const categories: Category[] = [
     slug: "growth-and-development",
     description:
       "At OWOW, you're given clear frameworks but also the freedom to shape your role yourself.",
-    icon: "TrendingUp",
+    icon: TrendingUp,
     pages: [
       {
         label: "Role description",
@@ -179,7 +166,7 @@ export const categories: Category[] = [
     slug: "policy-and-conduct",
     description:
       "At OWOW, we start from a place of trust. We work with people who respect and support each other.",
-    icon: "ShieldCheck",
+    icon: ShieldCheck,
     pages: [
       {
         label: "Inclusion, non-discrimination and equal treatment",

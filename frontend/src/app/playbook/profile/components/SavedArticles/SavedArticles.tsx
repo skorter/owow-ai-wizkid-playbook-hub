@@ -1,29 +1,7 @@
 import styles from "./SavedArticles.module.css";
 import { Bookmark, ArrowRight } from "lucide-react";
 import Link from "next/link";
-
-const saved = [
-  {
-    label: "Holiday Calendar 2026",
-    category: "HR",
-    slug: "holiday-calendar-2026",
-  },
-  {
-    label: "Performance Review Process",
-    category: "Growth",
-    slug: "performance-review-process",
-  },
-  {
-    label: "Team Communication Guide",
-    category: "Culture",
-    slug: "team-communication-guide",
-  },
-  {
-    label: "Expenses & Reimbursements",
-    category: "Practical",
-    slug: "expenses-and-reimbursements",
-  },
-];
+import { savedArticles } from "@/lib/data/profile";
 
 export default function SavedArticles() {
   return (
@@ -34,7 +12,7 @@ export default function SavedArticles() {
       </div>
 
       <ul className={styles.list}>
-        {saved.map((article) => (
+        {savedArticles.map((article) => (
           <li key={article.slug}>
             <Link href={`/playbook/${article.slug}`} className={styles.item}>
               <div className={styles.info}>

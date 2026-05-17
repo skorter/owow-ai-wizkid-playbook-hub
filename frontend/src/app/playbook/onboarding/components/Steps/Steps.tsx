@@ -1,12 +1,7 @@
 import React from "react";
 import styles from "./Steps.module.css";
 import { Circle, CheckCircle, ArrowRight } from "lucide-react";
-
-type OnboardingStep = {
-  id: number;
-  label: string;
-  slug: string;
-};
+import type { OnboardingStep } from "@/types/onboarding";
 
 type StepsProps = {
   steps: OnboardingStep[];

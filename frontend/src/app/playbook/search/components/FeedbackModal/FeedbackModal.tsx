@@ -15,21 +15,24 @@ export default function FeedbackModal({
 
   return (
     <div className={styles.modal}>
-      <div className={styles.modalContent}>
-        <h3 className={styles.modalTitle}>What were you looking for?</h3>
-        <p className={styles.modalSubtitle}>
-          Your feedback helps us improve the Playbook.
-        </p>
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <h2 className={styles.title}>What were you looking for?</h2>
+          <p className={styles.subtitle}>
+            Your feedback helps us improve the Playbook.
+          </p>
+        </div>
+
         <textarea
           className={styles.textarea}
           placeholder="Describe what you couldn't find..."
           rows={4}
         />
-        <div className={styles.modalActions}>
-          <button className={styles.cancelButton} onClick={onClose}>
+        <div className={styles.actions}>
+          <button className={styles.cancel} onClick={onClose}>
             Cancel
           </button>
-          <button className={styles.submitButton} onClick={onSubmit}>
+          <button className={styles.submit} onClick={onSubmit}>
             Submit
           </button>
         </div>

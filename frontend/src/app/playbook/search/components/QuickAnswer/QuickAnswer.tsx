@@ -1,5 +1,6 @@
 import styles from "./QuickAnswer.module.css";
 import { Sparkles, ThumbsUp, ThumbsDown } from "lucide-react";
+import { quickAnswer } from "@/lib/data/search";
 
 type QuickAnswerProps = {
   onThumbsDown: () => void;
@@ -19,12 +20,7 @@ export default function QuickAnswer({
       <div className={styles.header}>
         <Sparkles className={styles.sparklesIcon} />
         <h2 className={styles.title}>Quick Answer</h2>
-        <p className={styles.answer}>
-          To request time off at OWOW, use the Simplicate platform. Navigate to
-          the "Time Off" section, select your dates, and submit your request.
-          Your manager will be notified automatically and typically responds
-          within 24-48 hours.
-        </p>
+        <p className={styles.answer}>{quickAnswer.answer}</p>
       </div>
       <div className={styles.feedback}>
         <p className={styles.label}>Was this answer helpful?</p>

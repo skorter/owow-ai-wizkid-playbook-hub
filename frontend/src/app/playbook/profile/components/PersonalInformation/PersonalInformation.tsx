@@ -1,5 +1,6 @@
 import styles from "./PersonalInformation.module.css";
 import { User, Mail, Building2, Briefcase, Calendar } from "lucide-react";
+import { user } from "@/lib/data/user";
 
 export default function PersonalInformation() {
   return (
@@ -12,22 +13,22 @@ export default function PersonalInformation() {
         <article className={styles.data}>
           <Mail className={styles.mailIcon} />
           <p className={styles.label}>Email</p>
-          <p className={styles.value}>john.doe@owow.io</p>
+          <p className={styles.value}>{user.email}</p>
         </article>
         <article className={styles.data}>
           <Building2 className={styles.buildingIcon} />
           <p className={styles.label}>Department</p>
-          <p className={styles.value}>Design Team</p>
+          <p className={styles.value}>{user.department}</p>
         </article>
         <article className={styles.data}>
           <Briefcase className={styles.briefcaseIcon} />
           <p className={styles.label}>Role</p>
-          <p className={styles.value}>Senior Designer</p>
+          <p className={styles.value}>{user.role}</p>
         </article>
         <article className={styles.data}>
           <Calendar className={styles.calendarIcon} />
           <p className={styles.label}>Start Date</p>
-          <p className={styles.value}>January 2022</p>
+          <p className={styles.value}>{user.startDate}</p>
         </article>
       </div>
     </section>

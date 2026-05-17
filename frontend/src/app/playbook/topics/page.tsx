@@ -3,7 +3,7 @@ import { useState } from "react";
 import styles from "./page.module.css";
 import SearchBar from "./components/SearchBar/SearchBar";
 import TopicsList from "./components/TopicsList/TopicsList";
-import { categories } from "@/lib/constants/categories";
+import { categories } from "@/lib/data/categories";
 import Feedback from "./components/Feedback/Feedback";
 import Greeting from "./components/Greeting/Greeting";
 

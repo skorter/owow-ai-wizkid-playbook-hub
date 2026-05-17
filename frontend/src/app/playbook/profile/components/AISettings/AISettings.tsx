@@ -2,24 +2,7 @@
 import { useState } from "react";
 import styles from "./AISettings.module.css";
 import { Bot } from "lucide-react";
-
-const toggleOptions = [
-  {
-    slug: "smart-recommendations",
-    label: "Smart Recommendations",
-    description: "Get AI-suggested articles",
-  },
-  {
-    slug: "auto-save",
-    label: "Auto-save Searches",
-    description: "Automatically save your search history",
-  },
-  {
-    slug: "show-sources",
-    label: "Show Source Documents",
-    description: "Display source references in AI answers",
-  },
-];
+import { toggleOptions } from "@/lib/data/profile";
 
 export default function AISettings() {
   const [confidence, setConfidence] = useState(75);

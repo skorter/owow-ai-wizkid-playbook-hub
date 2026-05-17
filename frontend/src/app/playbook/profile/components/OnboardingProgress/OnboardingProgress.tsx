@@ -1,15 +1,14 @@
 import styles from "./OnboardingProgress.module.css";
 import Link from "next/link";
 import { CircleDashed, CircleCheckBig, Circle } from "lucide-react";
+import { onboardingProgressSteps } from "@/lib/data/profile";
 
-const steps = [
-  { label: "Company & Culture", completed: true },
-  { label: "Practical Setup", completed: true },
-  { label: "Growth & Conduct", completed: false },
-];
-
-const completedCount = steps.filter((s) => s.completed).length;
-const progress = Math.round((completedCount / steps.length) * 100);
+const completedCount = onboardingProgressSteps.filter(
+  (s) => s.completed,
+).length;
+const progress = Math.round(
+  (completedCount / onboardingProgressSteps.length) * 100,
+);
 
 export default function OnboardingProgress() {
   return (
@@ -27,7 +26,7 @@ export default function OnboardingProgress() {
       </div>
 
       <div className={styles.steps}>
-        {steps.map((step) => (
+        {onboardingProgressSteps.map((step) => (
           <article key={step.label} className={styles.step}>
             {step.completed ? (
               <CircleCheckBig className={styles.checkIcon} />

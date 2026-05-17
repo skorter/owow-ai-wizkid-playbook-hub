@@ -1,15 +1,7 @@
 import styles from "./ArticleList.module.css";
 import { CheckCircle, Circle, ArrowRight } from "lucide-react";
-
-type OnboardingStep = {
-  id: number;
-  label: string;
-  slug: string;
-  articles: {
-    label: string;
-    slug: string;
-  }[];
-};
+import type { OnboardingStep } from "@/types/onboarding";
+import Link from "next/link";
 
 type ArticleListProps = {
   steps: OnboardingStep[];
@@ -31,8 +23,8 @@ export default function ArticleList({
           key={article.slug}
           className={`${styles.article} ${completedArticles.includes(article.slug) ? styles.completed : ""}`}
         >
-          <div
-            // href={`/playbook/${article.slug}`}
+          <Link
+            href={`/playbook/${article.slug}?from=onboarding`}
             className={styles.articleLink}
             onClick={() => onToggle(article.slug)}
           >
@@ -43,7 +35,7 @@ export default function ArticleList({
             )}
             <span>{article.label}</span>
             <ArrowRight className={styles.arrowRightIcon} />
-          </div>
+          </Link>
         </li>
       ))}
     </ul>
