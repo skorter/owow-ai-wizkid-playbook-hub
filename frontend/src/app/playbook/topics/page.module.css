@@ -1,0 +1,14 @@
+.topicsPage {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  color: #fff;
+}
+
+.topicsPage .content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  list-style: none;
+}

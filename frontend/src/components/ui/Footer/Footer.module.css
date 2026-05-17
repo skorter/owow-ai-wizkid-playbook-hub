@@ -1,8 +1,40 @@
 .footer {
-  text-align: center;
-  padding: 0.5rem 0;
-  background-color: #f5f5f5;
-  color: #333;
-  font-size: 0.9rem;
+  display: flex;
+}
+
+.footer .profile {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  row-gap: 0.25rem;
+  column-gap: 0.5rem;
+  text-decoration: none;
+  color: white;
+}
+
+.footer .profile:hover .name {
+  text-decoration: underline 2px #ffd500;
+}
+
+.footer .profile .userIcon {
+  grid-row: span 2;
+  justify-self: center;
+  align-self: center;
+  width: 30px;
+  height: 30px;
+  stroke-width: 2.5;
+  flex-shrink: 0;
+}
+
+.footer .profile .name {
+  font-size: 1rem;
   font-weight: 600;
+  font-family: sans-serif;
+}
+
+.footer .profile .role {
+  font-size: 0.85rem;
+  font-weight: 400;
+  font-family: sans-serif;
+  color: #bcbcbc;
 }

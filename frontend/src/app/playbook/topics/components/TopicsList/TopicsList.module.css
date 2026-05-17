@@ -1,0 +1,95 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section .header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #262626;
+}
+
+.section .header .icon {
+  width: 28px;
+  height: 28px;
+  color: #ffd500;
+}
+
+.section .header .title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section .header .title .label {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.section .header .description {
+  color: #888;
+  font-size: 0.95rem;
+}
+
+.section .articles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  list-style: none;
+}
+
+.section .articles .article {
+  display: flex;
+}
+
+.section .articles .article .card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background-color: #161616;
+  border: 1px solid #262626;
+  border-radius: 1rem;
+  text-decoration: none;
+  transition: border-color 0.2s ease;
+  width: 100%;
+}
+
+.section .articles .article .card:hover {
+  border-color: #ffd500;
+}
+
+.section .articles .article .card .title {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section .articles .article .card .title .icon {
+  width: 24px;
+  height: 24px;
+  color: #ffd500;
+  flex-shrink: 0;
+}
+.section .articles .article .card .title .label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.section .articles .article .card .description {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.section .articles .article .card .subtopicCount {
+  font-size: 0.85rem;
+  color: #888;
+  padding: 0.75rem 0 0 0;
+  border-top: 1px solid #262626;
+}

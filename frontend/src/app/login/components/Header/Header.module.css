@@ -1,0 +1,23 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header .title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-family: sans-serif;
+}
+
+.header .title .accent {
+  color: #ffd500;
+}
+
+.header .sparklesIcon {
+  width: 2rem;
+  height: 2rem;
+  color: #ffd500;
+  stroke-width: 2;
+}

@@ -1,0 +1,44 @@
+.actions {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.actions .action {
+  background-color: #161616;
+  border: 1px solid #262626;
+  border-radius: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actions .action.active {
+  color: #fff;
+}
+
+.actions .action:hover {
+  background-color: #262626;
+  color: #fff;
+}
+
+.actions .action .lightbulbIcon,
+.actions .action .rotateCcwIcon {
+  color: #888;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.actions .action.active .lightbulbIcon,
+.actions .action.active .rotateCcwIcon {
+  color: #fff;
+  flex-shrink: 0;
+}

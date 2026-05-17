@@ -1,0 +1,40 @@
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.cards .card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.75rem;
+  border-radius: 1rem;
+  background-color: #161616;
+  border: 1px solid #262626;
+  transition: border-color 0.2s ease;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cards .card:hover {
+  border-color: #ffd500;
+}
+
+.cards .card .icon {
+  color: #ffd500;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.cards .card .title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.cards .card .description {
+  font-size: 0.9rem;
+  color: #888;
+}

@@ -1,0 +1,90 @@
+.recentActivity {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background-color: #161616;
+  border: 1px solid #262626;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  height: 100%;
+}
+
+.recentActivity .header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.recentActivity .header .historyIcon {
+  width: 20px;
+  height: 20px;
+  color: #00d9ff;
+  flex-shrink: 0;
+}
+
+.recentActivity .header .title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.recentActivity .list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+}
+
+.recentActivity .list .item {
+  background-color: #1e1e1e;
+  border: 1px solid #262626;
+  border-radius: 0.75rem;
+  transition: border-color 0.2s ease;
+}
+
+.recentActivity .list .item:hover {
+  border-color: #00d9ff;
+}
+
+.recentActivity .list .item .itemLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  width: 100%;
+}
+
+.recentActivity .list .item .itemLink .typeIcon {
+  width: 16px;
+  height: 16px;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.recentActivity .list .item .itemLink .info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.recentActivity .list .item .itemLink .info .label {
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.recentActivity .list .item .itemLink .info .time {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.recentActivity .viewAllButton {
+  font-size: 0.85rem;
+  color: #00d9ff;
+  text-decoration: none;
+  align-self: center;
+}
+
+.recentActivity .viewAllButton:hover {
+  text-decoration: underline;
+}
