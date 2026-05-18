@@ -1,0 +1,87 @@
+.wrap {
+  position: relative;
+  width: 100%;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gridLine {
+  stroke: #262626;
+  stroke-width: 1;
+}
+
+.axisLabel {
+  fill: #888888;
+  font-size: 10px;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.xLabel {
+  fill: #bcbcbc;
+  font-size: 11px;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.area {
+  pointer-events: none;
+}
+
+.hoverBand {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 1;
+  transition:
+    fill 0.18s ease,
+    stroke 0.18s ease;
+}
+
+.hoverBandVisible {
+  fill: rgba(255, 255, 255, 0.06);
+  stroke: rgba(34, 197, 94, 0.18);
+}
+
+.crosshair {
+  stroke: rgba(34, 197, 94, 0.4);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.3));
+}
+
+.line {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, calc(-100% - 10px));
+  min-width: 90px;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  background-color: #121212;
+  border: 1px solid #2e2e2e;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-family: var(--font-geist-sans), sans-serif;
+  text-align: center;
+}
+
+.tooltipTitle {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.tooltipValue {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #22c55e;
+}
