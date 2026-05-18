@@ -1,0 +1,62 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 40px;
+  padding: 0 1.1rem;
+  border-radius: var(--admin-radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-geist-sans), sans-serif;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.primary {
+  background-color: var(--admin-yellow);
+  color: #0a0a0a;
+  border-color: var(--admin-yellow);
+}
+
+.primary:hover:not(:disabled) {
+  background-color: #ffe033;
+  border-color: #ffe033;
+  box-shadow: 0 0 16px var(--admin-yellow-glow);
+}
+
+.secondary {
+  background-color: var(--admin-surface);
+  color: var(--admin-text);
+  border-color: var(--admin-border);
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: rgba(255, 213, 0, 0.45);
+  background-color: var(--admin-surface-hover);
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.25;
+  flex-shrink: 0;
+}
+
+.sm {
+  height: 34px;
+  padding: 0 0.85rem;
+  font-size: 0.85rem;
+}

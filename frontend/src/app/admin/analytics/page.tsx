@@ -1,7 +1,12 @@
+import AdminPageContainer from "@/components/admin/AdminPageContainer/AdminPageContainer";
+
 export default function AnalyticsPage() {
   return (
-    <div>
-      <h1>Analytics Page</h1>
-    </div>
+    <AdminPageContainer
+      title="Analytics"
+      subtitle="Search trends, content performance, and usage insights."
+    >
+      <p>Analytics charts will be added in a later phase.</p>
+    </AdminPageContainer>
   );
 }
