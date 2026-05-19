@@ -7,6 +7,7 @@ type FormProps = {
   password: string;
   setPassword: (password: string) => void;
   error: string;
+  loading?: boolean;
   handleLogin: () => void;
 };
 
@@ -16,10 +17,16 @@ export default function Form({
   password,
   setPassword,
   error,
+  loading = false,
   handleLogin,
 }: FormProps) {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!loading) handleLogin();
+  };
+
   return (
-    <section className={styles.form}>
+    <form className={styles.form} onSubmit={onSubmit}>
       <div className={styles.field}>
         <label htmlFor="email" className={styles.label}>
           Email
@@ -31,6 +38,8 @@ export default function Form({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className={styles.input}
+          autoComplete="email"
+          disabled={loading}
         />
       </div>
       <div className={styles.field}>
@@ -44,13 +53,15 @@ export default function Form({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className={styles.input}
+          autoComplete="current-password"
+          disabled={loading}
         />
       </div>
 
       {error && <p className={styles.error}>{error}</p>}
 
-      <button onClick={handleLogin} className={styles.loginButton}>
-        Sign In
+      <button type="submit" className={styles.loginButton} disabled={loading}>
+        {loading ? "Signing in…" : "Sign In"}
       </button>
       <p className={styles.forgot}>
         <span className={styles.label}>Forgot password?</span>
@@ -58,6 +69,6 @@ export default function Form({
           Reset here
         </Link>
       </p>
-    </section>
+    </form>
   );
 }

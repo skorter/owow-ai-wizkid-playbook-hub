@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   ChartArea,
@@ -10,7 +10,14 @@ import {
   User,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
+import {
+  getRoleDisplayLabel,
+  getStoredSessionUser,
+  logout,
+} from "@/lib/auth/session";
+import type { SessionUser } from "@/types/auth";
 import type { LucideIcon } from "lucide-react";
 import "../admin-tokens.css";
 import styles from "./AdminLayout.module.css";
@@ -56,11 +63,27 @@ type AdminLayoutProps = {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
+
+  useEffect(() => {
+    setSessionUser(getStoredSessionUser());
+  }, [pathname]);
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  const displayName = sessionUser?.fullName?.trim() || sessionUser?.email || "User";
+  const displayRole = sessionUser
+    ? getRoleDisplayLabel(sessionUser.role)
+    : "HR Admin";
 
   useEffect(() => {
     if (!sidebarOpen) return;
@@ -112,9 +135,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className={styles.profile}>
             <Link href="/admin/profile" className={styles.profileLink}>
               <User className={styles.profileIcon} aria-hidden />
-              <span className={styles.profileName}>John Doe</span>
-              <span className={styles.profileRole}>HR Admin</span>
+              <span className={styles.profileName}>{displayName}</span>
+              <span className={styles.profileRole}>{displayRole}</span>
             </Link>
+            <button
+              type="button"
+              className={styles.logoutBtn}
+              onClick={handleLogout}
+            >
+              <LogOut size={16} aria-hidden />
+              Log out
+            </button>
           </div>
         </div>
       </aside>
