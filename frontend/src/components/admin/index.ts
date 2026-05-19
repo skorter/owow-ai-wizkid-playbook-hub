@@ -11,3 +11,5 @@ export type { AdminButtonProps } from "./AdminButton/AdminButton";
 
 export { default as TopicsBarChart } from "./charts/TopicsBarChart";
 export { default as ContentDonutChart } from "./charts/ContentDonutChart";
+export { default as UsageTrendsChart } from "./charts/UsageTrendsChart";
+export { default as PeakHoursChart } from "./charts/PeakHoursChart";

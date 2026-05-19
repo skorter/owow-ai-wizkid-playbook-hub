@@ -1,5 +1,12 @@
 import type { LucideIcon } from "lucide-react";
-import { TrendingUp, Users, FileText, AlertCircle } from "lucide-react";
+import {
+  TrendingUp,
+  Users,
+  FileText,
+  AlertCircle,
+  Timer,
+  AlertTriangle,
+} from "lucide-react";
 import type { MetricIconTone, MetricTrend } from "@/components/admin/AdminMetricCard/AdminMetricCard";
 import type { AdminBadgeColor } from "@/components/admin/AdminStatusBadge/AdminStatusBadge";
 
@@ -150,3 +157,147 @@ export const dashboardRecentArticles: DashboardRecentArticle[] = [
 ];
 
 export const missingInfoPendingCount = 3;
+
+// ——— Analytics page ———
+
+export type AnalyticsMetric = DashboardMetric;
+
+export type UsageTrendPoint = {
+  label: string;
+  searches: number;
+  activeUsers: number;
+};
+
+export type PeakHourPoint = {
+  label: string;
+  value: number;
+  showLabel?: boolean;
+};
+
+export type AnalyticsUnansweredQuestion = {
+  id: string;
+  question: string;
+  category: string;
+  categoryColor: AdminBadgeColor;
+  failedAttempts: number;
+};
+
+export type PerformanceCard = {
+  id: string;
+  title: string;
+  subtitle: string;
+  value: string;
+  accent: "green" | "cyan" | "purple";
+};
+
+export const analyticsMetrics: AnalyticsMetric[] = [
+  {
+    id: "search-success",
+    icon: TrendingUp,
+    value: "87%",
+    label: "Avg Search Success",
+    iconTone: "green",
+  },
+  {
+    id: "response-time",
+    icon: Timer,
+    value: "1.2s",
+    label: "Avg Response Time",
+    iconTone: "cyan",
+  },
+  {
+    id: "daily-users",
+    icon: Users,
+    value: "42",
+    label: "Daily Active Users",
+    iconTone: "yellow",
+  },
+  {
+    id: "unanswered",
+    icon: AlertTriangle,
+    value: "18",
+    label: "Unanswered",
+    iconTone: "orange",
+  },
+];
+
+export const usageTrendsData: UsageTrendPoint[] = [
+  { label: "Apr 29", searches: 45, activeUsers: 28 },
+  { label: "Apr 30", searches: 52, activeUsers: 31 },
+  { label: "May 1", searches: 48, activeUsers: 29 },
+  { label: "May 2", searches: 61, activeUsers: 35 },
+  { label: "May 3", searches: 55, activeUsers: 33 },
+  { label: "May 4", searches: 68, activeUsers: 38 },
+  { label: "May 5", searches: 72, activeUsers: 42 },
+];
+
+export const USAGE_TRENDS_Y_MAX = 80;
+export const USAGE_TRENDS_Y_TICKS = [0, 20, 40, 60, 80];
+
+export const peakHoursChartData: PeakHourPoint[] = [
+  { label: "10 AM", value: 45, showLabel: true },
+  { label: "11 AM", value: 62, showLabel: false },
+  { label: "12 PM", value: 78, showLabel: true },
+  { label: "1 PM", value: 35, showLabel: false },
+  { label: "2 PM", value: 28, showLabel: true },
+  { label: "3 PM", value: 72, showLabel: false },
+  { label: "4 PM", value: 58, showLabel: true },
+];
+
+export const PEAK_HOURS_Y_MAX = 80;
+export const PEAK_HOURS_Y_TICKS = [0, 20, 40, 60, 80];
+
+export const analyticsUnansweredQuestions: AnalyticsUnansweredQuestion[] = [
+  {
+    id: "auq-1",
+    question: "What's the parental leave duration?",
+    category: "HR",
+    categoryColor: "blue",
+    failedAttempts: 8,
+  },
+  {
+    id: "auq-2",
+    question: "How to set up VPN access?",
+    category: "Tools",
+    categoryColor: "orange",
+    failedAttempts: 6,
+  },
+  {
+    id: "auq-3",
+    question: "Annual bonus structure?",
+    category: "Benefits",
+    categoryColor: "green",
+    failedAttempts: 5,
+  },
+  {
+    id: "auq-4",
+    question: "Conference attendance policy?",
+    category: "Growth",
+    categoryColor: "purple",
+    failedAttempts: 4,
+  },
+];
+
+export const performanceCards: PerformanceCard[] = [
+  {
+    id: "perf-top",
+    title: "Top Performing",
+    subtitle: "HR & People category",
+    value: "+24%",
+    accent: "green",
+  },
+  {
+    id: "perf-growing",
+    title: "Fastest Growing",
+    subtitle: "Onboarding completion",
+    value: "76%",
+    accent: "cyan",
+  },
+  {
+    id: "perf-satisfaction",
+    title: "User Satisfaction",
+    subtitle: "Positive feedback rate",
+    value: "91%",
+    accent: "purple",
+  },
+];
