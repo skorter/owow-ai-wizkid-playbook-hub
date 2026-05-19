@@ -2,6 +2,7 @@
 
 import styles from "./layout.module.css";
 import Sidebar from "@/components/ui/Sidebar/Sidebar";
+import PlaybookAuthGuard from "@/components/ui/PlaybookAuthGuard";
 
 export default function PlaybookLayout({
   children,
@@ -9,11 +10,13 @@ export default function PlaybookLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={styles.layout}>
-      <div className={styles.sidebar}>
-        <Sidebar />
+    <PlaybookAuthGuard>
+      <div className={styles.layout}>
+        <div className={styles.sidebar}>
+          <Sidebar />
+        </div>
+        <div className={styles.content}>{children}</div>
       </div>
-      <div className={styles.content}>{children}</div>
-    </div>
+    </PlaybookAuthGuard>
   );
 }
