@@ -29,16 +29,14 @@
   color: #fff;
 }
 
-.actions .action .lightbulbIcon,
-.actions .action .rotateCcwIcon {
+.actions .action .icon {
   color: #888;
   width: 16px;
   height: 16px;
   flex-shrink: 0;
 }
 
-.actions .action.active .lightbulbIcon,
-.actions .action.active .rotateCcwIcon {
+.actions .action.active .icon {
   color: #fff;
   flex-shrink: 0;
 }

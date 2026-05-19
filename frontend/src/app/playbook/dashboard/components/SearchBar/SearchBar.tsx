@@ -2,7 +2,7 @@ import styles from "./SearchBar.module.css";
 import { Search } from "lucide-react";
 
 type SearchBarProps = {
-  onSearch: (isSearching: boolean) => void;
+  onSearch: (query: string) => void;
 };
 
 export default function SearchBar({ onSearch }: SearchBarProps) {
@@ -12,10 +12,10 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
         type="text"
         placeholder="Ask anything about OWOW..."
         className={styles.input}
-        onChange={(e) => onSearch(e.target.value.length > 5)}
+        onChange={(e) => onSearch(e.target.value)}
       />
-      <button type="submit" className={styles.searchButton}>
-        <Search className={styles.searchIcon} />
+      <button type="button" className={styles.searchButton}>
+        <Search className={styles.icon} />
       </button>
     </label>
   );

@@ -5,7 +5,7 @@ export default function Tip() {
   return (
     <section className={styles.proTip}>
       <p className={styles.title}>
-        <Lightbulb className={styles.lightbulbIcon} />
+        <Lightbulb className={styles.icon} />
         Pro Tip
       </p>
       <p className={styles.description}>

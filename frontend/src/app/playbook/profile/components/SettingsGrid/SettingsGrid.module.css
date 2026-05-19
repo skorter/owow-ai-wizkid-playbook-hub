@@ -21,10 +21,7 @@
   gap: 0.75rem;
 }
 
-.settingsGrid .card .header .sunIcon,
-.settingsGrid .card .header .shieldIcon,
-.settingsGrid .card .header .globeIcon,
-.settingsGrid .card .header .accessibilityIcon {
+.settingsGrid .card .header .icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;

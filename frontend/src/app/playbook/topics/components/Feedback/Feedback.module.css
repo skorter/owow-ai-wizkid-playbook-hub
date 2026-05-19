@@ -20,11 +20,11 @@
   color: #fff;
 }
 
-.feedback .subtitle {
+.feedback .description {
   color: #888;
 }
 
-.feedback .button {
+.feedback .submitButton {
   background-color: #ffd500;
   border: none;
   border-radius: 0.75rem;
@@ -35,7 +35,7 @@
   transition: opacity 0.2s ease;
 }
 
-.feedback .button:hover {
+.feedback .submitButton:hover {
   opacity: 0.9;
 }
 
@@ -45,6 +45,6 @@
   color: #fff;
 }
 
-.feedback .description {
+.feedback .subtitle {
   color: #888;
 }

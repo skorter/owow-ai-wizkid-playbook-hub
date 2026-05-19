@@ -73,7 +73,7 @@
   justify-content: flex-end;
 }
 
-.modal .content .actions .cancel {
+.modal .content .actions .cancelButton {
   background: none;
   border: 1px solid #333;
   border-radius: 0.5rem;
@@ -82,12 +82,12 @@
   cursor: pointer;
 }
 
-.modal .content .actions .cancel:hover {
+.modal .content .actions .cancelButton:hover {
   border-color: #fff;
   color: #fff;
 }
 
-.modal .content .actions .submit {
+.modal .content .actions .submitButton {
   background-color: #ffd500;
   border: none;
   border-radius: 0.5rem;
@@ -97,6 +97,6 @@
   cursor: pointer;
 }
 
-.modal .content .actions .submit:hover {
+.modal .content .actions .submitButton:hover {
   opacity: 0.9;
 }

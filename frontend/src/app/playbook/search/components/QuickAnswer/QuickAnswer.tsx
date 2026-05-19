@@ -18,21 +18,21 @@ export default function QuickAnswer({
   return (
     <div className={styles.quickAnswer}>
       <div className={styles.header}>
-        <Sparkles className={styles.sparklesIcon} />
+        <Sparkles className={styles.icon} />
         <h2 className={styles.title}>Quick Answer</h2>
         <p className={styles.answer}>{quickAnswer.answer}</p>
       </div>
       <div className={styles.feedback}>
         <p className={styles.label}>Was this answer helpful?</p>
-        <div className={styles.buttons}>
+        <div className={styles.actions}>
           <button className={styles.yesButton} onClick={onThumbsUp}>
             <ThumbsUp
-              className={`${styles.thumbsUpIcon} ${thumbsUp ? styles.active : ""}`}
+              className={`${styles.icon} ${thumbsUp ? styles.active : ""}`}
             />
           </button>
           <button className={styles.noButton} onClick={onThumbsDown}>
             <ThumbsDown
-              className={`${styles.thumbsDownIcon} ${thumbsDown ? styles.active : ""}`}
+              className={`${styles.icon} ${thumbsDown ? styles.active : ""}`}
             />
           </button>
         </div>

@@ -25,16 +25,16 @@ export default function ArticleList({
         >
           <Link
             href={`/playbook/${article.slug}?from=onboarding`}
-            className={styles.articleLink}
+            className={styles.link}
             onClick={() => onToggle(article.slug)}
           >
             {completedArticles.includes(article.slug) ? (
-              <CheckCircle className={styles.checkIcon} />
+              <CheckCircle className={styles.icon} />
             ) : (
-              <Circle className={styles.circleIcon} />
+              <Circle className={styles.icon} />
             )}
-            <span>{article.label}</span>
-            <ArrowRight className={styles.arrowRightIcon} />
+            <span className={styles.label}>{article.label}</span>
+            <ArrowRight className={styles.icon} />
           </Link>
         </li>
       ))}

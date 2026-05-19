@@ -18,9 +18,9 @@ export default function FeedbackModal({
 
   return (
     <div className={styles.modal}>
-      <div className={styles.modalContent}>
-        <h3 className={styles.modalTitle}>What are you looking for?</h3>
-        <p className={styles.modalSubtitle}>
+      <div className={styles.content}>
+        <h3 className={styles.title}>What are you looking for?</h3>
+        <p className={styles.description}>
           We'll review your request and add it to the Playbook.
         </p>
         <textarea
@@ -30,14 +30,14 @@ export default function FeedbackModal({
           value={feedbackValue}
           onChange={(e) => setFeedbackValue(e.target.value)}
         />
-        <div className={styles.modalActions}>
+        <div className={styles.actions}>
           <button className={styles.cancelButton} onClick={onClose}>
             Cancel
           </button>
           <button
             className={styles.submitButton}
             onClick={() => {
-              onSubmit(feedbackValue);
+                onSubmit(feedbackValue);
               setFeedbackValue("");
             }}
           >

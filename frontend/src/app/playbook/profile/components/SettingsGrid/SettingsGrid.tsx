@@ -21,7 +21,7 @@ export default function SettingsGrid() {
     <section className={styles.settingsGrid}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <Sun className={styles.sunIcon} />
+          <Sun className={`${styles.icon} ${styles.sunIcon}`} />
           <h3 className={styles.title}>Appearance</h3>
         </div>
         <div className={styles.themeButtons}>
@@ -54,7 +54,7 @@ export default function SettingsGrid() {
 
       <div className={styles.card}>
         <div className={styles.header}>
-          <Shield className={styles.shieldIcon} />
+          <Shield className={`${styles.icon} ${styles.shieldIcon}`} />
           <h3 className={styles.title}>Privacy & Security</h3>
         </div>
         <div className={styles.links}>
@@ -74,7 +74,7 @@ export default function SettingsGrid() {
 
       <div className={styles.card}>
         <div className={styles.header}>
-          <Globe className={styles.globeIcon} />
+          <Globe className={`${styles.icon} ${styles.globeIcon}`} />
           <h3 className={styles.title}>Language & Region</h3>
         </div>
         <div className={styles.fields}>
@@ -100,7 +100,9 @@ export default function SettingsGrid() {
 
       <div className={styles.card}>
         <div className={styles.header}>
-          <Accessibility className={styles.accessibilityIcon} />
+          <Accessibility
+            className={`${styles.icon} ${styles.accessibilityIcon}`}
+          />
           <h3 className={styles.title}>Accessibility</h3>
         </div>
         <div className={styles.toggles}>

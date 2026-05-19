@@ -6,7 +6,7 @@
   height: 100%;
 }
 
-.content {
+.onboardingPage .content {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -14,7 +14,7 @@
   flex: 1;
 }
 
-.stepCard {
+.onboardingPage .content .card {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -24,40 +24,40 @@
   padding: 2rem;
 }
 
-.stepCard .stepHeader .stepTitleRow {
+.onboardingPage .content .card .header .information {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 1rem;
 }
 
-.stepCard .stepHeader .stepTitleRow .stepIcon {
+.onboardingPage .content .card .header .information .icon {
   width: 32px;
   height: 32px;
   color: #ffd500;
   flex-shrink: 0;
 }
 
-.stepCard .stepHeader .stepTitleRow .stepTitle {
+.onboardingPage .content .card .header .information .title {
   font-size: 1.25rem;
   font-weight: 700;
   color: #fff;
 }
 
-.stepCard .stepHeader .stepTitleRow .stepCount {
+.onboardingPage .content .card .header .information .subtitle {
   font-size: 0.85rem;
   color: #888;
   margin-top: 0.25rem;
 }
 
-.stepCard .navigation {
+.onboardingPage .content .card .navigation {
   display: flex;
   flex-direction: row;
   gap: 1rem;
   justify-content: flex-end;
 }
 
-.stepCard .navigation .prevButton {
+.onboardingPage .content .card .navigation .previousButton {
   background: none;
   border: 1px solid #333;
   border-radius: 0.5rem;
@@ -68,12 +68,12 @@
   transition: all 0.2s ease;
 }
 
-.stepCard .navigation .prevButton:hover {
+.onboardingPage .content .card .navigation .previousButton:hover {
   border-color: #fff;
   color: #fff;
 }
 
-.stepCard .navigation .nextButton {
+.onboardingPage .content .card .navigation .nextButton {
   background-color: #ffd500;
   border: none;
   border-radius: 0.5rem;
@@ -86,17 +86,17 @@
   transition: opacity 0.2s ease;
 }
 
-.stepCard .navigation .nextButton:hover {
+.onboardingPage .content .card .navigation .nextButton:hover {
   opacity: 0.9;
 }
 
-.stepCard .navigation .nextButton:disabled,
-.stepCard .navigation .completeButton:disabled {
+.onboardingPage .content .card .navigation .nextButton:disabled,
+.onboardingPage .content .card .navigation .completeButton:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.stepCard .navigation .completeButton {
+.onboardingPage .content .card .navigation .completeButton {
   background-color: #ffd500;
   border: none;
   border-radius: 0.5rem;
@@ -109,6 +109,6 @@
   transition: opacity 0.2s ease;
 }
 
-.stepCard .navigation .completeButton:hover {
+.onboardingPage .content .card .navigation .completeButton:hover {
   opacity: 0.9;
 }

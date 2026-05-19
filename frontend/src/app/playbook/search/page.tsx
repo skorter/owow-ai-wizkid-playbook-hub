@@ -14,6 +14,7 @@ export default function SearchPage() {
   const [suggestedQuestionsOpen, setSuggestedQuestionsOpen] = useState(false);
   const [recentActivityOpen, setRecentActivityOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [extendedAnswerOpen, setExtendedAnswerOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [thumbsUpClicked, setThumbsUpClicked] = useState(false);
@@ -24,7 +25,12 @@ export default function SearchPage() {
     >
       <section className={styles.hero}>
         {!isSearching && <Greeting />}
-        <SearchBar onSearch={setIsSearching} />
+        <SearchBar
+          onSearch={(query) => {
+            setSearchQuery(query);
+            setIsSearching(query.length > 5);
+          }}
+        />
         {!isSearching && (
           <ActionButtons
             suggestedOpen={suggestedQuestionsOpen}

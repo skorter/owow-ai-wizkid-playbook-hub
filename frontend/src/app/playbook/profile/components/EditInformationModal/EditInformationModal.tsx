@@ -85,11 +85,11 @@ export default function EditInformationModal({
           </div>
         </div>
         <div className={styles.actions}>
-          <button className={styles.cancel} onClick={onClose}>
+          <button className={styles.cancelButton} onClick={onClose}>
             Cancel
           </button>
           <button
-            className={styles.submit}
+            className={styles.submitButton}
             onClick={() => onSubmit({ fullName, email, department, role })}
           >
             Save Changes

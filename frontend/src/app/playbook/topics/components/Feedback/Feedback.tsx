@@ -12,17 +12,20 @@ export default function Feedback() {
       {!feedbackSubmitted ? (
         <>
           <h2 className={styles.title}>Can't find what you're looking for?</h2>
-          <p className={styles.subtitle}>
+          <p className={styles.description}>
             Let us know and we'll make sure to add it to the Playbook.
           </p>
-          <button className={styles.button} onClick={() => setModalOpen(true)}>
+          <button
+            className={styles.submitButton}
+            onClick={() => setModalOpen(true)}
+          >
             Submit a request
           </button>
         </>
       ) : (
         <>
           <h2 className={styles.label}>Thank you for your feedback!</h2>
-          <p className={styles.description}>
+          <p className={styles.subtitle}>
             We appreciate your input and will review your request.
           </p>
         </>

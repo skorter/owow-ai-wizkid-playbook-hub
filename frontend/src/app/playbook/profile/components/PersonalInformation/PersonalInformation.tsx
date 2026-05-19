@@ -6,27 +6,27 @@ export default function PersonalInformation() {
   return (
     <section className={styles.personalInformation}>
       <div className={styles.header}>
-        <User className={styles.userIcon} />
+        <User className={styles.icon} />
         <h2 className={styles.title}>Personal Information</h2>
       </div>
       <div className={styles.metadata}>
         <article className={styles.data}>
-          <Mail className={styles.mailIcon} />
+          <Mail className={styles.icon} />
           <p className={styles.label}>Email</p>
           <p className={styles.value}>{user.email}</p>
         </article>
         <article className={styles.data}>
-          <Building2 className={styles.buildingIcon} />
+          <Building2 className={styles.icon} />
           <p className={styles.label}>Department</p>
           <p className={styles.value}>{user.department}</p>
         </article>
         <article className={styles.data}>
-          <Briefcase className={styles.briefcaseIcon} />
+          <Briefcase className={styles.icon} />
           <p className={styles.label}>Role</p>
           <p className={styles.value}>{user.role}</p>
         </article>
         <article className={styles.data}>
-          <Calendar className={styles.calendarIcon} />
+          <Calendar className={styles.icon} />
           <p className={styles.label}>Start Date</p>
           <p className={styles.value}>{user.startDate}</p>
         </article>

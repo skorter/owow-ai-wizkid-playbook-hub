@@ -15,7 +15,7 @@
   gap: 0.75rem;
 }
 
-.personalInformation .header .userIcon {
+.personalInformation .header .icon {
   width: 20px;
   height: 20px;
   color: #ffd500;
@@ -46,10 +46,7 @@
   border-radius: 0.75rem;
 }
 
-.personalInformation .metadata .data .mailIcon,
-.personalInformation .metadata .data .buildingIcon,
-.personalInformation .metadata .data .briefcaseIcon,
-.personalInformation .metadata .data .calendarIcon {
+.personalInformation .metadata .data .icon {
   grid-row: span 2;
   align-self: center;
   width: 16px;
