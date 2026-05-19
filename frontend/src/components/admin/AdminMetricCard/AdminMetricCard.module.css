@@ -1,0 +1,124 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.35rem 1.5rem;
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: rgba(255, 213, 0, 0.45);
+  box-shadow: 0 0 24px var(--admin-yellow-glow);
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--admin-radius-sm);
+  background-color: rgba(255, 213, 0, 0.08);
+  color: var(--admin-yellow);
+}
+
+.iconWrapCyan {
+  background-color: rgba(34, 211, 238, 0.1);
+  color: var(--admin-accent-cyan);
+}
+
+.iconWrapGreen {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--admin-accent-green);
+}
+
+.iconWrapOrange {
+  background-color: rgba(249, 115, 22, 0.1);
+  color: var(--admin-accent-orange);
+}
+
+.iconWrapPurple {
+  background-color: rgba(168, 85, 247, 0.1);
+  color: var(--admin-accent-purple);
+}
+
+.iconWrapRed {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: var(--admin-accent-red);
+}
+
+.notificationDot {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--admin-accent-red);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.25;
+}
+
+.valueRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--admin-text);
+  font-family: var(--font-geist-sans), sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.label {
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--font-geist-sans), sans-serif;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+}
+
+.trendUp {
+  color: var(--admin-accent-green);
+  background-color: rgba(34, 197, 94, 0.12);
+}
+
+.trendDown {
+  color: var(--admin-accent-red);
+  background-color: rgba(239, 68, 68, 0.12);
+}
+
+.trendNeutral {
+  color: var(--admin-text-secondary);
+  background-color: rgba(188, 188, 188, 0.1);
+}
+
+.trendIcon {
+  width: 14px;
+  height: 14px;
+}

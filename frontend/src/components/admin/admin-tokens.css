@@ -1,0 +1,24 @@
+/* Shared design tokens for HR/Admin UI — matches OWOW dark SaaS style */
+:root {
+  --admin-bg: #0a0a0a;
+  --admin-surface: #161616;
+  --admin-surface-hover: #1c1c1c;
+  --admin-border: #262626;
+  --admin-border-muted: #1f1f1f;
+  --admin-yellow: #ffd500;
+  --admin-yellow-glow: rgba(255, 213, 0, 0.15);
+  --admin-text: #ffffff;
+  --admin-text-secondary: #bcbcbc;
+  --admin-text-muted: #888888;
+  --admin-radius-sm: 0.5rem;
+  --admin-radius-md: 0.75rem;
+  --admin-radius-lg: 1rem;
+  --admin-sidebar-width: 280px;
+  --admin-content-max-width: 1400px;
+  --admin-accent-cyan: #22d3ee;
+  --admin-accent-green: #22c55e;
+  --admin-accent-orange: #f97316;
+  --admin-accent-purple: #a855f7;
+  --admin-accent-red: #ef4444;
+  --admin-accent-blue: #3b82f6;
+}
