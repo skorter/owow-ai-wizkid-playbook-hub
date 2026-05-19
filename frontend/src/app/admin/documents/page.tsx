@@ -20,7 +20,6 @@ import CategoryFormModal, {
 import HubToast from "@/components/admin/documents/HubToast";
 import {
   documentStats,
-  contentCategories,
   onboardingSteps,
   missingInfoRequests,
   documentFilterStatuses,
@@ -37,7 +36,6 @@ import type {
 import type { AdminBadgeColor } from "@/components/admin/AdminStatusBadge/AdminStatusBadge";
 import {
   fetchAdminArticles,
-  fetchArticleCategories,
   createArticle,
   updateArticle,
   deleteArticle as deleteArticleApi,
@@ -48,6 +46,13 @@ import {
   type ArticleWritePayload,
   type AdminArticlesQuery,
 } from "@/lib/mappers/articles";
+import {
+  fetchContentCategoriesWithCounts,
+  createCategory,
+  updateCategory,
+  deleteCategory as deleteCategoryApi,
+  toArticleCategoryOptions,
+} from "@/lib/mappers/categories";
 import { ApiError } from "@/lib/api";
 import {
   Plus,
@@ -71,6 +76,7 @@ import styles from "./page.module.css";
 type ViewMode = "list" | "grid";
 type DrawerMode = "create" | "edit" | "preview" | null;
 type ArticlesLoadState = "loading" | "error" | "ready";
+type CategoriesLoadState = "loading" | "error" | "ready";
 
 function isArticleTab(tab: ManagementTabId): boolean {
   return tab === "articles" || tab === "drafts" || tab === "archived";
@@ -129,7 +135,12 @@ export default function DocumentsPage() {
   const [activeTab, setActiveTab] = useState<ManagementTabId>("articles");
   const [articles, setArticles] = useState<AdminDocument[]>([]);
   const [articleCategories, setArticleCategories] = useState<ArticleCategoryOption[]>([]);
-  const [categories, setCategories] = useState<ContentCategory[]>(contentCategories);
+  const [categories, setCategories] = useState<ContentCategory[]>([]);
+  const [categoriesLoadState, setCategoriesLoadState] = useState<CategoriesLoadState>("loading");
+  const [categoriesError, setCategoriesError] = useState("");
+  const [savingCategory, setSavingCategory] = useState(false);
+  const [categoryModalMode, setCategoryModalMode] = useState<"create" | "edit">("create");
+  const [editingCategory, setEditingCategory] = useState<ContentCategory | null>(null);
   const [onboarding, setOnboarding] = useState<OnboardingStep[]>(onboardingSteps);
   const [missingRequests, setMissingRequests] =
     useState<MissingInfoRequest[]>(missingInfoRequests);
@@ -187,33 +198,101 @@ export default function DocumentsPage() {
     }
   }, [activeTab, categoryFilter, statusFilter, searchQuery, articleCategories]);
 
+  const loadCategories = useCallback(async () => {
+    try {
+      const list = await fetchContentCategoriesWithCounts();
+      setCategories(list);
+      setArticleCategories(toArticleCategoryOptions(list));
+      setCategoryFilter((prev) =>
+        prev === "All categories" || list.some((c) => c.name === prev)
+          ? prev
+          : "All categories",
+      );
+      setCategoriesLoadState("ready");
+      setCategoriesError("");
+    } catch (err) {
+      setCategories([]);
+      setArticleCategories([]);
+      setCategoriesLoadState("error");
+      setCategoriesError(
+        err instanceof ApiError
+          ? err.message
+          : "Could not load categories. Please try again.",
+      );
+    }
+  }, []);
+
+  const retryLoadCategories = useCallback(() => {
+    setCategoriesLoadState("loading");
+    void loadCategories();
+  }, [loadCategories]);
+
   useEffect(() => {
     let cancelled = false;
 
-    async function loadCategories() {
+    async function loadInitialCategories() {
       try {
-        const cats = await fetchArticleCategories();
-        if (!cancelled) {
-          setArticleCategories(cats);
-          setCategoryFilter((prev) =>
-            prev === "All categories" || cats.some((c) => c.name === prev)
-              ? prev
-              : "All categories",
-          );
-        }
-      } catch {
-        if (!cancelled) {
-          setArticleCategories([]);
-        }
+        const list = await fetchContentCategoriesWithCounts();
+        if (cancelled) return;
+        setCategories(list);
+        setArticleCategories(toArticleCategoryOptions(list));
+        setCategoryFilter((prev) =>
+          prev === "All categories" || list.some((c) => c.name === prev)
+            ? prev
+            : "All categories",
+        );
+        setCategoriesLoadState("ready");
+        setCategoriesError("");
+      } catch (err) {
+        if (cancelled) return;
+        setCategories([]);
+        setArticleCategories([]);
+        setCategoriesLoadState("error");
+        setCategoriesError(
+          err instanceof ApiError
+            ? err.message
+            : "Could not load categories. Please try again.",
+        );
       }
     }
 
-    loadCategories();
+    void loadInitialCategories();
 
     return () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== "categories") return;
+
+    let cancelled = false;
+
+    async function refreshCategoriesTab() {
+      try {
+        const list = await fetchContentCategoriesWithCounts();
+        if (cancelled) return;
+        setCategories(list);
+        setArticleCategories(toArticleCategoryOptions(list));
+        setCategoriesLoadState("ready");
+        setCategoriesError("");
+      } catch (err) {
+        if (cancelled) return;
+        setCategoriesLoadState("error");
+        setCategoriesError(
+          err instanceof ApiError
+            ? err.message
+            : "Could not load categories. Please try again.",
+        );
+      }
+    }
+
+    void refreshCategoriesTab();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
 
   useEffect(() => {
     if (!isArticleTab(activeTab)) return undefined;
@@ -307,20 +386,98 @@ export default function DocumentsPage() {
     );
   };
 
-  const handleCreateCategory = (form: CategoryFormState) => {
-    const newCat: ContentCategory = {
-      id: `cat-${Date.now()}`,
-      name: form.name || "New category",
-      slug: form.slug || "new",
-      description: form.description,
-      articleCount: 0,
-      color: form.color,
-      accentHex: form.accentHex,
-      status: form.visibility,
-    };
-    setCategories((prev) => [...prev, newCat]);
+  const applyCategoryUiOverrides = (
+    category: ContentCategory,
+    form: CategoryFormState,
+    articleCount?: number,
+  ): ContentCategory => ({
+    ...category,
+    articleCount: articleCount ?? category.articleCount,
+    description: form.description,
+    color: form.color,
+    accentHex: form.accentHex,
+    status: form.visibility,
+  });
+
+  const openCreateCategoryModal = () => {
+    setEditingCategory(null);
+    setCategoryModalMode("create");
+    setCategoryModalOpen(true);
+  };
+
+  const openEditCategoryModal = (category: ContentCategory) => {
+    setEditingCategory(category);
+    setCategoryModalMode("edit");
+    setCategoryModalOpen(true);
+  };
+
+  const closeCategoryModal = () => {
     setCategoryModalOpen(false);
-    showToast("Category created");
+    setEditingCategory(null);
+  };
+
+  const handleSubmitCategory = async (form: CategoryFormState) => {
+    const payload = {
+      name: form.name.trim(),
+      slug: form.slug.trim(),
+    };
+
+    setSavingCategory(true);
+    try {
+      if (categoryModalMode === "edit" && editingCategory) {
+        const updated = await updateCategory(editingCategory.id, payload);
+        const withUi = applyCategoryUiOverrides(
+          { ...updated, articleCount: editingCategory.articleCount },
+          form,
+        );
+        setCategories((prev) =>
+          prev.map((c) => (c.id === editingCategory.id ? withUi : c)),
+        );
+        showToast("Category updated");
+      } else {
+        const created = await createCategory(payload);
+        const withUi = applyCategoryUiOverrides(created, form, 0);
+        setCategories((prev) => [...prev, withUi]);
+        showToast("Category created");
+      }
+
+      await loadCategories();
+      closeCategoryModal();
+    } catch (err) {
+      showToast(
+        err instanceof ApiError ? err.message : "Could not save category. Please try again.",
+      );
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  const handleDeleteCategory = async (category: ContentCategory) => {
+    if (
+      !window.confirm(
+        `Delete "${category.name}"? This cannot be undone. Categories with articles cannot be deleted.`,
+      )
+    ) {
+      return;
+    }
+
+    setSavingCategory(true);
+    try {
+      await deleteCategoryApi(category.id);
+      await loadCategories();
+      showToast(`"${category.name}" deleted`);
+    } catch (err) {
+      showToast(
+        err instanceof ApiError ? err.message : "Could not delete category. Please try again.",
+      );
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  const handleViewCategoryArticles = (category: ContentCategory) => {
+    setActiveTab("articles");
+    setCategoryFilter(category.name);
   };
 
   const publishDoc = async (doc: AdminDocument) => {
@@ -410,7 +567,7 @@ export default function DocumentsPage() {
       subtitle="Manage articles, categories, onboarding, and internal knowledge"
       actions={
         <div className={styles.headerActions}>
-          <AdminButton variant="secondary" icon={FolderPlus} onClick={() => setCategoryModalOpen(true)}>
+          <AdminButton variant="secondary" icon={FolderPlus} onClick={openCreateCategoryModal}>
             New Category
           </AdminButton>
           <AdminButton variant="primary" icon={Plus} onClick={openCreateArticle}>
@@ -546,7 +703,15 @@ export default function DocumentsPage() {
               />
             )}
             {activeTab === "categories" && (
-              <CategoriesList categories={categories} onAction={() => showToast("Category action saved locally")} />
+              <CategoriesList
+                categories={categories}
+                loading={categoriesLoadState === "loading"}
+                error={categoriesLoadState === "error" ? categoriesError : ""}
+                onRetry={retryLoadCategories}
+                onEdit={openEditCategoryModal}
+                onViewArticles={handleViewCategoryArticles}
+                onDelete={(cat) => void handleDeleteCategory(cat)}
+              />
             )}
             {activeTab === "onboarding" && (
               <OnboardingList steps={onboarding} onAction={() => showToast("Onboarding step updated")} />
@@ -602,8 +767,11 @@ export default function DocumentsPage() {
 
       <CategoryFormModal
         open={categoryModalOpen}
-        onClose={() => setCategoryModalOpen(false)}
-        onSubmit={handleCreateCategory}
+        mode={categoryModalMode}
+        initial={editingCategory}
+        saving={savingCategory}
+        onClose={closeCategoryModal}
+        onSubmit={handleSubmitCategory}
       />
 
       <HubToast message={toast.message} visible={toast.visible} />
@@ -844,11 +1012,42 @@ function RowActions({
 
 function CategoriesList({
   categories,
-  onAction,
+  loading = false,
+  error = "",
+  onRetry,
+  onEdit,
+  onViewArticles,
+  onDelete,
 }: {
   categories: ContentCategory[];
-  onAction: () => void;
+  loading?: boolean;
+  error?: string;
+  onRetry?: () => void;
+  onEdit: (category: ContentCategory) => void;
+  onViewArticles: (category: ContentCategory) => void;
+  onDelete: (category: ContentCategory) => void;
 }) {
+  if (loading) {
+    return <p className={styles.stateMessage}>Loading categories…</p>;
+  }
+
+  if (error) {
+    return (
+      <div className={styles.stateBlock}>
+        <p className={styles.stateError}>{error}</p>
+        {onRetry ? (
+          <AdminButton variant="primary" icon={RefreshCw} onClick={() => void onRetry()}>
+            Retry
+          </AdminButton>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (categories.length === 0) {
+    return <p className={styles.emptyState}>No categories yet. Create one with New Category.</p>;
+  }
+
   return (
     <div className={styles.hubTable}>
       <HubTableHead
@@ -863,22 +1062,27 @@ function CategoriesList({
               <span className={styles.rowTitle}>{cat.name}</span>
             </div>
             <span className={styles.cellMuted}>{cat.slug}</span>
-            <span className={styles.cellDesc}>{cat.description}</span>
+            <span className={styles.cellDesc}>{cat.description || "—"}</span>
             <span className={styles.cellViews}>{cat.articleCount}</span>
             <AdminStatusBadge color={cat.color}>{cat.name}</AdminStatusBadge>
             <AdminStatusBadge color={cat.status === "Active" ? "green" : "gray"}>
               {cat.status}
             </AdminStatusBadge>
             <div className={styles.rowActions}>
-              <button type="button" className={styles.actionBtn} onClick={onAction}>
+              <button type="button" className={styles.actionBtn} onClick={() => onEdit(cat)}>
                 <Pencil size={14} />
                 <span>Edit</span>
               </button>
-              <button type="button" className={styles.actionBtn} onClick={onAction}>
+              <button type="button" className={styles.actionBtn} onClick={() => onViewArticles(cat)}>
                 <Eye size={14} />
                 <span>View articles</span>
               </button>
-              <button type="button" className={`${styles.actionBtnIcon} ${styles.actionBtnDanger}`} onClick={onAction} aria-label="Delete">
+              <button
+                type="button"
+                className={`${styles.actionBtnIcon} ${styles.actionBtnDanger}`}
+                onClick={() => onDelete(cat)}
+                aria-label="Delete"
+              >
                 <Trash2 size={14} />
               </button>
             </div>
