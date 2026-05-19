@@ -27,16 +27,14 @@ export default function Steps({
           >
             <div className={styles.indicator}>
               {isStepCompleted(index) ? (
-                <CheckCircle className={styles.checkIcon} />
+                <CheckCircle className={styles.icon} />
               ) : (
-                <Circle className={styles.circleIcon} />
+                <Circle className={styles.icon} />
               )}
               <span className={styles.label}>Step {step.id}</span>
             </div>
           </button>
-          {index < steps.length - 1 && (
-            <ArrowRight className={styles.arrowRightIcon} />
-          )}
+          {index < steps.length - 1 && <ArrowRight className={styles.icon} />}
         </React.Fragment>
       ))}
     </section>

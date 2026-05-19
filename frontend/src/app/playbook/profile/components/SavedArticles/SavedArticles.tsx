@@ -7,7 +7,7 @@ export default function SavedArticles() {
   return (
     <section className={styles.savedArticles}>
       <div className={styles.header}>
-        <Bookmark className={styles.bookmarkIcon} />
+        <Bookmark className={styles.icon} />
         <h2 className={styles.title}>Saved Articles</h2>
       </div>
 
@@ -19,7 +19,7 @@ export default function SavedArticles() {
                 <p className={styles.label}>{article.label}</p>
                 <span className={styles.category}>{article.category}</span>
               </div>
-              <ArrowRight className={styles.arrowIcon} />
+              <ArrowRight className={styles.icon} />
             </Link>
           </li>
         ))}

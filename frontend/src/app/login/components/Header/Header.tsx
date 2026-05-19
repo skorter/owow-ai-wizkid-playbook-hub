@@ -4,7 +4,7 @@ import { Sparkles } from "lucide-react";
 export default function Header() {
   return (
     <section className={styles.header}>
-      <Sparkles className={styles.sparklesIcon} />
+      <Sparkles className={styles.icon} />
       <h2 className={styles.title}>
         <span className={styles.accent}>OWOW's</span> Playbook
       </h2>

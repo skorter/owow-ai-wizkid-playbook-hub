@@ -23,7 +23,7 @@ export default function ActionButtons({
           setRecentOpen(false);
         }}
       >
-        <Lightbulb className={styles.lightbulbIcon} />
+        <Lightbulb className={styles.icon} />
         Suggested Questions
       </button>
       <button
@@ -33,7 +33,7 @@ export default function ActionButtons({
           setSuggestedOpen(false);
         }}
       >
-        <RotateCcw className={styles.rotateCcwIcon} />
+        <RotateCcw className={styles.icon} />
         Recent Activity
       </button>
     </section>

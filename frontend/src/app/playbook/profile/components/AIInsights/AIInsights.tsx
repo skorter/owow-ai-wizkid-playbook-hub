@@ -6,7 +6,7 @@ export default function AIInsights() {
   return (
     <section className={styles.aiInsights}>
       <div className={styles.header}>
-        <TrendingUp className={styles.trendingIcon} />
+        <TrendingUp className={styles.icon} />
         <h2 className={styles.title}>AI Insights & Analytics</h2>
       </div>
       <div className={styles.grid}>

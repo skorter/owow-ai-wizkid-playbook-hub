@@ -22,7 +22,7 @@ export default function AISettings() {
   return (
     <section className={styles.aiSettings}>
       <div className={styles.header}>
-        <Bot className={styles.botIcon} />
+        <Bot className={styles.icon} />
         <h2 className={styles.title}>AI Assistant Settings</h2>
         <p className={styles.subtitle}>Configure your personal AI experience</p>
       </div>

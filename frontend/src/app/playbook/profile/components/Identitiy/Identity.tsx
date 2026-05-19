@@ -35,33 +35,33 @@ export default function Identity({ onEdit }: IdentityProps) {
       </div>
 
       <button className={styles.editButton} onClick={onEdit}>
-        <SquarePen /> Edit Profile
+        <SquarePen className={styles.icon} /> Edit Profile
       </button>
 
       <div className={styles.aiSummary}>
-        <Brain className={styles.brainIcon} />
+        <Brain className={styles.icon} />
         <h2 className={styles.label}>AI Profile Summary</h2>
         <p className={styles.description}>{user.aiSummary}</p>
       </div>
 
       <div className={styles.metadata}>
         <article className={styles.data}>
-          <Calendar className={styles.calendarIcon} />
+          <Calendar className={`${styles.icon} ${styles.calendarIcon}`} />
           <p className={styles.label}>Joined</p>
           <p className={styles.value}>{user.startDate}</p>
         </article>
         <article className={styles.data}>
-          <TrendingUp className={styles.trendingUpIcon} />
+          <TrendingUp className={`${styles.icon} ${styles.trendingUpIcon}`} />
           <p className={styles.label}>Onboarding</p>
           <p className={styles.value}>{user.onboardingProgress}%</p>
         </article>
         <article className={styles.data}>
-          <Sparkles className={styles.sparklesIcon} />
+          <Sparkles className={`${styles.icon} ${styles.sparklesIcon}`} />
           <p className={styles.label}>AI Searches</p>
           <p className={styles.value}>{user.aiSearches}</p>
         </article>
         <article className={styles.data}>
-          <Award className={styles.awardIcon} />
+          <Award className={`${styles.icon} ${styles.awardIcon}`} />
           <p className={styles.label}>Level</p>
           <p className={styles.value}>{user.level}</p>
         </article>

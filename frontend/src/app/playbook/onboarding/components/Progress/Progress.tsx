@@ -8,7 +8,7 @@ export default function Progress({ progress }: ProgressProps) {
   return (
     <section className={styles.progressBar}>
       <div className={styles.progress} style={{ width: `${progress}%` }} />
-      <span className={styles.progressLabel}>{progress}% completed</span>
+      <span className={styles.label}>{progress}% completed</span>
     </section>
   );
 }

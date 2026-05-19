@@ -15,7 +15,13 @@
   color: #ffd500;
 }
 
-.header .sparklesIcon {
+.header .description {
+  font-size: 1rem;
+  color: #888;
+  text-align: center;
+}
+
+.header .icon {
   width: 2rem;
   height: 2rem;
   color: #ffd500;

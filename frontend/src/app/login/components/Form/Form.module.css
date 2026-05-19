@@ -39,7 +39,7 @@
   border-color: #ffd500;
 }
 
-.error {
+.form .error {
   color: #ff4444;
   font-size: 0.85rem;
 }

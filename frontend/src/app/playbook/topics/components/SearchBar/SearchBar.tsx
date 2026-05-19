@@ -8,7 +8,7 @@ type SearchBarProps = {
 export default function SearchBar({ onSearch }: SearchBarProps) {
   return (
     <label className={styles.searchBar}>
-      <Search className={styles.searchIcon} />
+      <Search className={styles.icon} />
       <input
         type="text"
         placeholder="Search topics..."

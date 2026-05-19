@@ -14,7 +14,7 @@ export default function OnboardingProgress() {
   return (
     <section className={styles.onboardingProgress}>
       <div className={styles.header}>
-        <CircleDashed className={styles.circleDashedIcon} />
+        <CircleDashed className={styles.icon} />
         <h2 className={styles.title}>Onboarding Progress</h2>
       </div>
 
@@ -22,16 +22,16 @@ export default function OnboardingProgress() {
         <div className={styles.progressBar}>
           <div className={styles.progress} style={{ width: `${progress}%` }} />
         </div>
-        <p className={styles.progressLabel}>{progress}% complete</p>
+        <p className={styles.label}>{progress}% complete</p>
       </div>
 
       <div className={styles.steps}>
         {onboardingProgressSteps.map((step) => (
           <article key={step.label} className={styles.step}>
             {step.completed ? (
-              <CircleCheckBig className={styles.checkIcon} />
+              <CircleCheckBig className={`${styles.icon} ${styles.checkIcon}`} />
             ) : (
-              <Circle className={styles.circleIcon} />
+              <Circle className={`${styles.icon} ${styles.circleIcon}`} />
             )}
             <span
               className={`${styles.label} ${!step.completed ? styles.incomplete : ""}`}

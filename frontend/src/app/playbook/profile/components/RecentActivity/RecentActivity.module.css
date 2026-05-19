@@ -15,7 +15,7 @@
   gap: 0.75rem;
 }
 
-.recentActivity .header .historyIcon {
+.recentActivity .header .icon {
   width: 20px;
   height: 20px;
   color: #00d9ff;
@@ -55,25 +55,25 @@
   width: 100%;
 }
 
-.recentActivity .list .item .itemLink .typeIcon {
+.recentActivity .list .item .itemLink .icon {
   width: 16px;
   height: 16px;
   color: #888;
   flex-shrink: 0;
 }
 
-.recentActivity .list .item .itemLink .info {
+.recentActivity .list .item .itemLink .information {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
 }
 
-.recentActivity .list .item .itemLink .info .label {
+.recentActivity .list .item .itemLink .information .label {
   font-size: 0.9rem;
   color: #fff;
 }
 
-.recentActivity .list .item .itemLink .info .time {
+.recentActivity .list .item .itemLink .information .time {
   font-size: 0.75rem;
   color: #888;
 }

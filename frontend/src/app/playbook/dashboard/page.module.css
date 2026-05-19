@@ -13,3 +13,7 @@
   font-size: 0.9rem;
   margin-top: auto;
 }
+
+.dashboardPage.searching .footer {
+  display: none;
+}

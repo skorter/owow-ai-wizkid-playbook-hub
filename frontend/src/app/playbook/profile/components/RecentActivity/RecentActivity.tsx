@@ -7,7 +7,7 @@ export default function RecentActivity() {
   return (
     <section className={styles.recentActivity}>
       <div className={styles.header}>
-        <History className={styles.historyIcon} />
+        <History className={styles.icon} />
         <h2 className={styles.title}>Recent Activity</h2>
       </div>
 
@@ -16,8 +16,8 @@ export default function RecentActivity() {
           const Icon = activity.icon;
           const content = (
             <>
-              <Icon className={styles.typeIcon} />
-              <div className={styles.info}>
+              <Icon className={styles.icon} />
+              <div className={styles.information}>
                 <p className={styles.label}>{activity.label}</p>
                 <p className={styles.time}>{activity.time}</p>
               </div>

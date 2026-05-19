@@ -42,15 +42,15 @@ export default function OnboardingPage() {
       <Progress progress={progress} />
 
       <section className={styles.content}>
-        <div className={styles.stepCard}>
-          <div className={styles.stepHeader}>
-            <div className={styles.stepTitleRow}>
-              {CurrentIcon && <CurrentIcon className={styles.stepIcon} />}
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <div className={styles.information}>
+              {CurrentIcon && <CurrentIcon className={styles.icon} />}
               <div>
-                <h2 className={styles.stepTitle}>
+                <h2 className={styles.title}>
                   {onboardingSteps[currentStep].label}
                 </h2>
-                <p className={styles.stepCount}>
+                <p className={styles.subtitle}>
                   {
                     completedArticles.filter((slug) =>
                       onboardingSteps[currentStep].articles.some(
@@ -74,7 +74,7 @@ export default function OnboardingPage() {
           <div className={styles.navigation}>
             {currentStep > 0 && (
               <button
-                className={styles.prevButton}
+                className={styles.previousButton}
                 onClick={() => setCurrentStep(currentStep - 1)}
               >
                 Previous

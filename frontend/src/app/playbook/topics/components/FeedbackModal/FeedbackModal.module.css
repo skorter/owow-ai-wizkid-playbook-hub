@@ -8,7 +8,7 @@
   z-index: 50;
 }
 
-.modal .modalContent {
+.modal .content {
   background-color: #161616;
   border: 1px solid #262626;
   border-radius: 1rem;
@@ -19,18 +19,18 @@
   gap: 1rem;
 }
 
-.modal .modalContent .modalTitle {
+.modal .content .title {
   font-size: 1.25rem;
   font-weight: 700;
   color: #fff;
 }
 
-.modal .modalContent .modalSubtitle {
+.modal .content .description {
   color: #888;
   font-size: 0.9rem;
 }
 
-.modal .modalContent .textarea {
+.modal .content .textarea {
   background-color: #1e1e1e;
   border: 1px solid #333;
   border-radius: 0.5rem;
@@ -41,17 +41,17 @@
   resize: none;
 }
 
-.modal .modalContent .textarea:focus {
+.modal .content .textarea:focus {
   border-color: #ffd500;
 }
 
-.modal .modalContent .modalActions {
+.modal .content .actions {
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
 }
 
-.modal .modalContent .modalActions .cancelButton {
+.modal .content .actions .cancelButton {
   background: none;
   border: 1px solid #333;
   border-radius: 0.5rem;
@@ -60,12 +60,12 @@
   cursor: pointer;
 }
 
-.modal .modalContent .modalActions .cancelButton:hover {
+.modal .content .actions .cancelButton:hover {
   border-color: #fff;
   color: #fff;
 }
 
-.modal .modalContent .modalActions .submitButton {
+.modal .content .actions .submitButton {
   background-color: #ffd500;
   border: none;
   border-radius: 0.5rem;
