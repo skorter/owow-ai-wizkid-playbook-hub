@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AdminButton, AdminStatusBadge } from "@/components/admin";
 import HubDrawer from "./HubDrawer";
 import hubStyles from "./hub-ui.module.css";
 import type { AdminDocument, DocumentStatus } from "@/data/adminMockData";
-import { documentFilterCategories } from "@/data/adminMockData";
+import type { ArticleCategoryOption } from "@/lib/mappers/articles";
 
 export type ArticleFormState = {
   title: string;
   slug: string;
-  category: string;
+  categoryId: string;
   status: DocumentStatus;
   summary: string;
   content: string;
@@ -18,10 +18,10 @@ export type ArticleFormState = {
   linkedOnboarding: boolean;
 };
 
-const emptyForm = (): ArticleFormState => ({
+const emptyForm = (categories: ArticleCategoryOption[]): ArticleFormState => ({
   title: "",
   slug: "",
-  category: documentFilterCategories[1] ?? "HR",
+  categoryId: categories[0]?.id ?? "",
   status: "Draft",
   summary: "",
   content: "",
@@ -33,7 +33,7 @@ function docToForm(doc: AdminDocument): ArticleFormState {
   return {
     title: doc.title,
     slug: doc.slug,
-    category: doc.category,
+    categoryId: doc.categoryId ?? "",
     status: doc.status,
     summary: doc.summary,
     content: doc.content,
@@ -46,66 +46,72 @@ type ArticleFormDrawerProps = {
   open: boolean;
   mode: "create" | "edit";
   initial?: AdminDocument | null;
+  categories: ArticleCategoryOption[];
+  saving?: boolean;
   onClose: () => void;
-  onSaveDraft: (form: ArticleFormState) => void;
-  onPublish: (form: ArticleFormState) => void;
-  onArchive?: (form: ArticleFormState) => void;
+  onSaveDraft: (form: ArticleFormState) => void | Promise<void>;
+  onPublish: (form: ArticleFormState) => void | Promise<void>;
+  onArchive?: (form: ArticleFormState) => void | Promise<void>;
 };
 
-export function ArticleFormDrawer({
-  open,
+function resolveInitialForm(
+  initial: AdminDocument | null | undefined,
+  categories: ArticleCategoryOption[],
+): ArticleFormState {
+  return initial ? docToForm(initial) : emptyForm(categories);
+}
+
+type ArticleFormDrawerSessionProps = Omit<ArticleFormDrawerProps, "open">;
+
+function ArticleFormDrawerSession({
   mode,
   initial,
+  categories,
+  saving = false,
   onClose,
   onSaveDraft,
   onPublish,
   onArchive,
-}: ArticleFormDrawerProps) {
-  const [form, setForm] = useState<ArticleFormState>(emptyForm);
-
-  useEffect(() => {
-    if (open) {
-      setForm(initial ? docToForm(initial) : emptyForm());
-    }
-  }, [open, initial]);
+}: ArticleFormDrawerSessionProps) {
+  const [form, setForm] = useState<ArticleFormState>(() =>
+    resolveInitialForm(initial, categories),
+  );
 
   const set = (key: keyof ArticleFormState, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const categories = documentFilterCategories.filter((c) => c !== "All categories");
-
   const footer =
     mode === "create" ? (
       <>
-        <AdminButton variant="secondary" onClick={onClose}>
+        <AdminButton variant="secondary" onClick={onClose} disabled={saving}>
           Cancel
         </AdminButton>
-        <AdminButton variant="secondary" onClick={() => onSaveDraft(form)}>
-          Save Draft
+        <AdminButton variant="secondary" onClick={() => onSaveDraft(form)} disabled={saving}>
+          {saving ? "Saving…" : "Save Draft"}
         </AdminButton>
-        <AdminButton variant="primary" onClick={() => onPublish(form)}>
-          Publish Article
+        <AdminButton variant="primary" onClick={() => onPublish(form)} disabled={saving}>
+          {saving ? "Publishing…" : "Publish Article"}
         </AdminButton>
       </>
     ) : (
       <>
-        <AdminButton variant="secondary" onClick={onClose}>
+        <AdminButton variant="secondary" onClick={onClose} disabled={saving}>
           Cancel
         </AdminButton>
         {onArchive ? (
-          <AdminButton variant="secondary" onClick={() => onArchive(form)}>
+          <AdminButton variant="secondary" onClick={() => onArchive(form)} disabled={saving}>
             Archive
           </AdminButton>
         ) : null}
-        <AdminButton variant="primary" onClick={() => onPublish(form)}>
-          Save Changes
+        <AdminButton variant="primary" onClick={() => onPublish(form)} disabled={saving}>
+          {saving ? "Saving…" : "Save Changes"}
         </AdminButton>
       </>
     );
 
   return (
     <HubDrawer
-      open={open}
+      open
       title={mode === "create" ? "New Article" : "Edit Article"}
       subtitle={mode === "create" ? "Create knowledge base content" : initial?.title}
       onClose={onClose}
@@ -116,6 +122,38 @@ export function ArticleFormDrawer({
   );
 }
 
+export function ArticleFormDrawer({
+  open,
+  mode,
+  initial,
+  categories,
+  saving = false,
+  onClose,
+  onSaveDraft,
+  onPublish,
+  onArchive,
+}: ArticleFormDrawerProps) {
+  if (!open) {
+    return null;
+  }
+
+  const formSessionKey = `${mode}-${initial?.id ?? "new"}`;
+
+  return (
+    <ArticleFormDrawerSession
+      key={formSessionKey}
+      mode={mode}
+      initial={initial}
+      categories={categories}
+      saving={saving}
+      onClose={onClose}
+      onSaveDraft={onSaveDraft}
+      onPublish={onPublish}
+      onArchive={onArchive}
+    />
+  );
+}
+
 function ArticleFormFields({
   form,
   set,
@@ -123,7 +161,7 @@ function ArticleFormFields({
 }: {
   form: ArticleFormState;
   set: (key: keyof ArticleFormState, value: string | boolean) => void;
-  categories: string[];
+  categories: ArticleCategoryOption[];
 }) {
   return (
     <div className={hubStyles.formGrid}>
@@ -149,14 +187,19 @@ function ArticleFormFields({
           <span className={hubStyles.fieldLabel}>Category</span>
           <select
             className={hubStyles.fieldSelect}
-            value={form.category}
-            onChange={(e) => set("category", e.target.value)}
+            value={form.categoryId}
+            onChange={(e) => set("categoryId", e.target.value)}
+            disabled={categories.length === 0}
           >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
+            {categories.length === 0 ? (
+              <option value="">No categories available</option>
+            ) : (
+              categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))
+            )}
           </select>
         </label>
         <label className={hubStyles.field}>

@@ -322,6 +322,7 @@ export type AdminDocument = {
   title: string;
   slug: string;
   category: string;
+  categoryId?: string;
   categoryColor: AdminBadgeColor;
   status: DocumentStatus;
   statusColor: AdminBadgeColor;

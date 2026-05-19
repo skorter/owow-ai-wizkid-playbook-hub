@@ -9,6 +9,8 @@ export const endpoints = {
 
   articles: {
     list: "/api/articles",
+    adminAll: "/api/articles/admin/all",
+    adminById: (id: string) => `/api/articles/admin/${encodeURIComponent(id)}`,
     byId: (id: string) => `/api/articles/${encodeURIComponent(id)}`,
     bySlug: (slug: string) => `/api/articles/slug/${encodeURIComponent(slug)}`,
   },
