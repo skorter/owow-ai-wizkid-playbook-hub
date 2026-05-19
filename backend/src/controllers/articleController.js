@@ -17,6 +17,54 @@ async function getArticles(req, res, next) {
   }
 }
 
+async function getAdminArticles(req, res, next) {
+  try {
+    const filters = {
+      status: req.query.status,
+      category: req.query.category,
+      search: req.query.search,
+    };
+    const result = await articleService.getAdminArticles(filters);
+
+    if (result.error) {
+      return res.status(result.error.status).json({
+        success: false,
+        message: result.error.message,
+      });
+    }
+
+    const data = result.articles;
+    return res.status(200).json({
+      success: true,
+      data,
+      count: data.length,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getAdminArticle(req, res, next) {
+  try {
+    const { id } = req.params;
+    const result = await articleService.getAdminArticleById(id);
+
+    if (result.notFound) {
+      return res.status(404).json({
+        success: false,
+        message: "Article not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: result.article,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function getArticle(req, res, next) {
   try {
     const { id } = req.params;
@@ -125,6 +173,8 @@ async function deleteArticle(req, res, next) {
 
 module.exports = {
   getArticles,
+  getAdminArticles,
+  getAdminArticle,
   getArticle,
   getArticleBySlugParam,
   createArticle,
