@@ -93,6 +93,11 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
+import Pagination from "@/components/ui/Pagination/Pagination";
+import {
+  usePaginatedSlice,
+  type PaginatedSliceResult,
+} from "@/lib/hooks/usePaginatedSlice";
 import styles from "./page.module.css";
 
 type ViewMode = "list" | "grid";
@@ -222,6 +227,8 @@ export default function DocumentsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All categories");
+  const [pageSize, setPageSize] = useState(10);
+  const [listPageByScope, setListPageByScope] = useState<Record<string, number>>({});
   const [statusFilter, setStatusFilter] = useState(documentFilterStatuses[0]);
   const [sortBy, setSortBy] = useState(documentSortOptions[0]);
 
@@ -445,6 +452,19 @@ export default function DocumentsPage() {
     () => sortArticles(articles.filter((d) => d.status === "Archived"), sortBy),
     [articles, sortBy],
   );
+
+  const listPageScope = `${activeTab}|${searchQuery}|${categoryFilter}|${statusFilter}|${pageSize}`;
+  const listPage = listPageByScope[listPageScope] ?? 1;
+  const setListPage = (page: number) => {
+    setListPageByScope((prev) => ({ ...prev, [listPageScope]: page }));
+  };
+
+  const paginatedArticles = usePaginatedSlice(filteredArticles, listPage, pageSize);
+  const paginatedDrafts = usePaginatedSlice(draftDocs, listPage, pageSize);
+  const paginatedArchived = usePaginatedSlice(archivedDocs, listPage, pageSize);
+  const paginatedCategories = usePaginatedSlice(categories, listPage, pageSize);
+  const paginatedOnboarding = usePaginatedSlice(onboarding, listPage, pageSize);
+  const paginatedMissing = usePaginatedSlice(missingRequests, listPage, pageSize);
 
   const openCreateArticle = () => {
     setSelectedDoc(null);
@@ -1041,73 +1061,121 @@ export default function DocumentsPage() {
             </div>
 
             {activeTab === "articles" && (
-              <ArticlesList
-                docs={filteredArticles}
-                viewMode={viewMode}
-                variant="default"
-                onEdit={openEditArticle}
-                onPreview={openPreview}
-                onDelete={(doc) => void deleteDoc(doc)}
-                {...articleListProps}
-              />
+              <>
+                <ArticlesList
+                  docs={paginatedArticles.items}
+                  viewMode={viewMode}
+                  variant="default"
+                  onEdit={openEditArticle}
+                  onPreview={openPreview}
+                  onDelete={(doc) => void deleteDoc(doc)}
+                  {...articleListProps}
+                />
+                <HubPaginationBar
+                  result={paginatedArticles}
+                  pageSize={pageSize}
+                  onPageChange={setListPage}
+                  onPageSizeChange={setPageSize}
+                />
+              </>
             )}
             {activeTab === "drafts" && (
-              <ArticlesList
-                docs={draftDocs}
-                viewMode={viewMode}
-                variant="draft"
-                onEdit={openEditArticle}
-                onPreview={openPreview}
-                onPublish={(doc) => void publishDoc(doc)}
-                onDelete={(doc) => void deleteDoc(doc)}
-                {...articleListProps}
-              />
+              <>
+                <ArticlesList
+                  docs={paginatedDrafts.items}
+                  viewMode={viewMode}
+                  variant="draft"
+                  onEdit={openEditArticle}
+                  onPreview={openPreview}
+                  onPublish={(doc) => void publishDoc(doc)}
+                  onDelete={(doc) => void deleteDoc(doc)}
+                  {...articleListProps}
+                />
+                <HubPaginationBar
+                  result={paginatedDrafts}
+                  pageSize={pageSize}
+                  onPageChange={setListPage}
+                  onPageSizeChange={setPageSize}
+                />
+              </>
             )}
             {activeTab === "archived" && (
-              <ArticlesList
-                docs={archivedDocs}
-                viewMode={viewMode}
-                variant="archived"
-                onEdit={openEditArticle}
-                onPreview={openPreview}
-                onRestore={(doc) => void restoreDoc(doc)}
-                onDelete={(doc) => void deleteDoc(doc)}
-                {...articleListProps}
-              />
+              <>
+                <ArticlesList
+                  docs={paginatedArchived.items}
+                  viewMode={viewMode}
+                  variant="archived"
+                  onEdit={openEditArticle}
+                  onPreview={openPreview}
+                  onRestore={(doc) => void restoreDoc(doc)}
+                  onDelete={(doc) => void deleteDoc(doc)}
+                  {...articleListProps}
+                />
+                <HubPaginationBar
+                  result={paginatedArchived}
+                  pageSize={pageSize}
+                  onPageChange={setListPage}
+                  onPageSizeChange={setPageSize}
+                />
+              </>
             )}
             {activeTab === "categories" && (
-              <CategoriesList
-                categories={categories}
-                loading={categoriesLoadState === "loading"}
-                error={categoriesLoadState === "error" ? categoriesError : ""}
-                onRetry={retryLoadCategories}
-                onEdit={openEditCategoryModal}
-                onViewArticles={handleViewCategoryArticles}
-                onDelete={(cat) => void handleDeleteCategory(cat)}
-              />
+              <>
+                <CategoriesList
+                  categories={paginatedCategories.items}
+                  loading={categoriesLoadState === "loading"}
+                  error={categoriesLoadState === "error" ? categoriesError : ""}
+                  onRetry={retryLoadCategories}
+                  onEdit={openEditCategoryModal}
+                  onViewArticles={handleViewCategoryArticles}
+                  onDelete={(cat) => void handleDeleteCategory(cat)}
+                />
+                <HubPaginationBar
+                  result={paginatedCategories}
+                  pageSize={pageSize}
+                  onPageChange={setListPage}
+                  onPageSizeChange={setPageSize}
+                />
+              </>
             )}
             {activeTab === "onboarding" && (
-              <OnboardingList
-                steps={onboarding}
-                loading={onboardingLoadState === "loading"}
-                error={onboardingLoadState === "error" ? onboardingError : ""}
-                onRetry={retryLoadOnboarding}
-                onEdit={openEditOnboardingModal}
-                onPreview={openOnboardingPreview}
-                onToggleActive={(step) => void handleToggleOnboardingActive(step)}
-              />
+              <>
+                <OnboardingList
+                  steps={paginatedOnboarding.items}
+                  loading={onboardingLoadState === "loading"}
+                  error={onboardingLoadState === "error" ? onboardingError : ""}
+                  onRetry={retryLoadOnboarding}
+                  onEdit={openEditOnboardingModal}
+                  onPreview={openOnboardingPreview}
+                  onToggleActive={(step) => void handleToggleOnboardingActive(step)}
+                />
+                <HubPaginationBar
+                  result={paginatedOnboarding}
+                  pageSize={pageSize}
+                  onPageChange={setListPage}
+                  onPageSizeChange={setPageSize}
+                />
+              </>
             )}
             {activeTab === "missing" && (
-              <MissingRequestsList
-                requests={missingRequests}
-                loading={missingLoadState === "loading"}
-                error={missingLoadState === "error" ? missingError : ""}
-                saving={savingMissing}
-                onRetry={retryLoadMissingRequests}
-                onCreateArticle={openCreateArticle}
-                onMarkReviewed={(request) => void handleMarkMissingReviewed(request)}
-                onResolve={(request) => void handleResolveMissing(request)}
-              />
+              <>
+                <MissingRequestsList
+                  requests={paginatedMissing.items}
+                  loading={missingLoadState === "loading"}
+                  error={missingLoadState === "error" ? missingError : ""}
+                  saving={savingMissing}
+                  onRetry={retryLoadMissingRequests}
+                  onCreateArticle={openCreateArticle}
+                  onMarkReviewed={(request) => void handleMarkMissingReviewed(request)}
+                  onResolve={(request) => void handleResolveMissing(request)}
+                />
+                <HubPaginationBar
+                  result={paginatedMissing}
+                  pageSize={pageSize}
+                  onPageChange={setListPage}
+                  onPageSizeChange={setPageSize}
+                />
+              </>
             )}
           </div>
 
@@ -1675,6 +1743,31 @@ function HubTableHead({ cols, gridClass }: { cols: string[]; gridClass: string }
         <span key={c}>{c}</span>
       ))}
     </div>
+  );
+}
+
+function HubPaginationBar({
+  result,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}: {
+  result: PaginatedSliceResult<unknown>;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
+}) {
+  if (result.totalItems === 0) return null;
+
+  return (
+    <Pagination
+      page={result.page}
+      totalPages={result.totalPages}
+      totalItems={result.totalItems}
+      pageSize={pageSize}
+      onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+    />
   );
 }
 

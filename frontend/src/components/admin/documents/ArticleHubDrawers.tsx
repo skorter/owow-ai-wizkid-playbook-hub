@@ -166,14 +166,11 @@ function slugifyTitle(title: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-async function readTextFile(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result ?? ""));
-    reader.onerror = () => reject(new Error("Could not read file"));
-    reader.readAsText(file);
-  });
-}
+import {
+  buildSummaryFromContent,
+  importDocumentFile,
+  titleFromFileName,
+} from "@/lib/documents/importDocumentFile";
 
 function DocumentImportPanel({
   form,
@@ -185,39 +182,55 @@ function DocumentImportPanel({
   mode: "create" | "edit";
 }) {
   const [importNote, setImportNote] = useState<string | null>(null);
+  const [importTone, setImportTone] = useState<"success" | "info" | "error">("success");
+  const [importing, setImporting] = useState(false);
+  const [importingPdf, setImportingPdf] = useState(false);
+
+  const applyExtractedText = (text: string, fileName: string) => {
+    if (!form.title.trim()) {
+      const baseName = titleFromFileName(fileName);
+      set("title", baseName);
+      set("slug", slugifyTitle(baseName));
+    }
+    if (!form.summary.trim()) {
+      const summary = buildSummaryFromContent(text);
+      if (summary) set("summary", summary);
+    }
+    set("content", text);
+  };
 
   const handleFile = async (file: File | null) => {
-    if (!file) return;
+    if (!file || importing) return;
+    const isPdf = file.name.toLowerCase().endsWith(".pdf");
+
     setImportNote(null);
+    setImporting(true);
+    setImportingPdf(isPdf);
 
-    const name = file.name.toLowerCase();
-    const isText = name.endsWith(".txt") || name.endsWith(".md") || name.endsWith(".markdown");
-
-    if (!isText) {
-      setImportNote(
-        "PDF and DOCX upload will be added later. For now, paste content below or import a .txt / .md file.",
-      );
-      return;
+    if (isPdf) {
+      setImportTone("success");
+      setImportNote("Extracting PDF text...");
     }
 
     try {
-      const text = (await readTextFile(file)).trim();
-      if (!text) {
-        setImportNote("The selected file is empty.");
+      const outcome = await importDocumentFile(file);
+
+      if (outcome.status === "success") {
+        applyExtractedText(outcome.text, outcome.fileName);
+        setImportTone("success");
+        setImportNote(
+          isPdf
+            ? "PDF imported successfully."
+            : `Imported ${outcome.fileName} into the content editor.`,
+        );
         return;
       }
-      if (!form.title.trim()) {
-        const baseName = file.name.replace(/\.[^.]+$/, "");
-        set("title", baseName);
-        set("slug", slugifyTitle(baseName));
-      }
-      if (!form.summary.trim() && text.length > 80) {
-        set("summary", text.slice(0, 200).replace(/\s+/g, " ") + "…");
-      }
-      set("content", text);
-      setImportNote(`Imported ${file.name} into the content editor.`);
-    } catch {
-      setImportNote("Could not read that file. Try a plain text or Markdown file.");
+
+      setImportTone(outcome.status);
+      setImportNote(outcome.message);
+    } finally {
+      setImporting(false);
+      setImportingPdf(false);
     }
   };
 
@@ -227,19 +240,42 @@ function DocumentImportPanel({
     <div className={hubStyles.importPanel}>
       <p className={hubStyles.importHelp}>
         Upload or paste an existing HR document, then publish it to the employee playbook.
-        Supported imports: <strong>.txt</strong> and <strong>.md</strong> (PDF/DOCX coming soon).
+        Supported imports: <strong>.txt</strong>, <strong>.md</strong>, <strong>.docx</strong>, and{" "}
+        <strong>.pdf</strong> (text extracted in the browser).
       </p>
       <label className={hubStyles.importDrop}>
         <span className={hubStyles.importDropLabel}>Import document file</span>
         <input
           type="file"
-          accept=".txt,.md,.markdown,text/plain,text/markdown"
+          accept=".txt,.md,.markdown,.docx,.pdf,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           className={hubStyles.importInput}
-          onChange={(e) => void handleFile(e.target.files?.[0] ?? null)}
+          disabled={importing}
+          onChange={(e) => {
+            void handleFile(e.target.files?.[0] ?? null);
+            e.target.value = "";
+          }}
         />
-        <span className={hubStyles.importDropHint}>Click to choose .txt or .md</span>
+        <span className={hubStyles.importDropHint}>
+          {importing
+            ? importingPdf
+              ? "Extracting PDF text..."
+              : "Importing…"
+            : "Choose .txt, .md, .docx, or .pdf"}
+        </span>
       </label>
-      {importNote ? <p className={hubStyles.importNote}>{importNote}</p> : null}
+      {importNote ? (
+        <p
+          className={`${hubStyles.importNote} ${
+            importTone === "error"
+              ? hubStyles.importNoteError
+              : importTone === "info"
+                ? hubStyles.importNoteInfo
+                : hubStyles.importNoteSuccess
+          }`}
+        >
+          {importNote}
+        </p>
+      ) : null}
     </div>
   );
 }

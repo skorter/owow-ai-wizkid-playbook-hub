@@ -1,5 +1,3 @@
-/** Showcase demo articles — not official OWOW policy. */
-
 const DISCLAIMER =
   "Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\n";
 

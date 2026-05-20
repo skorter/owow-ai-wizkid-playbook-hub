@@ -1,7 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import styles from "./TopicsList.module.css";
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { Category } from "@/types/playbook";
+
+const INITIAL_VISIBLE = 8;
 
 type TopicsListProps = {
   category: Category;
@@ -9,6 +14,11 @@ type TopicsListProps = {
 
 export default function TopicsList({ category }: TopicsListProps) {
   const Icon = category.icon;
+  const [expanded, setExpanded] = useState(false);
+  const hasMore = category.pages.length > INITIAL_VISIBLE;
+  const visiblePages = expanded
+    ? category.pages
+    : category.pages.slice(0, INITIAL_VISIBLE);
 
   return (
     <li className={styles.section}>
@@ -20,7 +30,7 @@ export default function TopicsList({ category }: TopicsListProps) {
         <p className={styles.description}>{category.description}</p>
       </div>
       <ul className={styles.articles}>
-        {category.pages.map((page) => (
+        {visiblePages.map((page) => (
           <li key={page.slug} className={styles.article}>
             <Link
               href={`/playbook/${page.slug}?from=topics`}
@@ -40,6 +50,17 @@ export default function TopicsList({ category }: TopicsListProps) {
           </li>
         ))}
       </ul>
+      {hasMore ? (
+        <button
+          type="button"
+          className={styles.showMoreBtn}
+          onClick={() => setExpanded((prev) => !prev)}
+        >
+          {expanded
+            ? "Show fewer articles"
+            : `Show ${category.pages.length - INITIAL_VISIBLE} more articles`}
+        </button>
+      ) : null}
     </li>
   );
 }

@@ -442,7 +442,19 @@
 .importNote {
   margin: 0.75rem 0 0;
   font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.importNoteSuccess {
   color: var(--admin-accent-green, #22c55e);
+}
+
+.importNoteInfo {
+  color: #fbbf24;
+}
+
+.importNoteError {
+  color: #f87171;
 }
 
 .previewSummaryCard {
