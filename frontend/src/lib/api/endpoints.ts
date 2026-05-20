@@ -36,6 +36,10 @@ export const endpoints = {
     popularQuestions: "/api/analytics/popular-questions",
     feedback: "/api/analytics/feedback",
     missingInfo: "/api/analytics/missing-info",
+    usageTrends: "/api/analytics/usage-trends",
+    peakHours: "/api/analytics/peak-hours",
+    unansweredQuestions: "/api/analytics/unanswered-questions",
+    performance: "/api/analytics/performance",
   },
 
   onboarding: {

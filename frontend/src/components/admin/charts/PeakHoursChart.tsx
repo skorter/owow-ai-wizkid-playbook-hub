@@ -1,32 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import {
-  peakHoursChartData,
-  PEAK_HOURS_Y_MAX,
-  PEAK_HOURS_Y_TICKS,
-} from "@/data/adminMockData";
+import type { PeakHourPoint } from "@/data/adminMockData";
 import { plotX, plotY, smoothAreaPath, smoothLinePath } from "./chartUtils";
 import styles from "./PeakHoursChart.module.css";
 
 const WIDTH = 420;
 const HEIGHT = 168;
 const PADDING = { top: 10, right: 12, bottom: 32, left: 36 };
-const PLOT_WIDTH = WIDTH - PADDING.left - PADDING.right;
-const PLOT_HEIGHT = HEIGHT - PADDING.top - PADDING.bottom;
-const BASELINE_Y = PADDING.top + PLOT_HEIGHT;
-const COUNT = peakHoursChartData.length;
 const LINE_COLOR = "#22c55e";
 
-export default function PeakHoursChart() {
+type PeakHoursChartProps = {
+  data: PeakHourPoint[];
+  yMax: number;
+  yTicks: number[];
+  emptyMessage?: string;
+};
+
+export default function PeakHoursChart({
+  data,
+  yMax,
+  yTicks,
+  emptyMessage = "No search activity recorded yet.",
+}: PeakHoursChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const linePoints = peakHoursChartData.map((point, index) => ({
+  const safeYMax = yMax > 0 ? yMax : 10;
+  const PLOT_WIDTH = WIDTH - PADDING.left - PADDING.right;
+  const PLOT_HEIGHT = HEIGHT - PADDING.top - PADDING.bottom;
+  const BASELINE_Y = PADDING.top + PLOT_HEIGHT;
+  const COUNT = data.length;
+
+  if (COUNT === 0) {
+    return <p className={styles.emptyState}>{emptyMessage}</p>;
+  }
+
+  const linePoints = data.map((point, index) => ({
     x: plotX(index, COUNT, PADDING.left, PLOT_WIDTH),
-    y: plotY(point.value, PEAK_HOURS_Y_MAX, PADDING.top, PLOT_HEIGHT),
+    y: plotY(point.value, safeYMax, PADDING.top, PLOT_HEIGHT),
   }));
 
-  const hovered = hoveredIndex !== null ? peakHoursChartData[hoveredIndex] : null;
+  const hovered = hoveredIndex !== null ? data[hoveredIndex] : null;
   const hoverX =
     hoveredIndex !== null ? plotX(hoveredIndex, COUNT, PADDING.left, PLOT_WIDTH) : 0;
   const bandWidth = PLOT_WIDTH / COUNT;
@@ -64,8 +78,8 @@ export default function PeakHoursChart() {
           </filter>
         </defs>
 
-        {PEAK_HOURS_Y_TICKS.map((tick) => {
-          const y = plotY(tick, PEAK_HOURS_Y_MAX, PADDING.top, PLOT_HEIGHT);
+        {yTicks.map((tick) => {
+          const y = plotY(tick, safeYMax, PADDING.top, PLOT_HEIGHT);
           return (
             <g key={tick}>
               <line
@@ -82,7 +96,7 @@ export default function PeakHoursChart() {
           );
         })}
 
-        {peakHoursChartData.map((point, index) => {
+        {data.map((point, index) => {
           const x = plotX(index, COUNT, PADDING.left, PLOT_WIDTH);
           const isHovered = hoveredIndex === index;
           return (
@@ -126,7 +140,7 @@ export default function PeakHoursChart() {
         {linePoints.map((p, i) => {
           const active = hoveredIndex === i;
           return (
-            <g key={peakHoursChartData[i].label} pointerEvents="none">
+            <g key={data[i].label} pointerEvents="none">
               {active ? (
                 <circle
                   cx={p.x}
@@ -150,7 +164,7 @@ export default function PeakHoursChart() {
           );
         })}
 
-        {peakHoursChartData.map((point, index) => {
+        {data.map((point, index) => {
           const x = plotX(index, COUNT, PADDING.left, PLOT_WIDTH);
           return (
             <g key={`hit-${point.label}`}>
@@ -179,7 +193,7 @@ export default function PeakHoursChart() {
           role="tooltip"
         >
           <span className={styles.tooltipTitle}>{hovered.label}</span>
-          <span className={styles.tooltipValue}>{hovered.value} activity</span>
+          <span className={styles.tooltipValue}>{hovered.value} searches</span>
         </div>
       ) : null}
     </div>

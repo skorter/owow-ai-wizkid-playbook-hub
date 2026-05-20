@@ -123,3 +123,12 @@
   height: 10px;
   border-radius: 50%;
 }
+
+.emptyState {
+  margin: 0;
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--admin-text-muted);
+  font-family: var(--font-geist-sans), sans-serif;
+}

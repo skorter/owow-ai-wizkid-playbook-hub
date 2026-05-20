@@ -1,39 +1,53 @@
 "use client";
 
 import { useState } from "react";
-import {
-  usageTrendsData,
-  USAGE_TRENDS_Y_MAX,
-  USAGE_TRENDS_Y_TICKS,
-} from "@/data/adminMockData";
+import type { UsageTrendPoint } from "@/data/adminMockData";
 import { plotX, plotY, smoothAreaPath, smoothLinePath } from "./chartUtils";
 import styles from "./UsageTrendsChart.module.css";
 
 const WIDTH = 800;
 const HEIGHT = 220;
 const PADDING = { top: 12, right: 20, bottom: 40, left: 44 };
-const PLOT_WIDTH = WIDTH - PADDING.left - PADDING.right;
-const PLOT_HEIGHT = HEIGHT - PADDING.top - PADDING.bottom;
-const BASELINE_Y = PADDING.top + PLOT_HEIGHT;
-const COUNT = usageTrendsData.length;
 
 const SEARCH_COLOR = "#ffd500";
 const USERS_COLOR = "#22d3ee";
 
-function buildSeries(getValue: (i: number) => number) {
-  return usageTrendsData.map((_, index) => ({
-    x: plotX(index, COUNT, PADDING.left, PLOT_WIDTH),
-    y: plotY(getValue(index), USAGE_TRENDS_Y_MAX, PADDING.top, PLOT_HEIGHT),
-  }));
-}
+type UsageTrendsChartProps = {
+  data: UsageTrendPoint[];
+  yMax: number;
+  yTicks: number[];
+  emptyMessage?: string;
+};
 
-export default function UsageTrendsChart() {
+export default function UsageTrendsChart({
+  data,
+  yMax,
+  yTicks,
+  emptyMessage = "No usage data for this period yet.",
+}: UsageTrendsChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const searchPoints = buildSeries((i) => usageTrendsData[i].searches);
-  const userPoints = buildSeries((i) => usageTrendsData[i].activeUsers);
+  const safeYMax = yMax > 0 ? yMax : 10;
+  const PLOT_WIDTH = WIDTH - PADDING.left - PADDING.right;
+  const PLOT_HEIGHT = HEIGHT - PADDING.top - PADDING.bottom;
+  const BASELINE_Y = PADDING.top + PLOT_HEIGHT;
+  const COUNT = data.length;
 
-  const hovered = hoveredIndex !== null ? usageTrendsData[hoveredIndex] : null;
+  if (COUNT === 0) {
+    return <p className={styles.emptyState}>{emptyMessage}</p>;
+  }
+
+  function buildSeries(getValue: (i: number) => number) {
+    return data.map((_, index) => ({
+      x: plotX(index, COUNT, PADDING.left, PLOT_WIDTH),
+      y: plotY(getValue(index), safeYMax, PADDING.top, PLOT_HEIGHT),
+    }));
+  }
+
+  const searchPoints = buildSeries((i) => data[i].searches);
+  const userPoints = buildSeries((i) => data[i].activeUsers);
+
+  const hovered = hoveredIndex !== null ? data[hoveredIndex] : null;
   const hoverX =
     hoveredIndex !== null ? plotX(hoveredIndex, COUNT, PADDING.left, PLOT_WIDTH) : 0;
   const bandWidth = PLOT_WIDTH / COUNT;
@@ -90,8 +104,8 @@ export default function UsageTrendsChart() {
           </filter>
         </defs>
 
-        {USAGE_TRENDS_Y_TICKS.map((tick) => {
-          const y = plotY(tick, USAGE_TRENDS_Y_MAX, PADDING.top, PLOT_HEIGHT);
+        {yTicks.map((tick) => {
+          const y = plotY(tick, safeYMax, PADDING.top, PLOT_HEIGHT);
           return (
             <g key={tick}>
               <line
@@ -108,7 +122,7 @@ export default function UsageTrendsChart() {
           );
         })}
 
-        {usageTrendsData.map((point, index) => {
+        {data.map((point, index) => {
           const x = plotX(index, COUNT, PADDING.left, PLOT_WIDTH);
           const isHovered = hoveredIndex === index;
           return (
@@ -215,7 +229,7 @@ export default function UsageTrendsChart() {
           );
         })}
 
-        {usageTrendsData.map((point, index) => {
+        {data.map((point, index) => {
           const x = plotX(index, COUNT, PADDING.left, PLOT_WIDTH);
           return (
             <g key={`hit-${point.label}`}>
