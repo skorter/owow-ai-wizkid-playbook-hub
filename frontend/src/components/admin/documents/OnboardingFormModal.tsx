@@ -17,6 +17,7 @@ export type OnboardingFormState = {
 export type ArticleLinkOption = {
   id: string;
   title: string;
+  status?: "Draft" | "Published" | "Archived";
 };
 
 const defaultForm = (nextOrder: number): OnboardingFormState => ({
@@ -95,6 +96,7 @@ function OnboardingFormModalSession({
         form={form}
         setForm={setForm}
         articleOptions={articleOptions}
+        unpublishedLinkedCount={initial?.unpublishedLinkedCount ?? 0}
       />
     </HubModal>
   );
@@ -104,11 +106,18 @@ function OnboardingFormFields({
   form,
   setForm,
   articleOptions,
+  unpublishedLinkedCount = 0,
 }: {
   form: OnboardingFormState;
   setForm: Dispatch<SetStateAction<OnboardingFormState>>;
   articleOptions: ArticleLinkOption[];
+  unpublishedLinkedCount?: number;
 }) {
+  const selectedUnpublished = form.articleIds.filter((id) => {
+    const article = articleOptions.find((option) => option.id === id);
+    return article?.status && article.status !== "Published";
+  }).length;
+
   return (
     <div className={hubStyles.formGrid}>
       <label className={hubStyles.field}>
@@ -146,12 +155,20 @@ function OnboardingFormFields({
         <span className={hubStyles.fieldLabel}>
           Linked articles ({form.articleIds.length} selected)
         </span>
+        {selectedUnpublished > 0 || unpublishedLinkedCount > 0 ? (
+          <p className={hubStyles.warningBadge}>
+            {Math.max(selectedUnpublished, unpublishedLinkedCount)} unpublished linked
+            article{Math.max(selectedUnpublished, unpublishedLinkedCount) === 1 ? "" : "s"}
+            — hidden from employees until published.
+          </p>
+        ) : null}
         {articleOptions.length === 0 ? (
-          <p className={hubStyles.importHelp}>No published articles available to link.</p>
+          <p className={hubStyles.importHelp}>No articles available to link yet.</p>
         ) : (
           <ul className={hubStyles.articleChecklist}>
             {articleOptions.map((article) => {
               const checked = form.articleIds.includes(article.id);
+              const isDraft = article.status && article.status !== "Published";
               return (
                 <li key={article.id}>
                   <label className={hubStyles.articleCheckItem}>
@@ -165,7 +182,12 @@ function OnboardingFormFields({
                         }))
                       }
                     />
-                    <span>{article.title}</span>
+                    <span className={hubStyles.articleCheckLabel}>
+                      {article.title}
+                      {isDraft ? (
+                        <span className={hubStyles.draftBadge}>Unpublished</span>
+                      ) : null}
+                    </span>
                   </label>
                 </li>
               );

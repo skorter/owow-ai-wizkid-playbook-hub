@@ -15,16 +15,21 @@ import {
   findFirstIncompleteStepIndex,
   findStepIndexForSlug,
   getOnboardingProgressKey,
-  getOnboardingProgressPercent,
   readOnboardingProgress,
 } from "@/lib/onboardingProgress";
+import {
+  estimateReadingMinutes,
+  findFirstIncompleteArticleInStep,
+  getPublishedOnboardingProgressPercent,
+} from "@/lib/onboarding/employeeOnboarding";
 import {
   getSessionSnapshot,
   parseSessionUserSnapshot,
   subscribeSession,
 } from "@/lib/auth/session";
 import { ApiError } from "@/lib/api";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, GraduationCap } from "lucide-react";
+import PremiumEmptyState from "@/components/admin/PremiumEmptyState/PremiumEmptyState";
 
 type LoadState = "loading" | "error" | "ready";
 
@@ -68,12 +73,9 @@ export default function OnboardingPage() {
     return readOnboardingProgress(progressKey).completedArticleSlugs;
   }, [progressKey, progressRevision]);
 
-  const allArticleSlugs = useMemo(
-    () =>
-      onboardingSteps.flatMap((step) =>
-        step.articles.map((a) => a.slug.trim().toLowerCase()),
-      ),
-    [onboardingSteps],
+  const progress = useMemo(
+    () => getPublishedOnboardingProgressPercent(onboardingSteps, completedSlugs),
+    [onboardingSteps, completedSlugs],
   );
 
   useEffect(() => {
@@ -162,8 +164,6 @@ export default function OnboardingPage() {
     };
   }, [progressKey, stepParam]);
 
-  const progress = getOnboardingProgressPercent(completedSlugs, allArticleSlugs);
-
   const handleResetProgress = () => {
     clearOnboardingProgress(progressKey);
     setProgressRevision((v) => v + 1);
@@ -205,7 +205,11 @@ export default function OnboardingPage() {
     return (
       <div className={styles.onboardingPage}>
         <Greeting stepCount={0} progressPercent={0} />
-        <p className={styles.panelEmpty}>No onboarding steps are available yet.</p>
+        <PremiumEmptyState
+          icon={GraduationCap}
+          title="Onboarding is being prepared"
+          description="HR is publishing onboarding steps and articles. Check back soon — your progress will start once published content is available."
+        />
       </div>
     );
   }
@@ -244,6 +248,14 @@ export default function OnboardingPage() {
         (a) => a.slug.trim().toLowerCase() === celebrationSlug,
       )
     : null;
+
+  const nextRecommendedSlug = hasRemainingInStep
+    ? findFirstIncompleteArticleInStep(activeStep, completedSlugs)
+    : null;
+
+  const readingEstimate = estimateReadingMinutes(
+    Math.max(0, stepArticleTotal - stepCompletedCount),
+  );
 
   const goToNextStep = () => {
     setCelebrationSlug(null);
@@ -289,11 +301,18 @@ export default function OnboardingPage() {
       ) : null}
 
       {celebratedArticle ? (
-        <p className={styles.successBanner} role="status">
-          &quot;{celebratedArticle.label}&quot; marked complete.
-          {hasRemainingInStep
-            ? ` ${stepArticleTotal - stepCompletedCount} article${stepArticleTotal - stepCompletedCount === 1 ? "" : "s"} left in this step.`
-            : " This step is now complete."}
+        <p
+          className={`${styles.successBanner} ${!hasRemainingInStep ? styles.successBannerStepDone : ""}`}
+          role="status"
+        >
+          {hasRemainingInStep ? (
+            <>
+              &quot;{celebratedArticle.label}&quot; marked complete.
+              {` ${stepArticleTotal - stepCompletedCount} article${stepArticleTotal - stepCompletedCount === 1 ? "" : "s"} left in this step.`}
+            </>
+          ) : (
+            <>Step completed ✓ — all articles in this module are done.</>
+          )}
         </p>
       ) : null}
 
@@ -313,7 +332,7 @@ export default function OnboardingPage() {
       </div>
 
       <section className={styles.content}>
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.cardEnter}`}>
           <div className={styles.header}>
             <div className={styles.information}>
               {CurrentIcon && <CurrentIcon className={styles.icon} />}
@@ -325,6 +344,9 @@ export default function OnboardingPage() {
                   <>
                     <p className={styles.stepProgressLabel}>
                       {stepCompletedCount} of {stepArticleTotal} articles completed
+                      {readingEstimate > 0 && stepCompletedCount < stepArticleTotal
+                        ? ` · ~${readingEstimate} min reading left`
+                        : null}
                     </p>
                     <div
                       className={styles.stepProgressTrack}
@@ -356,6 +378,7 @@ export default function OnboardingPage() {
               currentStep={safeStepIndex}
               completedArticles={completedSlugs}
               highlightIncomplete={Boolean(celebrationSlug && hasRemainingInStep)}
+              nextRecommendedSlug={nextRecommendedSlug}
             />
           )}
 

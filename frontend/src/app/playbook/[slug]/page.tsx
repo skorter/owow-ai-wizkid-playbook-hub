@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
@@ -27,8 +27,9 @@ import { CheckCircle, RefreshCw } from "lucide-react";
 import FeedbackModal from "@/components/playbook/FeedbackModal";
 import MissingInfoModal from "@/components/playbook/MissingInfoModal";
 import PlaybookSupportActions from "@/components/playbook/PlaybookSupportActions";
+import ArticleUnavailable from "@/components/playbook/ArticleUnavailable";
 
-type LoadState = "loading" | "error" | "ready" | "not-found";
+type LoadState = "loading" | "error" | "ready" | "not-found" | "unavailable";
 
 export default function SlugPage() {
   const params = useParams();
@@ -101,6 +102,20 @@ export default function SlugPage() {
   const backLabel =
     from === "onboarding" ? "Back to Onboarding" : "Back to Topics";
 
+  const applyResolvedArticle = useCallback(
+    (data: PlaybookArticleDetail | null, state: LoadState) => {
+      setArticle(data);
+      if (data && state === "ready") {
+        const staticPage = findStaticPageBySlug(slug);
+        setStaticSubpages(staticPage?.subpages ?? []);
+      } else {
+        setStaticSubpages([]);
+      }
+      setLoadState(state);
+    },
+    [slug],
+  );
+
   const loadArticle = async () => {
     if (!slug) {
       setLoadState("not-found");
@@ -113,23 +128,28 @@ export default function SlugPage() {
     try {
       const data = await fetchPlaybookArticleBySlug(slug);
       if (data) {
-        setArticle(data);
-        setLoadState("ready");
+        applyResolvedArticle(data, "ready");
         return;
       }
 
       const staticFallback = buildStaticArticleFallback(slug);
       if (staticFallback) {
-        setArticle(staticFallback);
-        const staticPage = findStaticPageBySlug(slug);
-        setStaticSubpages(staticPage?.subpages ?? []);
-        setLoadState("ready");
+        applyResolvedArticle(staticFallback, "ready");
         return;
       }
 
-      setArticle(null);
-      setLoadState("not-found");
+      applyResolvedArticle(null, "unavailable");
     } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        const staticFallback = buildStaticArticleFallback(slug);
+        if (staticFallback) {
+          applyResolvedArticle(staticFallback, "ready");
+          return;
+        }
+        applyResolvedArticle(null, "unavailable");
+        return;
+      }
+
       setArticle(null);
       setLoadState("error");
       setErrorMessage(
@@ -154,25 +174,28 @@ export default function SlugPage() {
         if (cancelled) return;
 
         if (data) {
-          setArticle(data);
-          setStaticSubpages([]);
-          setLoadState("ready");
+          if (!cancelled) applyResolvedArticle(data, "ready");
           return;
         }
 
         const staticFallback = buildStaticArticleFallback(slug);
         if (staticFallback) {
-          setArticle(staticFallback);
-          const staticPage = findStaticPageBySlug(slug);
-          setStaticSubpages(staticPage?.subpages ?? []);
-          setLoadState("ready");
+          if (!cancelled) applyResolvedArticle(staticFallback, "ready");
           return;
         }
 
-        setArticle(null);
-        setLoadState("not-found");
+        if (!cancelled) applyResolvedArticle(null, "unavailable");
       } catch (err) {
         if (cancelled) return;
+        if (err instanceof ApiError && err.status === 404) {
+          const staticFallback = buildStaticArticleFallback(slug);
+          if (staticFallback) {
+            applyResolvedArticle(staticFallback, "ready");
+            return;
+          }
+          applyResolvedArticle(null, "unavailable");
+          return;
+        }
         setArticle(null);
         setLoadState("error");
         setErrorMessage(
@@ -188,7 +211,7 @@ export default function SlugPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, applyResolvedArticle]);
 
   useEffect(() => {
     if (loadState === "not-found") {
@@ -214,6 +237,19 @@ export default function SlugPage() {
             Retry
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (loadState === "unavailable") {
+    return (
+      <div className={styles.slugPage}>
+        <ArticleUnavailable
+          backHref={backHref}
+          backLabel={backLabel}
+          secondaryHref={from === "onboarding" ? undefined : "/playbook/onboarding"}
+          secondaryLabel={from === "onboarding" ? undefined : "Back to Onboarding"}
+        />
       </div>
     );
   }
@@ -272,9 +308,13 @@ export default function SlugPage() {
       <section className={styles.contentCard}>{renderArticleContent(article.content)}</section>
 
       {article.fromFallback ? (
-        <p className={styles.fallbackNote}>
-          Showing preview metadata until this article is published from the admin hub.
-        </p>
+        <section className={styles.previewNotice} role="note">
+          <p className={styles.previewTitle}>Preview content</p>
+          <p className={styles.previewText}>
+            This topic uses local preview copy until HR publishes the full article in
+            the admin hub.
+          </p>
+        </section>
       ) : null}
 
       <section className={styles.supportCard}>

@@ -19,7 +19,17 @@ import {
 } from "@/lib/mappers/adminDashboard";
 import { deleteArticle } from "@/lib/mappers/articles";
 import { ApiError } from "@/lib/api";
-import { Plus, Trash2, TrendingUp, Eye, RefreshCw, Pencil } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  TrendingUp,
+  Eye,
+  RefreshCw,
+  Pencil,
+  Inbox,
+  FileText,
+} from "lucide-react";
+import PremiumEmptyState from "@/components/admin/PremiumEmptyState/PremiumEmptyState";
 import styles from "./page.module.css";
 
 type LoadState = "loading" | "error" | "ready";
@@ -191,7 +201,12 @@ export default function DashboardPage() {
           }
         >
           {data.missingInfoItems.length === 0 ? (
-            <p className={styles.panelEmpty}>No open missing information requests.</p>
+            <PremiumEmptyState
+              compact
+              icon={Inbox}
+              title="No missing-info requests"
+              description="Employee requests from search, topics, and articles will appear here when information is missing from the playbook."
+            />
           ) : (
             <ul className={styles.miniCardList}>
               {data.missingInfoItems.map((item) => (
@@ -212,7 +227,12 @@ export default function DashboardPage() {
           }
         >
           {data.recentArticles.length === 0 ? (
-            <p className={styles.panelEmpty}>No published articles yet.</p>
+            <PremiumEmptyState
+              compact
+              icon={FileText}
+              title="No published articles yet"
+              description="Publish documents from the hub to populate recent activity and employee-facing playbook content."
+            />
           ) : (
             <ul className={styles.miniCardList}>
               {data.recentArticles.map((article) => (

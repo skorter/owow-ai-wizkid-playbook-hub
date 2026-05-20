@@ -492,6 +492,48 @@
   accent-color: #ffd500;
 }
 
+.articleCheckLabel {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.draftBadge {
+  display: inline-flex;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.warningBadge {
+  margin: 0 0 0.65rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.08);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #fde68a;
+}
+
+.contentHint {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid rgba(255, 213, 0, 0.22);
+  background: rgba(255, 213, 0, 0.05);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.72);
+}
+
 .previewSummaryCard {
   padding: 0.85rem 1rem;
   border-radius: var(--admin-radius-md);

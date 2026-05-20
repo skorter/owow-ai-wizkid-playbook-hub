@@ -349,6 +349,17 @@ function ArticleFormFields({
           </select>
         </label>
       </div>
+      {form.linkedOnboarding && !form.summary.trim() ? (
+        <p className={hubStyles.contentHint}>
+          Articles used in onboarding should include a summary so employees know what
+          each step covers.
+        </p>
+      ) : null}
+      {!form.summary.trim() || form.content.trim().length < 80 ? (
+        <p className={hubStyles.contentHint}>
+          Recommended: add a summary and at least one content section before publishing.
+        </p>
+      ) : null}
       <label className={hubStyles.field}>
         <span className={hubStyles.fieldLabel}>Summary</span>
         <textarea

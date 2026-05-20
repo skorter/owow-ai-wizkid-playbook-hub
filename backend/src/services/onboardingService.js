@@ -6,6 +6,7 @@ const ARTICLE_SUMMARY_FIELDS = {
     title: true,
     slug: true,
     summary: true,
+    status: true,
   },
 };
 
@@ -19,28 +20,35 @@ const STEP_INCLUDE = {
   },
 };
 
-function collectArticles(row) {
+function isEmployeeRole(user) {
+  return user && (user.role === "EMPLOYEE" || user.role === "NEW_EMPLOYEE");
+}
+
+function collectArticles(row, options = {}) {
+  const { publishedOnly = false } = options;
   const seen = new Set();
   const articles = [];
 
   for (const link of row.stepArticles ?? []) {
     const a = link.article;
-    if (a && !seen.has(a.id)) {
-      seen.add(a.id);
-      articles.push(a);
-    }
+    if (!a || seen.has(a.id)) continue;
+    if (publishedOnly && a.status !== "PUBLISHED") continue;
+    seen.add(a.id);
+    articles.push(a);
   }
 
   if (row.article && !seen.has(row.article.id)) {
-    articles.unshift(row.article);
+    if (!publishedOnly || row.article.status === "PUBLISHED") {
+      articles.unshift(row.article);
+    }
   }
 
   return articles;
 }
 
-function mapStep(row) {
+function mapStep(row, options = {}) {
   if (!row) return null;
-  const articles = collectArticles(row);
+  const articles = collectArticles(row, options);
   const primary = articles[0] ?? null;
 
   return {
@@ -155,7 +163,10 @@ async function getOnboardingSteps(user, query) {
     orderBy: { order: "asc" },
   });
 
-  return rows.map(mapStep);
+  const publishedOnly = isEmployeeRole(user);
+  return rows
+    .map((row) => mapStep(row, { publishedOnly }))
+    .filter((step) => step && (!publishedOnly || step.articles.length > 0));
 }
 
 async function getOnboardingStepById(id, user) {
@@ -174,7 +185,12 @@ async function getOnboardingStepById(id, user) {
     return { notFound: true };
   }
 
-  return { step: mapStep(row) };
+  const publishedOnly = isEmployeeRole(user);
+  const step = mapStep(row, { publishedOnly });
+  if (publishedOnly && step && step.articles.length === 0) {
+    return { notFound: true };
+  }
+  return { step };
 }
 
 async function createOnboardingStep(body) {

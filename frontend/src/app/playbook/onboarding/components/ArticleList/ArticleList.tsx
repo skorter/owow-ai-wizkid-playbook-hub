@@ -1,13 +1,18 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import styles from "./ArticleList.module.css";
-import { CheckCircle, Circle, ArrowRight } from "lucide-react";
+import { CheckCircle, Circle, ArrowRight, Sparkles } from "lucide-react";
 import type { OnboardingStep } from "@/types/onboarding";
 import Link from "next/link";
+import { normalizeArticleSlug } from "@/lib/onboarding/employeeOnboarding";
 
 type ArticleListProps = {
   steps: OnboardingStep[];
   currentStep: number;
   completedArticles: string[];
   highlightIncomplete?: boolean;
+  nextRecommendedSlug?: string | null;
 };
 
 export default function ArticleList({
@@ -15,21 +20,44 @@ export default function ArticleList({
   currentStep,
   completedArticles,
   highlightIncomplete = false,
+  nextRecommendedSlug = null,
 }: ArticleListProps) {
   const step = steps[currentStep];
+  const listRef = useRef<HTMLUListElement>(null);
+  const normalizedNext = nextRecommendedSlug
+    ? normalizeArticleSlug(nextRecommendedSlug)
+    : null;
+
+  useEffect(() => {
+    if (!normalizedNext || !listRef.current) return;
+    const target = listRef.current.querySelector(
+      `[data-article-slug="${normalizedNext}"]`,
+    );
+    if (target instanceof HTMLElement) {
+      target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [normalizedNext, highlightIncomplete]);
 
   return (
-    <ul className={styles.checklist} aria-label="Step articles">
+    <ul ref={listRef} className={styles.checklist} aria-label="Step articles">
       {step.articles.map((article) => {
-        const normalizedSlug = article.slug.trim().toLowerCase();
+        const normalizedSlug = normalizeArticleSlug(article.slug);
         const isDone = completedArticles.includes(normalizedSlug);
-        const showHighlight = highlightIncomplete && !isDone;
+        const isRecommended = normalizedNext === normalizedSlug && !isDone;
+        const showHighlight = (highlightIncomplete && !isDone) || isRecommended;
 
         return (
           <li
             key={article.slug}
-            className={`${styles.item} ${isDone ? styles.itemDone : ""} ${showHighlight ? styles.itemHighlight : ""}`}
+            data-article-slug={normalizedSlug}
+            className={`${styles.item} ${isDone ? styles.itemDone : ""} ${showHighlight ? styles.itemHighlight : ""} ${isRecommended ? styles.itemRecommended : ""}`}
           >
+            {isRecommended ? (
+              <p className={styles.recommendedLabel}>
+                <Sparkles size={14} aria-hidden />
+                Next recommended article
+              </p>
+            ) : null}
             <Link
               href={`/playbook/${article.slug}?from=onboarding&step=${currentStep}`}
               className={styles.link}
@@ -50,7 +78,7 @@ export default function ArticleList({
                 )}
               </span>
               <span className={styles.action}>
-                {isDone ? "Review" : "Open"}
+                {isDone ? "Review" : isRecommended ? "Continue" : "Open article"}
                 <ArrowRight size={16} aria-hidden />
               </span>
             </Link>
