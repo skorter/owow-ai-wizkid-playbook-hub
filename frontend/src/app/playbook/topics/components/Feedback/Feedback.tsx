@@ -11,9 +11,11 @@ export default function Feedback() {
     <section className={styles.feedback}>
       {!feedbackSubmitted ? (
         <>
-          <h2 className={styles.title}>Can't find what you're looking for?</h2>
+          <h2 className={styles.title}>
+            Can&apos;t find what you&apos;re looking for?
+          </h2>
           <p className={styles.description}>
-            Let us know and we'll make sure to add it to the Playbook.
+            Let us know and we&apos;ll make sure to add it to the Playbook.
           </p>
           <button
             className={styles.submitButton}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -14,10 +14,11 @@ import {
 } from "lucide-react";
 import {
   getRoleDisplayLabel,
-  getStoredSessionUser,
+  getSessionSnapshot,
   logout,
+  parseSessionUserSnapshot,
+  subscribeSession,
 } from "@/lib/auth/session";
-import type { SessionUser } from "@/types/auth";
 import type { LucideIcon } from "lucide-react";
 import "../admin-tokens.css";
 import styles from "./AdminLayout.module.css";
@@ -65,15 +66,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
-
-  useEffect(() => {
-    setSessionUser(getStoredSessionUser());
-  }, [pathname]);
-
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [pathname]);
+  const userSnapshot = useSyncExternalStore(
+    subscribeSession,
+    getSessionSnapshot,
+    () => null,
+  );
+  const sessionUser = useMemo(
+    () => parseSessionUserSnapshot(userSnapshot),
+    [userSnapshot],
+  );
 
   const handleLogout = () => {
     logout();
@@ -133,7 +134,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </ul>
           </nav>
           <div className={styles.profile}>
-            <Link href="/admin/profile" className={styles.profileLink}>
+            <Link
+              href="/admin/profile"
+              className={styles.profileLink}
+              onClick={() => setSidebarOpen(false)}
+            >
               <User className={styles.profileIcon} aria-hidden />
               <span className={styles.profileName}>{displayName}</span>
               <span className={styles.profileRole}>{displayRole}</span>

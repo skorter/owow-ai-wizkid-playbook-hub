@@ -6,7 +6,7 @@ export default function Header() {
     <section className={styles.header}>
       <Sparkles className={styles.icon} />
       <h2 className={styles.title}>
-        <span className={styles.accent}>OWOW's</span> Playbook
+        <span className={styles.accent}>OWOW&apos;s</span> Playbook
       </h2>
       <p className={styles.description}>
         Your intelligent knowledge companion.

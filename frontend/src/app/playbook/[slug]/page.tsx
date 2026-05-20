@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
@@ -11,8 +11,15 @@ import {
   findStaticPageBySlug,
   type PlaybookArticleDetail,
 } from "@/lib/mappers/playbook";
+import { renderArticleContent } from "@/lib/playbook/renderArticleContent";
+import {
+  getOnboardingProgressKey,
+  isArticleComplete,
+  markArticleComplete,
+} from "@/lib/onboardingProgress";
+import { getStoredSessionUser } from "@/lib/auth/session";
 import { ApiError } from "@/lib/api";
-import { RefreshCw } from "lucide-react";
+import { CheckCircle, RefreshCw } from "lucide-react";
 
 type LoadState = "loading" | "error" | "ready" | "not-found";
 
@@ -29,6 +36,31 @@ export default function SlugPage() {
     { label: string; slug: string }[]
   >([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [completionVersion, setCompletionVersion] = useState(0);
+
+  const sessionUser = getStoredSessionUser();
+  const progressKey = getOnboardingProgressKey(
+    sessionUser?.id,
+    sessionUser?.email,
+  );
+
+  const completed = useMemo(() => {
+    void completionVersion;
+    if (!slug) return false;
+    return isArticleComplete(progressKey, slug);
+  }, [completionVersion, progressKey, slug]);
+
+  useEffect(() => {
+    const onFocus = () => setCompletionVersion((v) => v + 1);
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
+
+  const handleMarkComplete = () => {
+    if (!slug) return;
+    markArticleComplete(progressKey, slug);
+    setCompletionVersion((v) => v + 1);
+  };
 
   const loadArticle = async () => {
     if (!slug) {
@@ -36,7 +68,6 @@ export default function SlugPage() {
       return;
     }
 
-    setLoadState("loading");
     setErrorMessage("");
     setStaticSubpages([]);
 
@@ -79,18 +110,13 @@ export default function SlugPage() {
         return;
       }
 
-      if (!cancelled) {
-        setLoadState("loading");
-        setErrorMessage("");
-        setStaticSubpages([]);
-      }
-
       try {
         const data = await fetchPlaybookArticleBySlug(slug);
         if (cancelled) return;
 
         if (data) {
           setArticle(data);
+          setStaticSubpages([]);
           setLoadState("ready");
           return;
         }
@@ -108,7 +134,6 @@ export default function SlugPage() {
         setLoadState("not-found");
       } catch (err) {
         if (cancelled) return;
-
         setArticle(null);
         setLoadState("error");
         setErrorMessage(
@@ -119,7 +144,7 @@ export default function SlugPage() {
       }
     }
 
-    load();
+    void load();
 
     return () => {
       cancelled = true;
@@ -145,7 +170,7 @@ export default function SlugPage() {
       <div className={styles.slugPage}>
         <div className={styles.stateBlock}>
           <p className={styles.stateError}>{errorMessage}</p>
-          <button type="button" className={styles.retryButton} onClick={loadArticle}>
+          <button type="button" className={styles.retryButton} onClick={() => void loadArticle()}>
             <RefreshCw size={16} aria-hidden />
             Retry
           </button>
@@ -162,21 +187,43 @@ export default function SlugPage() {
     );
   }
 
+  const showOnboardingCta = from === "onboarding" && staticSubpages.length === 0;
+
   return (
-    <div className={styles.slugPage}>
+    <article className={styles.slugPage}>
       {from === "topics" ? (
         <Link href="/playbook/topics" className={styles.back}>
           ← Back to Topics
         </Link>
+      ) : from === "onboarding" ? (
+        <Link href="/playbook/onboarding" className={styles.back}>
+          ← Back to Onboarding
+        </Link>
       ) : (
         <BackButton />
       )}
-      <h1 className={styles.title}>{article.title}</h1>
-      {article.summary ? (
-        <p className={styles.description}>{article.summary}</p>
-      ) : null}
+
+      <header className={styles.heroCard}>
+        <div className={styles.metaRow}>
+          {article.categoryName ? (
+            <span className={styles.categoryBadge}>{article.categoryName}</span>
+          ) : null}
+          <span className={styles.sourceBadge}>OWOW Playbook</span>
+          {article.fromFallback ? (
+            <span className={styles.sourceBadge}>Preview metadata</span>
+          ) : null}
+        </div>
+        <h1 className={styles.title}>{article.title}</h1>
+        {article.summary ? (
+          <div className={styles.summaryCard}>
+            <p className={styles.summaryLabel}>Summary</p>
+            <p className={styles.summaryText}>{article.summary}</p>
+          </div>
+        ) : null}
+      </header>
+
       {staticSubpages.length > 0 ? (
-        <div className={styles.subpages}>
+        <section className={styles.subpages}>
           <h2 className={styles.subpagesTitle}>Subtopics</h2>
           <ul className={styles.subpagesList}>
             {staticSubpages.map((sub) => (
@@ -190,25 +237,40 @@ export default function SlugPage() {
               </li>
             ))}
           </ul>
-        </div>
+        </section>
       ) : null}
-      <div className={styles.content}>
-        {article.content.split(/\n\n+/).map((paragraph, index) => (
-          <p key={index} className={styles.paragraph}>
-            {paragraph}
-          </p>
-        ))}
-      </div>
+
+      <section className={styles.contentCard}>{renderArticleContent(article.content)}</section>
+
       {article.fromFallback ? (
         <p className={styles.fallbackNote}>
           Showing preview metadata until this article is published from the admin hub.
         </p>
       ) : null}
-      {from === "onboarding" && staticSubpages.length === 0 ? (
-        <button type="button" className={styles.completeButton}>
-          Mark as complete ✓
-        </button>
+
+      {showOnboardingCta ? (
+        <section className={styles.completeCard}>
+          <p className={styles.completeText}>
+            Mark this reading complete to advance your onboarding progress. Completion is
+            stored locally in your browser until server-side tracking is added.
+          </p>
+          <button
+            type="button"
+            className={`${styles.completeButton} ${completed ? styles.completeButtonDone : ""}`}
+            onClick={handleMarkComplete}
+            disabled={completed}
+          >
+            {completed ? (
+              <>
+                <CheckCircle size={18} aria-hidden style={{ verticalAlign: "middle", marginRight: 6 }} />
+                Completed
+              </>
+            ) : (
+              "Mark as complete ✓"
+            )}
+          </button>
+        </section>
       ) : null}
-    </div>
+    </article>
   );
 }

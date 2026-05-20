@@ -41,4 +41,22 @@ function me(req, res) {
   });
 }
 
-module.exports = { register, login, me };
+async function updateProfile(req, res, next) {
+  try {
+    const result = await authService.updateMe(req.user.id, req.body || {});
+
+    if (!result.ok) {
+      return res.status(result.status).json(result.body);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: result.data,
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+module.exports = { register, login, me, updateProfile };

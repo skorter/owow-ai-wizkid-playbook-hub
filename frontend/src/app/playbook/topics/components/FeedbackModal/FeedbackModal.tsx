@@ -21,7 +21,7 @@ export default function FeedbackModal({
       <div className={styles.content}>
         <h3 className={styles.title}>What are you looking for?</h3>
         <p className={styles.description}>
-          We'll review your request and add it to the Playbook.
+          We&apos;ll review your request and add it to the Playbook.
         </p>
         <textarea
           className={styles.textarea}

@@ -2,11 +2,14 @@
 
 import styles from "./PersonalInformation.module.css";
 import { User, Mail, Building2, Briefcase, Calendar } from "lucide-react";
-import { getDisplayRole, usePlaybookSession } from "@/lib/hooks/usePlaybookSession";
+import { getDisplayRole } from "@/lib/hooks/usePlaybookSession";
+import type { SessionUser } from "@/types/auth";
 
-export default function PersonalInformation() {
-  const user = usePlaybookSession();
+type PersonalInformationProps = {
+  user: SessionUser | null;
+};
 
+export default function PersonalInformation({ user }: PersonalInformationProps) {
   return (
     <section className={styles.personalInformation}>
       <div className={styles.header}>

@@ -90,7 +90,7 @@ function ArticleFormDrawerSession({
           {saving ? "Saving…" : "Save Draft"}
         </AdminButton>
         <AdminButton variant="primary" onClick={() => onPublish(form)} disabled={saving}>
-          {saving ? "Publishing…" : "Publish Article"}
+          {saving ? "Publishing…" : "Publish Document"}
         </AdminButton>
       </>
     ) : (
@@ -112,12 +112,16 @@ function ArticleFormDrawerSession({
   return (
     <HubDrawer
       open
-      title={mode === "create" ? "New Article" : "Edit Article"}
-      subtitle={mode === "create" ? "Create knowledge base content" : initial?.title}
+      title={mode === "create" ? "Add Document" : "Edit Document"}
+      subtitle={
+        mode === "create"
+          ? "Upload or paste an existing HR document, then publish to the playbook"
+          : initial?.title
+      }
       onClose={onClose}
       footer={footer}
     >
-      <ArticleFormFields form={form} set={set} categories={categories} />
+      <ArticleFormFields form={form} set={set} categories={categories} mode={mode} />
     </HubDrawer>
   );
 }
@@ -154,23 +158,117 @@ export function ArticleFormDrawer({
   );
 }
 
+function slugifyTitle(title: string): string {
+  return title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+async function readTextFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(new Error("Could not read file"));
+    reader.readAsText(file);
+  });
+}
+
+function DocumentImportPanel({
+  form,
+  set,
+  mode,
+}: {
+  form: ArticleFormState;
+  set: (key: keyof ArticleFormState, value: string | boolean) => void;
+  mode: "create" | "edit";
+}) {
+  const [importNote, setImportNote] = useState<string | null>(null);
+
+  const handleFile = async (file: File | null) => {
+    if (!file) return;
+    setImportNote(null);
+
+    const name = file.name.toLowerCase();
+    const isText = name.endsWith(".txt") || name.endsWith(".md") || name.endsWith(".markdown");
+
+    if (!isText) {
+      setImportNote(
+        "PDF and DOCX upload will be added later. For now, paste content below or import a .txt / .md file.",
+      );
+      return;
+    }
+
+    try {
+      const text = (await readTextFile(file)).trim();
+      if (!text) {
+        setImportNote("The selected file is empty.");
+        return;
+      }
+      if (!form.title.trim()) {
+        const baseName = file.name.replace(/\.[^.]+$/, "");
+        set("title", baseName);
+        set("slug", slugifyTitle(baseName));
+      }
+      if (!form.summary.trim() && text.length > 80) {
+        set("summary", text.slice(0, 200).replace(/\s+/g, " ") + "…");
+      }
+      set("content", text);
+      setImportNote(`Imported ${file.name} into the content editor.`);
+    } catch {
+      setImportNote("Could not read that file. Try a plain text or Markdown file.");
+    }
+  };
+
+  if (mode !== "create") return null;
+
+  return (
+    <div className={hubStyles.importPanel}>
+      <p className={hubStyles.importHelp}>
+        Upload or paste an existing HR document, then publish it to the employee playbook.
+        Supported imports: <strong>.txt</strong> and <strong>.md</strong> (PDF/DOCX coming soon).
+      </p>
+      <label className={hubStyles.importDrop}>
+        <span className={hubStyles.importDropLabel}>Import document file</span>
+        <input
+          type="file"
+          accept=".txt,.md,.markdown,text/plain,text/markdown"
+          className={hubStyles.importInput}
+          onChange={(e) => void handleFile(e.target.files?.[0] ?? null)}
+        />
+        <span className={hubStyles.importDropHint}>Click to choose .txt or .md</span>
+      </label>
+      {importNote ? <p className={hubStyles.importNote}>{importNote}</p> : null}
+    </div>
+  );
+}
+
 function ArticleFormFields({
   form,
   set,
   categories,
+  mode,
 }: {
   form: ArticleFormState;
   set: (key: keyof ArticleFormState, value: string | boolean) => void;
   categories: ArticleCategoryOption[];
+  mode: "create" | "edit";
 }) {
   return (
     <div className={hubStyles.formGrid}>
+      <DocumentImportPanel form={form} set={set} mode={mode} />
       <label className={hubStyles.field}>
         <span className={hubStyles.fieldLabel}>Title</span>
         <input
           className={hubStyles.fieldInput}
           value={form.title}
-          onChange={(e) => set("title", e.target.value)}
+          onChange={(e) => {
+            set("title", e.target.value);
+            if (mode === "create" && !form.slug.trim()) {
+              set("slug", slugifyTitle(e.target.value));
+            }
+          }}
         />
       </label>
       <label className={hubStyles.field}>
@@ -302,8 +400,13 @@ export function ArticlePreviewDrawer({
         <MetaItem label="Views" value={String(doc.views)} />
         <MetaItem label="Feedback" value={String(doc.feedbackCount)} />
       </div>
-      <p className={hubStyles.previewSummary}>{doc.summary}</p>
-      <p className={hubStyles.sectionLabel}>Content preview</p>
+      {doc.summary ? (
+        <div className={hubStyles.previewSummaryCard}>
+          <p className={hubStyles.sectionLabel}>Summary</p>
+          <p className={hubStyles.previewSummary}>{doc.summary}</p>
+        </div>
+      ) : null}
+      <p className={hubStyles.sectionLabel}>Content</p>
       <div className={hubStyles.previewBlock}>{doc.content}</div>
       {doc.linkedOnboardingStep ? (
         <>
