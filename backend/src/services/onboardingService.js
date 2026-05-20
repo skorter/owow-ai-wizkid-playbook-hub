@@ -11,18 +11,47 @@ const ARTICLE_SUMMARY_FIELDS = {
 
 const STEP_INCLUDE = {
   article: ARTICLE_SUMMARY_FIELDS,
+  stepArticles: {
+    orderBy: { order: "asc" },
+    include: {
+      article: ARTICLE_SUMMARY_FIELDS,
+    },
+  },
 };
+
+function collectArticles(row) {
+  const seen = new Set();
+  const articles = [];
+
+  for (const link of row.stepArticles ?? []) {
+    const a = link.article;
+    if (a && !seen.has(a.id)) {
+      seen.add(a.id);
+      articles.push(a);
+    }
+  }
+
+  if (row.article && !seen.has(row.article.id)) {
+    articles.unshift(row.article);
+  }
+
+  return articles;
+}
 
 function mapStep(row) {
   if (!row) return null;
+  const articles = collectArticles(row);
+  const primary = articles[0] ?? null;
+
   return {
     id: row.id,
     title: row.title,
     content: row.content,
     order: row.order,
     isActive: row.isActive,
-    articleId: row.articleId,
-    article: row.article ?? null,
+    articleId: row.articleId ?? primary?.id ?? null,
+    article: primary,
+    articles,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -43,6 +72,50 @@ async function articleExists(id) {
     select: { id: true },
   });
   return !!a;
+}
+
+async function resolveArticleIds(body) {
+  let ids = [];
+
+  if (Array.isArray(body.articleIds)) {
+    ids = body.articleIds
+      .filter((id) => typeof id === "string" && id.trim())
+      .map((id) => id.trim());
+  } else if (
+    body.articleId !== undefined &&
+    body.articleId !== null &&
+    typeof body.articleId === "string" &&
+    body.articleId.trim()
+  ) {
+    ids = [body.articleId.trim()];
+  }
+
+  const unique = [...new Set(ids)];
+
+  for (const id of unique) {
+    const ok = await articleExists(id);
+    if (!ok) {
+      return { error: { status: 400, message: "Article not found" } };
+    }
+  }
+
+  return { ids: unique };
+}
+
+async function replaceStepArticles(stepId, articleIds, client = prisma) {
+  await client.onboardingStepArticle.deleteMany({
+    where: { onboardingStepId: stepId },
+  });
+
+  if (articleIds.length === 0) return;
+
+  await client.onboardingStepArticle.createMany({
+    data: articleIds.map((articleId, order) => ({
+      onboardingStepId: stepId,
+      articleId,
+      order,
+    })),
+  });
 }
 
 function validateCreateBody(body) {
@@ -108,18 +181,10 @@ async function createOnboardingStep(body) {
   const err = validateCreateBody(body);
   if (err) return { error: { status: 400, message: err.message } };
 
-  let articleId = null;
-  if (body.articleId !== undefined && body.articleId !== null) {
-    if (typeof body.articleId !== "string" || !body.articleId.trim()) {
-      return { error: { status: 400, message: "Invalid article ID" } };
-    }
-    articleId = body.articleId.trim();
-    const ok = await articleExists(articleId);
-    if (!ok) {
-      return { error: { status: 400, message: "Article not found" } };
-    }
-  }
+  const resolved = await resolveArticleIds(body || {});
+  if (resolved.error) return resolved;
 
+  const articleIds = resolved.ids;
   const order = Number(body.order);
   const isActive =
     Object.prototype.hasOwnProperty.call(body, "isActive") &&
@@ -128,16 +193,25 @@ async function createOnboardingStep(body) {
       : true;
 
   try {
-    const row = await prisma.onboardingStep.create({
-      data: {
-        title: body.title.trim(),
-        content: body.content.trim(),
-        order,
-        isActive,
-        articleId,
-      },
-      include: STEP_INCLUDE,
+    const row = await prisma.$transaction(async (tx) => {
+      const step = await tx.onboardingStep.create({
+        data: {
+          title: body.title.trim(),
+          content: body.content.trim(),
+          order,
+          isActive,
+          articleId: articleIds[0] ?? null,
+        },
+      });
+
+      await replaceStepArticles(step.id, articleIds, tx);
+
+      return tx.onboardingStep.findUnique({
+        where: { id: step.id },
+        include: STEP_INCLUDE,
+      });
     });
+
     return { step: mapStep(row) };
   } catch (e) {
     if (e.code === "P2002") {
@@ -214,14 +288,24 @@ async function updateOnboardingStep(id, body) {
   }
 
   const data = parsed.data || {};
-  if (data.articleId !== undefined && data.articleId !== null) {
+  const hasArticleIds =
+    Array.isArray(body?.articleIds) ||
+    Object.prototype.hasOwnProperty.call(body || {}, "articleId");
+
+  let articleIds;
+  if (hasArticleIds) {
+    const resolved = await resolveArticleIds(body || {});
+    if (resolved.error) return resolved;
+    articleIds = resolved.ids;
+    data.articleId = articleIds[0] ?? null;
+  } else if (data.articleId !== undefined && data.articleId !== null) {
     const ok = await articleExists(data.articleId);
     if (!ok) {
       return { error: { status: 400, message: "Article not found" } };
     }
   }
 
-  if (Object.keys(data).length === 0) {
+  if (Object.keys(data).length === 0 && !hasArticleIds) {
     const row = await prisma.onboardingStep.findUnique({
       where: { id },
       include: STEP_INCLUDE,
@@ -230,11 +314,22 @@ async function updateOnboardingStep(id, body) {
   }
 
   try {
-    const row = await prisma.onboardingStep.update({
-      where: { id },
-      data,
-      include: STEP_INCLUDE,
+    const row = await prisma.$transaction(async (tx) => {
+      await tx.onboardingStep.update({
+        where: { id },
+        data,
+      });
+
+      if (hasArticleIds) {
+        await replaceStepArticles(id, articleIds, tx);
+      }
+
+      return tx.onboardingStep.findUnique({
+        where: { id },
+        include: STEP_INCLUDE,
+      });
     });
+
     return { step: mapStep(row) };
   } catch (e) {
     if (e.code === "P2002") {

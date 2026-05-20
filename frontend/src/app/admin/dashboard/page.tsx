@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AdminPageContainer,
   AdminMetricCard,
@@ -11,27 +13,37 @@ import {
 import TopicsBarChart from "@/components/admin/charts/TopicsBarChart";
 import ContentDonutChart from "@/components/admin/charts/ContentDonutChart";
 import type { DashboardMissingInfoItem } from "@/data/adminMockData";
-import { fetchDashboardData, type DashboardViewModel } from "@/lib/mappers/adminDashboard";
+import {
+  fetchDashboardData,
+  type DashboardViewModel,
+} from "@/lib/mappers/adminDashboard";
+import { deleteArticle } from "@/lib/mappers/articles";
 import { ApiError } from "@/lib/api";
-import { Plus, Trash2, TrendingUp, Eye, RefreshCw } from "lucide-react";
+import { Plus, Trash2, TrendingUp, Eye, RefreshCw, Pencil } from "lucide-react";
 import styles from "./page.module.css";
 
 type LoadState = "loading" | "error" | "ready";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [data, setData] = useState<DashboardViewModel | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [actionMessage, setActionMessage] = useState("");
+
+  const loadDashboard = useCallback(async () => {
+    const dashboard = await fetchDashboardData();
+    setData(dashboard);
+    setLoadState("ready");
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadInitialDashboard() {
       try {
-        const dashboard = await fetchDashboardData();
+        await loadDashboard();
         if (cancelled) return;
-        setData(dashboard);
-        setLoadState("ready");
       } catch (err) {
         if (cancelled) return;
         setData(null);
@@ -44,21 +56,19 @@ export default function DashboardPage() {
       }
     }
 
-    loadInitialDashboard();
+    void loadInitialDashboard();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadDashboard]);
 
   const handleRetry = async () => {
     setLoadState("loading");
     setErrorMessage("");
 
     try {
-      const dashboard = await fetchDashboardData();
-      setData(dashboard);
-      setLoadState("ready");
+      await loadDashboard();
     } catch (err) {
       setData(null);
       setLoadState("error");
@@ -66,6 +76,28 @@ export default function DashboardPage() {
         err instanceof ApiError
           ? err.message
           : "Could not load dashboard data. Please try again.",
+      );
+    }
+  };
+
+  const handleDeleteArticle = async (articleId: string, title: string) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete "${title}"? This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteArticle(articleId);
+      setActionMessage(`"${title}" was deleted.`);
+      await loadDashboard();
+    } catch (err) {
+      setActionMessage(
+        err instanceof ApiError
+          ? err.message
+          : "Could not delete the article. Please try again.",
       );
     }
   };
@@ -106,6 +138,12 @@ export default function DashboardPage() {
       title="HR Admin Dashboard"
       subtitle="Content management and analytics overview"
     >
+      {actionMessage ? (
+        <p className={styles.actionMessage} role="status">
+          {actionMessage}
+        </p>
+      ) : null}
+
       <section className={styles.metricsGrid}>
         {data.metrics.map((metric) => (
           <AdminMetricCard
@@ -166,9 +204,11 @@ export default function DashboardPage() {
         <AdminPanelCard
           title="Recent Articles"
           action={
-            <AdminButton variant="primary" size="sm" icon={Plus}>
-              New Article
-            </AdminButton>
+            <Link href="/admin/documents?action=create">
+              <AdminButton variant="primary" size="sm" icon={Plus}>
+                New Document
+              </AdminButton>
+            </Link>
           }
         >
           {data.recentArticles.length === 0 ? (
@@ -190,15 +230,44 @@ export default function DashboardPage() {
                     secondary={`Updated ${article.updatedAgo}`}
                   />
                   <div className={styles.articleActionRow}>
-                    <button type="button" className={styles.editButton}>
+                    <button
+                      type="button"
+                      className={styles.editButton}
+                      onClick={() =>
+                        router.push(`/admin/documents?edit=${article.id}`)
+                      }
+                    >
+                      <Pencil size={14} aria-hidden />
                       Edit
                     </button>
+                    {article.status === "PUBLISHED" && article.slug ? (
+                      <Link
+                        href={`/playbook/${article.slug}`}
+                        className={styles.viewLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Eye size={14} aria-hidden />
+                        View
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.viewLink}
+                        disabled
+                        title="Publish the article to preview in the playbook"
+                      >
+                        <Eye size={14} aria-hidden />
+                        View
+                      </button>
+                    )}
                     <button
                       type="button"
                       className={`${styles.iconButton} ${styles.iconButtonDanger}`}
                       aria-label={`Delete ${article.title}`}
+                      onClick={() => void handleDeleteArticle(article.id, article.title)}
                     >
-                      <Trash2 />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </li>
@@ -226,9 +295,11 @@ function MissingInfoCard({ item }: { item: DashboardMissingInfoItem }) {
         categoryColor={item.categoryColor}
         secondary={item.timeAgo}
       />
-      <AdminButton variant="primary" size="sm" className={styles.fullWidthButton}>
-        Create Article
-      </AdminButton>
+      <Link href="/admin/documents">
+        <AdminButton variant="primary" size="sm" className={styles.fullWidthButton}>
+          Create Article
+        </AdminButton>
+      </Link>
     </li>
   );
 }

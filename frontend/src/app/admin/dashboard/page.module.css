@@ -29,6 +29,16 @@
   font-family: var(--font-geist-sans), sans-serif;
 }
 
+.actionMessage {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 213, 0, 0.35);
+  background: rgba(255, 213, 0, 0.08);
+  color: #ffd500;
+  font-size: 0.88rem;
+}
+
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -205,6 +215,38 @@
 .editButton:hover {
   border-color: rgba(255, 213, 0, 0.45);
   background-color: var(--admin-surface-hover);
+}
+
+.viewLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 72px;
+  height: 36px;
+  padding: 0 0.65rem;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border);
+  background-color: #1a1a1a;
+  color: var(--admin-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  font-family: var(--font-geist-sans), sans-serif;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.viewLink:hover:not(:disabled) {
+  border-color: rgba(255, 213, 0, 0.45);
+  color: #ffd500;
+}
+
+.viewLink:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .iconButton {

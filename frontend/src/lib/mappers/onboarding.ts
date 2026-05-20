@@ -2,6 +2,13 @@ import { apiDelete, apiGet, apiPost, apiPut, endpoints } from "@/lib/api";
 import { unwrapEntityData, unwrapListData } from "@/lib/api/unwrap";
 import type { OnboardingStep } from "@/data/adminMockData";
 
+export type ApiArticleSummary = {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string | null;
+};
+
 export type ApiOnboardingStep = {
   id: string;
   title: string;
@@ -9,12 +16,8 @@ export type ApiOnboardingStep = {
   order: number;
   isActive: boolean;
   articleId: string | null;
-  article?: {
-    id: string;
-    title: string;
-    slug: string;
-    summary: string | null;
-  } | null;
+  article?: ApiArticleSummary | null;
+  articles?: ApiArticleSummary[];
   createdAt: string;
   updatedAt: string;
 };
@@ -25,11 +28,14 @@ export type OnboardingWritePayload = {
   order: number;
   isActive: boolean;
   articleId?: string | null;
+  articleIds?: string[];
 };
 
 export type AdminOnboardingStep = OnboardingStep & {
   content: string;
   articleId: string | null;
+  articleIds: string[];
+  linkedArticleCount: number;
 };
 
 function formatTimeAgo(isoDate: string): string {
@@ -52,16 +58,45 @@ function formatTimeAgo(isoDate: string): string {
   });
 }
 
+function collectArticles(step: ApiOnboardingStep): ApiArticleSummary[] {
+  const seen = new Set<string>();
+  const list: ApiArticleSummary[] = [];
+
+  for (const article of step.articles ?? []) {
+    if (!seen.has(article.id)) {
+      seen.add(article.id);
+      list.push(article);
+    }
+  }
+
+  if (step.article && !seen.has(step.article.id)) {
+    list.unshift(step.article);
+  }
+
+  return list;
+}
+
+function formatLinkedArticlesLabel(articles: ApiArticleSummary[]): string {
+  if (articles.length === 0) return "—";
+  if (articles.length === 1) return articles[0].title;
+  return `${articles[0].title} +${articles.length - 1} more`;
+}
+
 export function mapApiOnboardingStepToAdmin(step: ApiOnboardingStep): AdminOnboardingStep {
+  const articles = collectArticles(step);
+  const articleIds = articles.map((a) => a.id);
+
   return {
     id: step.id,
     title: step.title,
     order: step.order,
     status: step.isActive ? "Active" : "Inactive",
-    linkedArticle: step.article?.title ?? "—",
+    linkedArticle: formatLinkedArticlesLabel(articles),
     updatedAt: formatTimeAgo(step.updatedAt),
     content: step.content,
-    articleId: step.articleId,
+    articleId: step.articleId ?? articleIds[0] ?? null,
+    articleIds,
+    linkedArticleCount: articles.length,
   };
 }
 

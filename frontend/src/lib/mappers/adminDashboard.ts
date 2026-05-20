@@ -1,14 +1,3 @@
-/**
- * Maps backend analytics + articles API responses to admin dashboard UI models.
- *
- * Fallbacks (no backend field):
- * - KPI trend badges: omitted (overview has no period comparison).
- * - "Active Users" KPI uses totalUsers (not DAU).
- * - Article views: shown as "—" (Article model has no view count).
- * - Missing info category: derived from report `type`, not a real category.
- * - Missing info requestCount: 1 per report (no aggregated count API).
- */
-
 import { apiGet, endpoints } from "@/lib/api";
 import type { DashboardMetric } from "@/data/adminMockData";
 import type {
@@ -19,8 +8,6 @@ import type {
 } from "@/data/adminMockData";
 import type { AdminBadgeColor } from "@/components/admin/AdminStatusBadge/AdminStatusBadge";
 import { AlertCircle, FileText, TrendingUp, Users } from "lucide-react";
-
-// ——— API response shapes ———
 
 export type AnalyticsOverview = {
   totalUsers: number;
@@ -265,6 +252,8 @@ export function mapRecentArticles(articles: ApiArticle[], limit = 3): DashboardR
   return sorted.slice(0, limit).map((article) => ({
     id: article.id,
     title: article.title,
+    slug: article.slug,
+    status: article.status,
     category: article.category?.name ?? "General",
     categoryColor: categoryColorFromName(article.category?.name ?? ""),
     updatedAgo: formatTimeAgo(article.updatedAt),

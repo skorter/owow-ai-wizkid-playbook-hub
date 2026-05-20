@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AdminPageContainer,
   AdminMetricCard,
@@ -186,6 +187,10 @@ function hubOverviewErrorMessage(err: unknown): string {
 }
 
 export default function DocumentsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryHandledRef = useRef<string | null>(null);
+
   const [activeTab, setActiveTab] = useState<ManagementTabId>("articles");
   const [articles, setArticles] = useState<AdminDocument[]>([]);
   const [articleCategories, setArticleCategories] = useState<ArticleCategoryOption[]>([]);
@@ -697,12 +702,14 @@ export default function DocumentsPage() {
 
   const formToOnboardingPayload = (form: OnboardingFormState): OnboardingWritePayload => {
     const order = Number.parseInt(form.order, 10);
+    const articleIds = form.articleIds;
     return {
       title: form.title.trim(),
       content: form.content.trim(),
       order: Number.isInteger(order) && order >= 1 ? order : 1,
       isActive: statusToIsActive(form.status),
-      articleId: form.articleId.trim() ? form.articleId.trim() : null,
+      articleIds,
+      articleId: articleIds[0] ?? null,
     };
   };
 
@@ -909,20 +916,34 @@ export default function DocumentsPage() {
     }
   };
 
-  const deleteDoc = async (doc: AdminDocument) => {
-    setSavingArticle(true);
-    try {
-      await deleteArticleApi(doc.id);
-      await loadArticles();
-      await loadHubOverview();
-      showToast(`"${doc.title}" removed`);
-      if (selectedDoc?.id === doc.id) closeDrawer();
-    } catch (err) {
-      showToast(err instanceof ApiError ? err.message : "Could not delete article.");
-    } finally {
-      setSavingArticle(false);
-    }
-  };
+  const deleteDoc = useCallback(
+    async (doc: AdminDocument) => {
+      if (
+        !window.confirm(
+          `Are you sure you want to delete "${doc.title}"? This cannot be undone.`,
+        )
+      ) {
+        return;
+      }
+
+      setSavingArticle(true);
+      try {
+        await deleteArticleApi(doc.id);
+        await loadArticles();
+        await loadHubOverview();
+        showToast(`"${doc.title}" removed`);
+        setSelectedDoc((current) => (current?.id === doc.id ? null : current));
+        setDrawerMode((current) =>
+          current === "preview" || current === "edit" ? null : current,
+        );
+      } catch (err) {
+        showToast(err instanceof ApiError ? err.message : "Could not delete article.");
+      } finally {
+        setSavingArticle(false);
+      }
+    },
+    [loadArticles, loadHubOverview, showToast],
+  );
 
   const panelTitle = {
     articles: "Content library",
@@ -949,6 +970,56 @@ export default function DocumentsPage() {
     error: articlesLoadState === "error" ? articlesError : "",
     onRetry: loadArticles,
   };
+
+  useEffect(() => {
+    if (articlesLoadState !== "ready") return;
+
+    const action = searchParams.get("action") ?? searchParams.get("drawer");
+    const editId = searchParams.get("edit");
+    const deleteId = searchParams.get("delete");
+    const signature = `${action ?? ""}|${editId ?? ""}|${deleteId ?? ""}`;
+
+    if (!signature.replace(/\|/g, "") || queryHandledRef.current === signature) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      if (action === "create" || action === "new") {
+        setSelectedDoc(null);
+        setDrawerMode("create");
+        queryHandledRef.current = signature;
+        router.replace("/admin/documents", { scroll: false });
+        return;
+      }
+
+      if (editId) {
+        const doc = articles.find((item) => item.id === editId);
+        if (doc) {
+          setSelectedDoc(doc);
+          setDrawerMode("edit");
+          queryHandledRef.current = signature;
+          router.replace("/admin/documents", { scroll: false });
+        }
+        return;
+      }
+
+      if (deleteId) {
+        const doc = articles.find((item) => item.id === deleteId);
+        queryHandledRef.current = signature;
+        router.replace("/admin/documents", { scroll: false });
+        if (
+          doc &&
+          window.confirm(
+            `Are you sure you want to delete "${doc.title}"? This cannot be undone.`,
+          )
+        ) {
+          void deleteDoc(doc);
+        }
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [articles, articlesLoadState, deleteDoc, router, searchParams]);
 
   return (
     <AdminPageContainer
@@ -1615,7 +1686,11 @@ function OnboardingList({
             <AdminStatusBadge color={step.status === "Active" ? "green" : "gray"}>
               {step.status}
             </AdminStatusBadge>
-            <span className={styles.cellMuted}>{step.linkedArticle}</span>
+            <span className={styles.cellMuted}>
+              {step.linkedArticleCount > 0
+                ? `${step.linkedArticleCount} article${step.linkedArticleCount === 1 ? "" : "s"} · ${step.linkedArticle}`
+                : "—"}
+            </span>
             <span className={styles.cellMuted}>{step.updatedAt}</span>
             <div className={styles.rowActions}>
               <button type="button" className={styles.actionBtn} onClick={() => onEdit(step)}>

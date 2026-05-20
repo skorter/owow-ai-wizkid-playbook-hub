@@ -46,6 +46,8 @@ export type DashboardMissingInfoItem = {
 export type DashboardRecentArticle = {
   id: string;
   title: string;
+  slug: string;
+  status: string;
   category: string;
   categoryColor: AdminBadgeColor;
   updatedAgo: string;
@@ -136,6 +138,8 @@ export const dashboardRecentArticles: DashboardRecentArticle[] = [
   {
     id: "ra-1",
     title: "Time Off Policy",
+    slug: "time-off-policy",
+    status: "PUBLISHED",
     category: "HR",
     categoryColor: "blue",
     updatedAgo: "2 days ago",
@@ -144,6 +148,8 @@ export const dashboardRecentArticles: DashboardRecentArticle[] = [
   {
     id: "ra-2",
     title: "Simplicate Guide",
+    slug: "simplicate-guide",
+    status: "PUBLISHED",
     category: "Tools",
     categoryColor: "orange",
     updatedAgo: "1 week ago",
@@ -152,6 +158,8 @@ export const dashboardRecentArticles: DashboardRecentArticle[] = [
   {
     id: "ra-3",
     title: "Remote Work Policy",
+    slug: "remote-work-policy",
+    status: "PUBLISHED",
     category: "Policies",
     categoryColor: "green",
     updatedAgo: "2 weeks ago",
