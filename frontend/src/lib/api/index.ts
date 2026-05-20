@@ -24,9 +24,12 @@ export {
   type AskPageAIRequest,
   type AskPageAIResponse,
   type AskPageAISource,
+  getAISearchErrorMessage,
+  getAskPageAIErrorMessage,
 } from "./ai";
 
 export { unwrapListData, unwrapEntityData } from "./unwrap";
+export { getApiErrorMessage } from "./errors";
 
 export {
   ApiError,

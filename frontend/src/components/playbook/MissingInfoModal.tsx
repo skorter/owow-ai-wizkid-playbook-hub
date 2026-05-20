@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import styles from "./playbook-modal.module.css";
+import { getApiErrorMessage } from "@/lib/api";
 import { submitMissingInfoReport } from "@/lib/mappers/missingInfo";
 
 const MISSING_TYPES = [
@@ -80,9 +81,7 @@ function MissingInfoForm({
       }, 1600);
     } catch (err) {
       setStatus("error");
-      setErrorText(
-        err instanceof Error ? err.message : "Could not send request. Try again.",
-      );
+      setErrorText(getApiErrorMessage(err, "Could not send request. Try again."));
     } finally {
       setSubmitting(false);
     }

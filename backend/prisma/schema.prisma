@@ -50,7 +50,7 @@ model User {
   id           String   @id @default(cuid())
   email        String   @unique
   fullName     String?
-  passwordHash String? // Ready for auth later (not implemented yet)
+  passwordHash String? 
   role         UserRole @default(EMPLOYEE)
 
   articles           Article[]
@@ -163,7 +163,6 @@ model OnboardingStep {
   order    Int     @unique
   isActive Boolean @default(true)
 
-  // Legacy primary link (first article); prefer stepArticles join rows
   articleId String?
   article   Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
 

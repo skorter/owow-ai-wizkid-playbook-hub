@@ -38,6 +38,13 @@
   margin-top: 0.1rem;
 }
 
+.backendStatus {
+  grid-column: 1 / -1;
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: rgba(255, 213, 0, 0.85);
+}
+
 .aiSettings .setting {
   display: flex;
   flex-direction: column;

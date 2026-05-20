@@ -2,8 +2,11 @@
 
 import { useCallback, useState } from "react";
 import { Loader2, RefreshCw, Sparkles } from "lucide-react";
-import { askPageAI, type AskPageAIResponse } from "@/lib/api/ai";
-import { ApiError } from "@/lib/api";
+import {
+  askPageAI,
+  getAskPageAIErrorMessage,
+  type AskPageAIResponse,
+} from "@/lib/api/ai";
 import styles from "./AskPagePanel.module.css";
 
 const PAGE_NO_INFO =
@@ -42,11 +45,7 @@ export default function AskPagePanel({
       setResult(response);
     } catch (err) {
       setResult(null);
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "Could not get an answer right now. Please try again.",
-      );
+      setError(getAskPageAIErrorMessage(err));
     } finally {
       setLoading(false);
     }
