@@ -28,6 +28,8 @@ export default function SearchPage() {
   const [thumbsUp, setThumbsUp] = useState(false);
   const [thumbsDown, setThumbsDown] = useState(false);
 
+  const [draftQuery, setDraftQuery] = useState("");
+  const barQuery = queryFromUrl || draftQuery;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<AISearchResponse | null>(null);
@@ -93,8 +95,8 @@ export default function SearchPage() {
       <section className={styles.hero}>
         {!isSearching && <Greeting />}
         <SearchBar
-          key={`bar-${queryFromUrl}`}
-          initialQuery={queryFromUrl}
+          query={barQuery}
+          onQueryChange={setDraftQuery}
           onSearch={() => {}}
           loading={loading}
         />
@@ -120,7 +122,13 @@ export default function SearchPage() {
       {!isSearching && (
         <div className={styles.bottom}>
           {suggestedQuestionsOpen && <SuggestQuestions />}
-          {recentActivityOpen && <RecentActivity />}
+          {recentActivityOpen && (
+            <RecentActivity
+              onSelectQuestion={(q) => {
+                setDraftQuery(q);
+              }}
+            />
+          )}
         </div>
       )}
 

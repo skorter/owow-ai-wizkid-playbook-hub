@@ -9,7 +9,6 @@ import RecentActivity from "./components/RecentActivity/RecentActivity";
 import SavedArticles from "./components/SavedArticles/SavedArticles";
 import AISettings from "./components/AISettings/AISettings";
 import AIInsights from "./components/AIInsights/AIInsights";
-import SettingsGrid from "./components/SettingsGrid/SettingsGrid";
 import EditInformationModal from "./components/EditInformationModal/EditInformationModal";
 import { getStoredSessionUser } from "@/lib/auth/session";
 import type { SessionUser } from "@/types/auth";
@@ -42,9 +41,6 @@ export default function ProfilePage() {
       </div>
       <div className={styles.aiInsights}>
         <AIInsights />
-      </div>
-      <div className={styles.settingsGrid}>
-        <SettingsGrid />
       </div>
       <EditInformationModal
         isOpen={modalOpen}

@@ -29,6 +29,7 @@ import MissingInfoModal from "@/components/playbook/MissingInfoModal";
 import PlaybookSupportActions from "@/components/playbook/PlaybookSupportActions";
 import ArticleUnavailable from "@/components/playbook/ArticleUnavailable";
 import AskPagePanel from "./components/AskPagePanel/AskPagePanel";
+import ArticleBookmark from "./components/ArticleBookmark/ArticleBookmark";
 
 type LoadState = "loading" | "error" | "ready" | "not-found" | "unavailable";
 
@@ -284,6 +285,11 @@ export default function SlugPage() {
           <div className={styles.summaryCard}>
             <p className={styles.summaryLabel}>Summary</p>
             <p className={styles.summaryText}>{article.summary}</p>
+          </div>
+        ) : null}
+        {article.id && !article.fromFallback ? (
+          <div className={styles.bookmarkRow}>
+            <ArticleBookmark articleId={article.id} />
           </div>
         ) : null}
       </header>

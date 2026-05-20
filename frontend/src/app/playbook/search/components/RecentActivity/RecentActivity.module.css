@@ -13,39 +13,51 @@
 
 .activity .list {
   list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.activity .list .item {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: space-between;
+.itemButton {
+  width: 100%;
+  text-align: left;
   background-color: #161616;
   border: 1px solid #262626;
   border-radius: 0.75rem;
   padding: 1rem 1.25rem;
   color: #fff;
   cursor: pointer;
-  gap: 0.25rem;
   transition: border-color 0.2s ease;
+  font-family: inherit;
 }
 
-.activity .list .item:hover {
+.itemButton:hover {
   border-color: #ffd500;
 }
 
-.activity .list .item .label {
-  color: #fff;
+.question {
+  display: block;
   font-weight: 600;
   font-size: 0.95rem;
+  margin-bottom: 0.35rem;
 }
 
-.activity .list .item .meta {
+.preview {
+  display: block;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.45;
+  margin-bottom: 0.5rem;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  font-size: 0.8rem;
   color: #888;
-  font-size: 0.85rem;
 }
 
 .activity .empty {

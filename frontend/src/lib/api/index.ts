@@ -32,6 +32,22 @@ export { unwrapListData, unwrapEntityData } from "./unwrap";
 export { getApiErrorMessage } from "./errors";
 
 export {
+  fetchProfileActivity,
+  fetchProfileInsights,
+  fetchRecentSearches,
+  type ProfileActivityItem,
+  type ProfileInsightsResponse,
+  type RecentSearchItem,
+} from "./profile";
+
+export {
+  fetchSavedArticles,
+  saveArticle,
+  unsaveArticle,
+  type SavedArticleItem,
+} from "./savedArticles";
+
+export {
   ApiError,
   type ApiUser,
   type ApiUserRole,

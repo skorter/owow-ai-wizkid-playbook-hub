@@ -277,15 +277,45 @@ function buildYTicks(yMax) {
   return ticks.length ? ticks : [0, yMax];
 }
 
+const NO_RESULT_PHRASES = [
+  "could not find this in the current playbook",
+  "could not find enough information",
+];
+
 function isUnansweredSearchWhere() {
   return {
-    OR: [{ answer: null }, { answer: "" }],
+    OR: [
+      { confidence: 0 },
+      { fallback: true, sourceCount: 0 },
+      { sourceCount: 0 },
+      { answer: null },
+      { answer: "" },
+      ...NO_RESULT_PHRASES.map((phrase) => ({
+        answer: { contains: phrase, mode: "insensitive" },
+      })),
+    ],
   };
 }
 
 function isAnsweredSearchWhere() {
   return {
-    AND: [{ answer: { not: null } }, { NOT: { answer: "" } }],
+    AND: [
+      { answer: { not: null } },
+      { NOT: { answer: "" } },
+      {
+        OR: [
+          { confidence: { gt: 0 } },
+          { sourceCount: { gt: 0 } },
+          {
+            AND: [
+              { confidence: null },
+              { sourceCount: null },
+              { NOT: { answer: { contains: "could not find", mode: "insensitive" } } },
+            ],
+          },
+        ],
+      },
+    ],
   };
 }
 
@@ -353,44 +383,65 @@ async function getPeakHours() {
     showLabel: hour % 2 === 0,
   }));
 
-  const maxValue = Math.max(0, ...points.map((p) => p.value));
+  const maxValue = Math.max(0, ...counts);
   const yMax = computeNiceYMax(maxValue);
 
+  let peakHour = null;
   let peakInsight =
     "Peak usage data will appear as employees search the playbook.";
   if (maxValue > 0) {
+    const peakIndex = counts.indexOf(maxValue);
+    peakHour = `${String(peakIndex).padStart(2, "0")}:00`;
     const sorted = [...points].sort((a, b) => b.value - a.value);
     const top = sorted.slice(0, 2).map((p) => p.label);
     if (top.length === 2) {
-      peakInsight = `Most activity occurs around ${top[0]} and ${top[1]}.`;
+      peakInsight = `Most activity occurs around ${top[0]} and ${top[1]} (peak ${peakHour}).`;
     } else if (top.length === 1) {
-      peakInsight = `Most activity occurs around ${top[0]}.`;
+      peakInsight = `Most activity occurs around ${top[0]} (peak ${peakHour}).`;
     }
   }
 
-  return { points, yMax, yTicks: buildYTicks(yMax), insight: peakInsight };
+  return {
+    points,
+    yMax,
+    yTicks: buildYTicks(yMax),
+    insight: peakInsight,
+    peakHour,
+    peakCount: maxValue,
+  };
 }
 
 async function getUnansweredQuestions(query) {
   const limit = parseLimit(query?.limit);
 
-  const groups = await prisma.searchLog.groupBy({
-    by: ["question"],
+  const rows = await prisma.searchLog.findMany({
     where: isUnansweredSearchWhere(),
-    _count: { question: true },
-    orderBy: { _count: { question: "desc" } },
-    take: Math.min(limit * 5, 200),
+    orderBy: { createdAt: "desc" },
+    take: Math.min(limit * 3, 100),
   });
 
-  const items = groups
-    .filter((g) => g.question && String(g.question).trim().length > 0)
-    .slice(0, limit)
-    .map((g, index) => ({
-      id: `unanswered-${index}-${g.question.slice(0, 24)}`,
-      question: g.question.trim(),
-      category: "Search",
-      failedAttempts: g._count.question,
-    }));
+  const seen = new Set();
+  const items = [];
+
+  for (const row of rows) {
+    const q = row.question?.trim();
+    if (!q || seen.has(q.toLowerCase())) continue;
+    seen.add(q.toLowerCase());
+
+    const sourceLabel =
+      row.source === "AI_CHAT" ? "Ask Page" : "AI Search";
+
+    items.push({
+      id: row.id,
+      question: q,
+      category: sourceLabel,
+      source: row.source,
+      failedAttempts: 1,
+      createdAt: row.createdAt,
+    });
+
+    if (items.length >= limit) break;
+  }
 
   return { items, count: items.length };
 }
@@ -401,21 +452,21 @@ async function getPerformanceAnalytics() {
     answeredSearches,
     totalFeedback,
     totalUsers,
-    unansweredGroups,
+    unansweredCount,
     publishedByCategory,
     onboardingActive,
     onboardingTotal,
     dailyUserRows,
+    confidenceAgg,
+    savedArticlesCount,
+    publishedArticles,
+    missingInfoCount,
   ] = await Promise.all([
     prisma.searchLog.count(),
     prisma.searchLog.count({ where: isAnsweredSearchWhere() }),
     prisma.feedback.count(),
     prisma.user.count(),
-    prisma.searchLog.groupBy({
-      by: ["question"],
-      where: isUnansweredSearchWhere(),
-      _count: { question: true },
-    }),
+    prisma.searchLog.count({ where: isUnansweredSearchWhere() }),
     prisma.article.groupBy({
       by: ["categoryId"],
       where: { status: "PUBLISHED" },
@@ -433,17 +484,23 @@ async function getPerformanceAnalytics() {
       select: { userId: true },
       distinct: ["userId"],
     }),
+    prisma.searchLog.aggregate({
+      where: { confidence: { not: null, gt: 0 } },
+      _avg: { confidence: true },
+    }),
+    prisma.savedArticle.count(),
+    prisma.article.count({ where: { status: "PUBLISHED" } }),
+    prisma.missingInfoReport.count(),
   ]);
 
   const successRatePercent =
-    totalSearches > 0 ? Math.round((answeredSearches / totalSearches) * 100) : 0;
-
-  const unansweredCount = unansweredGroups.reduce(
-    (sum, g) => sum + g._count.question,
-    0,
-  );
+    totalSearches > 0 ? Math.round((answeredSearches / totalSearches) * 100) : 100;
 
   const dailyActiveUsers = dailyUserRows.length;
+
+  const averageConfidence = confidenceAgg._avg.confidence
+    ? Number(confidenceAgg._avg.confidence.toFixed(2))
+    : 0;
 
   let topCategoryName = "Published content";
   let topCategoryValue = `${publishedByCategory[0]?._count._all ?? 0} articles`;
@@ -472,11 +529,16 @@ async function getPerformanceAnalytics() {
 
   return {
     successRatePercent,
+    averageConfidence,
     avgResponseTimeLabel: null,
     dailyActiveUsers,
     unansweredCount,
     totalSearches,
     totalUsers,
+    savedArticlesCount,
+    publishedArticles,
+    missingInfoCount,
+    feedbackCount: totalFeedback,
     cards: [
       {
         id: "perf-top",
@@ -503,6 +565,53 @@ async function getPerformanceAnalytics() {
   };
 }
 
+async function getAdminAnalyticsDashboard() {
+  const [usageTrends, peakHours, unanswered, performance, overview] =
+    await Promise.all([
+      getUsageTrends({ days: 7 }),
+      getPeakHours(),
+      getUnansweredQuestions({ limit: 10 }),
+      getPerformanceAnalytics(),
+      getOverviewAnalytics(),
+    ]);
+
+  const usageTrendsFormatted = usageTrends.points.map((p) => ({
+    date: p.label,
+    searches: p.searches,
+    activeUsers: p.activeUsers,
+  }));
+
+  return {
+    summary: {
+      searchSuccessRate: performance.successRatePercent,
+      averageConfidence: performance.averageConfidence,
+      dailyActiveUsers: performance.dailyActiveUsers,
+      unansweredCount: performance.unansweredCount,
+      totalSearches: performance.totalSearches,
+      savedArticlesCount: performance.savedArticlesCount,
+    },
+    usageTrends: usageTrendsFormatted,
+    peakUsage: {
+      hour: peakHours.peakHour,
+      count: peakHours.peakCount ?? 0,
+    },
+    unansweredQuestions: unanswered.items,
+    contentInsights: {
+      topCategory:
+        performance.cards[0]?.subtitle?.replace(" category", "") ??
+        "Published content",
+      publishedArticles: performance.publishedArticles,
+      activeOnboardingPercent: performance.cards[1]?.value
+        ? parseInt(String(performance.cards[1].value), 10)
+        : 0,
+      searchSuccessRate: performance.successRatePercent,
+      missingInfoCount: performance.missingInfoCount,
+      feedbackCount: performance.feedbackCount,
+      totalArticles: overview.totalArticles,
+    },
+  };
+}
+
 module.exports = {
   parseLimit,
   parseDays,
@@ -515,4 +624,5 @@ module.exports = {
   getPeakHours,
   getUnansweredQuestions,
   getPerformanceAnalytics,
+  getAdminAnalyticsDashboard,
 };
