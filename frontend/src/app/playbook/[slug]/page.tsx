@@ -28,6 +28,7 @@ import FeedbackModal from "@/components/playbook/FeedbackModal";
 import MissingInfoModal from "@/components/playbook/MissingInfoModal";
 import PlaybookSupportActions from "@/components/playbook/PlaybookSupportActions";
 import ArticleUnavailable from "@/components/playbook/ArticleUnavailable";
+import AskPagePanel from "./components/AskPagePanel/AskPagePanel";
 
 type LoadState = "loading" | "error" | "ready" | "not-found" | "unavailable";
 
@@ -306,6 +307,14 @@ export default function SlugPage() {
       ) : null}
 
       <section className={styles.contentCard}>{renderArticleContent(article.content)}</section>
+
+      {article.id && !article.fromFallback ? (
+        <AskPagePanel
+          articleId={article.id}
+          slug={article.slug}
+          articleTitle={article.title}
+        />
+      ) : null}
 
       {article.fromFallback ? (
         <section className={styles.previewNotice} role="note">

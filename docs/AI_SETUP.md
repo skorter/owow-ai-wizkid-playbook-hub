@@ -114,7 +114,7 @@ Phase 11.11 returns a placeholder answer and empty `sources` — not full RAG ye
 
 - `getAIStatus()` → `GET /api/ai/status`
 - `aiSearch(question)` → `POST /api/ai/search`
-- `askPageAI(...)` → reserved for Phase 13 (`POST /api/ai/ask-page`)
+- `askPageAI({ question, slug?, articleId?, pageContext? })` → `POST /api/ai/ask-page`
 
 Import from `@/lib/api` or `@/lib/api/ai`.
 
@@ -132,9 +132,14 @@ Import from `@/lib/api` or `@/lib/api/ai`.
 - `POST /api/ai/search` loads **PUBLISHED** articles only, ranks matches, calls OpenAI chat (or fallback), saves `SearchLog`
 - `/playbook/search` uses `aiSearch()` with loading, answer, and source cards
 
-## Phase 13+ (next)
+## Phase 13 (implemented)
 
-- Per-article `POST /api/ai/ask-page`
+- `POST /api/ai/ask-page` — answers from **one** published article (by `slug` or `articleId`); optional `pageContext` append only
+- Article page `/playbook/[slug]` — **Ask AI about this page** panel (published API articles only)
+- `SearchLog` entries use source `AI_CHAT` for ask-page questions
+
+## Phase 14+ (next)
+
 - Embeddings / semantic ranking (optional)
 - Related questions from search context
 
