@@ -12,7 +12,8 @@ async function getAIStatus(req, res, next) {
 async function aiSearch(req, res, next) {
   try {
     const { question } = req.body || {};
-    const result = await aiService.runPlaceholderSearch(question);
+    const userId = req.user?.id ?? null;
+    const result = await aiService.runAISearch(question, userId);
 
     if (result.error) {
       return res.status(result.error.status).json({

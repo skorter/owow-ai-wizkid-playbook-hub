@@ -4,12 +4,12 @@ const {
   aiSearch,
   aiReady,
 } = require("../controllers/aiController");
-const { authMiddleware } = require("../middleware/authMiddleware");
+const { optionalAuthMiddleware } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 router.get("/status", getAIStatus);
 router.get("/", aiReady);
-router.post("/search", authMiddleware, aiSearch);
+router.post("/search", optionalAuthMiddleware, aiSearch);
 
 module.exports = router;

@@ -144,6 +144,24 @@
   color: #888;
 }
 
+.details .content .sources .list .result .summary {
+  grid-column: 1 / span 2;
+  grid-row: 4;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #bcbcbc;
+}
+
+.details .content .sources .emptySources {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid #262626;
+  background: #161616;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.9rem;
+}
+
 .details .content .sources .list .result .icon {
   grid-column: 3;
   grid-row: 1;

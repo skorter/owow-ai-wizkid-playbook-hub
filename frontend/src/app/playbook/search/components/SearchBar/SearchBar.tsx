@@ -8,9 +8,14 @@ import { Search, Paperclip, Send } from "lucide-react";
 type SearchBarProps = {
   initialQuery?: string;
   onSearch: (query: string) => void;
+  loading?: boolean;
 };
 
-export default function SearchBar({ initialQuery = "", onSearch }: SearchBarProps) {
+export default function SearchBar({
+  initialQuery = "",
+  onSearch,
+  loading = false,
+}: SearchBarProps) {
   const router = useRouter();
   const [query, setQuery] = useState(() => initialQuery);
 
@@ -43,7 +48,12 @@ export default function SearchBar({ initialQuery = "", onSearch }: SearchBarProp
       <button type="button" className={styles.attachButton} aria-label="Attach file">
         <Paperclip className={styles.icon} />
       </button>
-      <button type="submit" className={styles.sendButton} aria-label="Submit search">
+      <button
+        type="submit"
+        className={styles.sendButton}
+        aria-label="Submit search"
+        disabled={loading}
+      >
         <Send className={styles.icon} />
       </button>
     </form>

@@ -1,8 +1,12 @@
 import styles from "./QuickAnswer.module.css";
 import { Sparkles, ThumbsUp, ThumbsDown } from "lucide-react";
-import { quickAnswer } from "@/lib/data/search";
+import type { AIProvider } from "@/lib/api/ai";
 
 type QuickAnswerProps = {
+  answer: string;
+  confidence?: number;
+  provider?: AIProvider;
+  fallback?: boolean;
   onThumbsDown: () => void;
   onThumbsUp: () => void;
   thumbsUp: boolean;
@@ -10,6 +14,10 @@ type QuickAnswerProps = {
 };
 
 export default function QuickAnswer({
+  answer,
+  confidence,
+  provider,
+  fallback,
   onThumbsDown,
   onThumbsUp,
   thumbsUp,
@@ -20,17 +28,23 @@ export default function QuickAnswer({
       <div className={styles.header}>
         <Sparkles className={styles.icon} />
         <h2 className={styles.title}>Quick Answer</h2>
-        <p className={styles.answer}>{quickAnswer.answer}</p>
+        <p className={styles.answer}>{answer}</p>
+        {confidence != null && confidence > 0 ? (
+          <p className={styles.meta}>
+            Match confidence: {Math.round(confidence * 100)}%
+            {fallback ? " · summary mode" : provider === "openai" ? " · AI" : ""}
+          </p>
+        ) : null}
       </div>
       <div className={styles.feedback}>
         <p className={styles.label}>Was this answer helpful?</p>
         <div className={styles.actions}>
-          <button className={styles.yesButton} onClick={onThumbsUp}>
+          <button type="button" className={styles.yesButton} onClick={onThumbsUp}>
             <ThumbsUp
               className={`${styles.icon} ${thumbsUp ? styles.active : ""}`}
             />
           </button>
-          <button className={styles.noButton} onClick={onThumbsDown}>
+          <button type="button" className={styles.noButton} onClick={onThumbsDown}>
             <ThumbsDown
               className={`${styles.icon} ${thumbsDown ? styles.active : ""}`}
             />

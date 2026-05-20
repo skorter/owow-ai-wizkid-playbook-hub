@@ -127,12 +127,15 @@ Import from `@/lib/api` or `@/lib/api/ai`.
 | 401 on `/api/ai/search` | Send `Authorization: Bearer <token>` from login |
 | Key in logs | Never log `aiConfig.apiKey`; grep codebase if unsure |
 
-## Phase 12 (next)
+## Phase 12 (implemented)
 
-- Load published articles from Prisma
-- Rank with `rankArticleMatches` (then embeddings if needed)
-- Call OpenAI chat with `buildSourceContext`
-- Persist `SearchLog`
-- Connect `/playbook/search` UI to `aiSearch()`
+- `POST /api/ai/search` loads **PUBLISHED** articles only, ranks matches, calls OpenAI chat (or fallback), saves `SearchLog`
+- `/playbook/search` uses `aiSearch()` with loading, answer, and source cards
 
-No pgvector, vector DB, or embeddings storage in Phase 11.11.
+## Phase 13+ (next)
+
+- Per-article `POST /api/ai/ask-page`
+- Embeddings / semantic ranking (optional)
+- Related questions from search context
+
+No pgvector or vector DB yet.
