@@ -50,5 +50,8 @@ export const endpoints = {
 
   ai: {
     root: "/api/ai",
+    status: "/api/ai/status",
+    search: "/api/ai/search",
+    askPage: "/api/ai/ask-page",
   },
 } as const;

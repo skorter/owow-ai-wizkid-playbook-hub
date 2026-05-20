@@ -1,10 +1,15 @@
 const express = require("express");
-const { aiReady } = require("../controllers/aiController");
+const {
+  getAIStatus,
+  aiSearch,
+  aiReady,
+} = require("../controllers/aiController");
+const { authMiddleware } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Placeholder (Phase 2): confirms module wiring works
+router.get("/status", getAIStatus);
 router.get("/", aiReady);
+router.post("/search", authMiddleware, aiSearch);
 
 module.exports = router;
-
