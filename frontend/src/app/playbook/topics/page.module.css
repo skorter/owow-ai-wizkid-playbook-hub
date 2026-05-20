@@ -1,3 +1,45 @@
+.stateMessage,
+.panelEmpty {
+  margin: 0;
+  padding: 1.5rem 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.stateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.5rem 0;
+}
+
+.stateError {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #f87171;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.retryButton:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
 .topicsPage {
   width: 100%;
   display: flex;
