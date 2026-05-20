@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 export type OnboardingArticle = {
   label: string;
   slug: string;
+  summary?: string | null;
 };
 
 export type OnboardingStep = {

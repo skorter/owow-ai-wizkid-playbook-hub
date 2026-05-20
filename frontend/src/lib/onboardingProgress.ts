@@ -104,3 +104,14 @@ export function findFirstIncompleteStepIndex(
   );
   return index === -1 ? Math.max(0, steps.length - 1) : index;
 }
+
+export function findStepIndexForSlug(
+  steps: { articles: { slug: string }[] }[],
+  slug: string,
+): number {
+  const normalized = slug.trim().toLowerCase();
+  const index = steps.findIndex((step) =>
+    step.articles.some((article) => article.slug.trim().toLowerCase() === normalized),
+  );
+  return index >= 0 ? index : 0;
+}

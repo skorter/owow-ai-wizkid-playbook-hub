@@ -88,6 +88,55 @@
   line-height: 1.45;
 }
 
+.completionBanner {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 213, 0, 0.45);
+  background: rgba(255, 213, 0, 0.1);
+  color: #fde68a;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.stepMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.stepEyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 213, 0, 0.85);
+}
+
+.stepProgressLabel {
+  margin: 0.5rem 0 0.35rem;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.stepProgressTrack {
+  width: 100%;
+  max-width: 280px;
+  height: 6px;
+  border-radius: 999px;
+  background: #2a2a2a;
+  overflow: hidden;
+}
+
+.stepProgressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ffd500 0%, #4ecdc4 100%);
+  transition: width 0.25s ease;
+}
+
 .onboardingPage {
   display: flex;
   flex-direction: column;

@@ -47,6 +47,7 @@ export type PlaybookTopicsResult = {
 };
 
 export type PlaybookArticleDetail = {
+  id: string | null;
   slug: string;
   title: string;
   summary: string | null;
@@ -160,6 +161,7 @@ export async function fetchPlaybookArticleBySlug(
   try {
     const article = await apiGet<ApiArticle>(endpoints.articles.bySlug(slug));
     return {
+      id: article.id,
       slug: article.slug,
       title: article.title,
       summary: article.summary,
@@ -181,6 +183,7 @@ export function buildStaticArticleFallback(slug: string): PlaybookArticleDetail 
   if (!staticPage) return null;
 
   return {
+    id: null,
     slug,
     title: staticPage.label,
     summary: staticPage.description || null,
@@ -199,12 +202,20 @@ function collectOnboardingArticles(step: ApiOnboardingStep): OnboardingStep["art
   for (const article of step.articles ?? []) {
     if (!seen.has(article.slug)) {
       seen.add(article.slug);
-      list.push({ label: article.title, slug: article.slug });
+      list.push({
+        label: article.title,
+        slug: article.slug,
+        summary: article.summary,
+      });
     }
   }
 
   if (step.article && !seen.has(step.article.slug)) {
-    list.unshift({ label: step.article.title, slug: step.article.slug });
+    list.unshift({
+      label: step.article.title,
+      slug: step.article.slug,
+      summary: step.article.summary,
+    });
   }
 
   return list;

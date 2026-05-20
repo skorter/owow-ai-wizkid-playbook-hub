@@ -7,6 +7,10 @@
   color: #fff;
 }
 
+.supportRow {
+  margin-top: -0.5rem;
+}
+
 .dashboardPage .footer {
   text-align: center;
   color: #888;

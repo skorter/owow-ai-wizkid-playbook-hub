@@ -1,45 +1,52 @@
 "use client";
+
 import { useState } from "react";
 import styles from "./Feedback.module.css";
-import FeedbackModal from "../FeedbackModal/FeedbackModal";
+import MissingInfoModal from "@/components/playbook/MissingInfoModal";
+import FeedbackModal from "@/components/playbook/FeedbackModal";
+import PlaybookSupportActions from "@/components/playbook/PlaybookSupportActions";
 
-export default function Feedback() {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+type FeedbackProps = {
+  searchQuery?: string;
+};
+
+export default function Feedback({ searchQuery = "" }: FeedbackProps) {
+  const [missingOpen, setMissingOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
 
   return (
     <section className={styles.feedback}>
-      {!feedbackSubmitted ? (
+      {!requestSent ? (
         <>
-          <h2 className={styles.title}>
-            Can&apos;t find what you&apos;re looking for?
-          </h2>
+          <h2 className={styles.title}>Can&apos;t find what you&apos;re looking for?</h2>
           <p className={styles.description}>
-            Let us know and we&apos;ll make sure to add it to the Playbook.
+            Request missing information or send feedback so HR can improve the playbook.
           </p>
-          <button
-            className={styles.submitButton}
-            onClick={() => setModalOpen(true)}
-          >
-            Submit a request
-          </button>
+          <PlaybookSupportActions
+            onFeedback={() => setFeedbackOpen(true)}
+            onMissingInfo={() => setMissingOpen(true)}
+            layout="stack"
+            missingLabel="Request missing info"
+          />
         </>
       ) : (
         <>
-          <h2 className={styles.label}>Thank you for your feedback!</h2>
+          <h2 className={styles.label}>Thank you</h2>
           <p className={styles.subtitle}>
-            We appreciate your input and will review your request.
+            Your request was sent. HR can review it in Missing Requests.
           </p>
         </>
       )}
-      <FeedbackModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={() => {
-          setFeedbackSubmitted(true);
-          setModalOpen(false);
-        }}
+
+      <MissingInfoModal
+        open={missingOpen}
+        onClose={() => setMissingOpen(false)}
+        sourceHint={searchQuery ? `Topics search: ${searchQuery}` : "Topics browse"}
+        defaultTitle={searchQuery}
+        onSubmitted={() => setRequestSent(true)}
       />
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </section>
   );
 }

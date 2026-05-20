@@ -51,10 +51,14 @@
 }
 
 .aiPendingText {
-  margin: 0;
+  margin: 0 0 1.25rem;
   font-size: 0.95rem;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.75);
+}
+
+.supportRow {
+  margin-top: 0.5rem;
 }
 
 .searchPage.searching .results {

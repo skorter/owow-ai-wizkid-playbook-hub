@@ -129,7 +129,9 @@ export default function TopicsPage() {
         </ul>
       ) : null}
 
-      {!isEmpty && searchQuery && filteredCategories.length === 0 ? <Feedback /> : null}
+      {!isEmpty && searchQuery && filteredCategories.length === 0 ? (
+        <Feedback searchQuery={searchQuery} />
+      ) : null}
     </div>
   );
 }
