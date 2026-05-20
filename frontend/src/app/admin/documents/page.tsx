@@ -25,14 +25,12 @@ import OnboardingPreviewModal from "@/components/admin/documents/OnboardingPrevi
 import HubToast from "@/components/admin/documents/HubToast";
 import {
   documentStats,
-  missingInfoRequests,
   documentFilterStatuses,
   documentSortOptions,
 } from "@/data/adminMockData";
 import type {
   AdminDocument,
   ContentCategory,
-  MissingInfoRequest,
   ManagementTabId,
   DocumentStatus,
 } from "@/data/adminMockData";
@@ -64,6 +62,11 @@ import {
   type AdminOnboardingStep,
   type OnboardingWritePayload,
 } from "@/lib/mappers/onboarding";
+import {
+  fetchMissingInfoRequests,
+  updateMissingInfoGroupStatus,
+  type AdminMissingInfoRequest,
+} from "@/lib/mappers/missingInfo";
 import { ApiError } from "@/lib/api";
 import {
   Plus,
@@ -89,6 +92,7 @@ type DrawerMode = "create" | "edit" | "preview" | null;
 type ArticlesLoadState = "loading" | "error" | "ready";
 type CategoriesLoadState = "loading" | "error" | "ready";
 type OnboardingLoadState = "loading" | "error" | "ready";
+type MissingLoadState = "loading" | "error" | "ready";
 
 function isArticleTab(tab: ManagementTabId): boolean {
   return tab === "articles" || tab === "drafts" || tab === "archived";
@@ -166,8 +170,10 @@ export default function DocumentsPage() {
   const [onboardingArticleOptions, setOnboardingArticleOptions] = useState<ArticleLinkOption[]>(
     [],
   );
-  const [missingRequests, setMissingRequests] =
-    useState<MissingInfoRequest[]>(missingInfoRequests);
+  const [missingRequests, setMissingRequests] = useState<AdminMissingInfoRequest[]>([]);
+  const [missingLoadState, setMissingLoadState] = useState<MissingLoadState>("loading");
+  const [missingError, setMissingError] = useState("");
+  const [savingMissing, setSavingMissing] = useState(false);
 
   const [articlesLoadState, setArticlesLoadState] = useState<ArticlesLoadState>("loading");
   const [articlesError, setArticlesError] = useState("");
@@ -658,6 +664,93 @@ export default function DocumentsPage() {
     }
   };
 
+  const loadMissingRequests = useCallback(async () => {
+    try {
+      const requests = await fetchMissingInfoRequests();
+      setMissingRequests(requests);
+      setMissingLoadState("ready");
+      setMissingError("");
+    } catch (err) {
+      setMissingRequests([]);
+      setMissingLoadState("error");
+      setMissingError(
+        err instanceof ApiError
+          ? err.message
+          : "Could not load missing information requests. Please try again.",
+      );
+    }
+  }, []);
+
+  const retryLoadMissingRequests = useCallback(() => {
+    setMissingLoadState("loading");
+    void loadMissingRequests();
+  }, [loadMissingRequests]);
+
+  useEffect(() => {
+    if (activeTab !== "missing") return;
+
+    let cancelled = false;
+
+    async function loadMissingTab() {
+      try {
+        const requests = await fetchMissingInfoRequests();
+        if (cancelled) return;
+        setMissingRequests(requests);
+        setMissingLoadState("ready");
+        setMissingError("");
+      } catch (err) {
+        if (cancelled) return;
+        setMissingRequests([]);
+        setMissingLoadState("error");
+        setMissingError(
+          err instanceof ApiError
+            ? err.message
+            : "Could not load missing information requests. Please try again.",
+        );
+      }
+    }
+
+    void loadMissingTab();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
+
+  const handleMarkMissingReviewed = async (request: AdminMissingInfoRequest) => {
+    setSavingMissing(true);
+    try {
+      await updateMissingInfoGroupStatus(request.reportIds, "REVIEWED");
+      await loadMissingRequests();
+      showToast("Marked as reviewed");
+    } catch (err) {
+      showToast(
+        err instanceof ApiError
+          ? err.message
+          : "Could not update request status. Please try again.",
+      );
+    } finally {
+      setSavingMissing(false);
+    }
+  };
+
+  const handleResolveMissing = async (request: AdminMissingInfoRequest) => {
+    setSavingMissing(true);
+    try {
+      await updateMissingInfoGroupStatus(request.reportIds, "RESOLVED");
+      await loadMissingRequests();
+      showToast("Request resolved");
+    } catch (err) {
+      showToast(
+        err instanceof ApiError
+          ? err.message
+          : "Could not resolve request. Please try again.",
+      );
+    } finally {
+      setSavingMissing(false);
+    }
+  };
+
   const publishDoc = async (doc: AdminDocument) => {
     setSavingArticle(true);
     try {
@@ -905,19 +998,13 @@ export default function DocumentsPage() {
             {activeTab === "missing" && (
               <MissingRequestsList
                 requests={missingRequests}
+                loading={missingLoadState === "loading"}
+                error={missingLoadState === "error" ? missingError : ""}
+                saving={savingMissing}
+                onRetry={retryLoadMissingRequests}
                 onCreateArticle={openCreateArticle}
-                onMarkReviewed={(id) => {
-                  setMissingRequests((prev) =>
-                    prev.map((r) => (r.id === id ? { ...r, status: "Reviewed" as const } : r))
-                  );
-                  showToast("Marked as reviewed");
-                }}
-                onResolve={(id) => {
-                  setMissingRequests((prev) =>
-                    prev.map((r) => (r.id === id ? { ...r, status: "Resolved" as const } : r))
-                  );
-                  showToast("Request resolved");
-                }}
+                onMarkReviewed={(request) => void handleMarkMissingReviewed(request)}
+                onResolve={(request) => void handleResolveMissing(request)}
               />
             )}
           </div>
@@ -1381,20 +1468,49 @@ function OnboardingList({
 
 function MissingRequestsList({
   requests,
+  loading = false,
+  error = "",
+  saving = false,
+  onRetry,
   onCreateArticle,
   onMarkReviewed,
   onResolve,
 }: {
-  requests: MissingInfoRequest[];
+  requests: AdminMissingInfoRequest[];
+  loading?: boolean;
+  error?: string;
+  saving?: boolean;
+  onRetry?: () => void;
   onCreateArticle: () => void;
-  onMarkReviewed: (id: string) => void;
-  onResolve: (id: string) => void;
+  onMarkReviewed: (request: AdminMissingInfoRequest) => void;
+  onResolve: (request: AdminMissingInfoRequest) => void;
 }) {
-  const statusColor = (s: MissingInfoRequest["status"]): AdminBadgeColor => {
+  const statusColor = (s: AdminMissingInfoRequest["status"]): AdminBadgeColor => {
     if (s === "Open") return "orange";
     if (s === "Reviewed") return "yellow";
     return "green";
   };
+
+  if (loading) {
+    return <p className={styles.stateMessage}>Loading missing requests…</p>;
+  }
+
+  if (error) {
+    return (
+      <div className={styles.stateBlock}>
+        <p className={styles.stateError}>{error}</p>
+        {onRetry ? (
+          <AdminButton variant="primary" icon={RefreshCw} onClick={() => void onRetry()}>
+            Retry
+          </AdminButton>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (requests.length === 0) {
+    return <p className={styles.emptyState}>No missing information requests yet.</p>;
+  }
 
   return (
     <div className={styles.hubTable}>
@@ -1417,13 +1533,23 @@ function MissingRequestsList({
                 <span>Create Article</span>
               </button>
               {req.status === "Open" ? (
-                <button type="button" className={styles.actionBtn} onClick={() => onMarkReviewed(req.id)}>
+                <button
+                  type="button"
+                  className={styles.actionBtn}
+                  onClick={() => onMarkReviewed(req)}
+                  disabled={saving}
+                >
                   <Check size={14} />
                   <span>Mark Reviewed</span>
                 </button>
               ) : null}
               {req.status !== "Resolved" ? (
-                <button type="button" className={styles.actionBtn} onClick={() => onResolve(req.id)}>
+                <button
+                  type="button"
+                  className={styles.actionBtn}
+                  onClick={() => onResolve(req)}
+                  disabled={saving}
+                >
                   Resolve
                 </button>
               ) : null}
