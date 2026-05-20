@@ -1,35 +1,40 @@
 "use client";
-import { useState } from "react";
+
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import Greeting from "./components/Greeting/Greeting";
 import SearchBar from "./components/SearchBar/SearchBar";
 import SuggestQuestions from "./components/SuggestQuestions/SuggestQuestions";
 import RecentActivity from "./components/RecentActivity/RecentActivity";
 import ActionButtons from "./components/ActionButtons/ActionButtons";
-import QuickAnswer from "./components/QuickAnswer/QuickAnswer";
-import DetailedAnswer from "./components/DetailedAnswer/DetailedAnswer";
 import FeedbackModal from "./components/FeedbackModal/FeedbackModal";
 
 export default function SearchPage() {
+  const searchParams = useSearchParams();
+  const queryFromUrl = searchParams.get("q")?.trim() ?? "";
+
   const [suggestedQuestionsOpen, setSuggestedQuestionsOpen] = useState(false);
   const [recentActivityOpen, setRecentActivityOpen] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [extendedAnswerOpen, setExtendedAnswerOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(() => queryFromUrl);
   const [modalOpen, setModalOpen] = useState(false);
-  const [thumbsUpClicked, setThumbsUpClicked] = useState(false);
-  const [thumbsDownClicked, setThumbsDownClicked] = useState(false);
+
+  const activeQuery = searchQuery.trim() || queryFromUrl;
+  const isSearching = activeQuery.length > 0;
+
+  const pendingMessage = useMemo(() => {
+    if (!isSearching) return "";
+    return activeQuery;
+  }, [isSearching, activeQuery]);
+
   return (
-    <div
-      className={`${styles.searchPage} ${isSearching ? styles.searching : ""}`}
-    >
+    <div className={`${styles.searchPage} ${isSearching ? styles.searching : ""}`}>
       <section className={styles.hero}>
         {!isSearching && <Greeting />}
         <SearchBar
-          onSearch={(query) => {
-            setSearchQuery(query);
-            setIsSearching(query.length > 5);
-          }}
+          key={queryFromUrl}
+          initialQuery={queryFromUrl}
+          onSearch={setSearchQuery}
         />
         {!isSearching && (
           <ActionButtons
@@ -48,35 +53,23 @@ export default function SearchPage() {
         </div>
       )}
 
-      {isSearching && (
+      {isSearching ? (
         <section className={styles.results}>
-          <QuickAnswer
-            onThumbsDown={() => {
-              setThumbsUpClicked(false);
-              setModalOpen(true);
-            }}
-            onThumbsUp={() => {
-              setThumbsUpClicked(true);
-              setThumbsDownClicked(false);
-            }}
-            thumbsUp={thumbsUpClicked}
-            thumbsDown={thumbsDownClicked}
-          />
-          <DetailedAnswer
-            extendedOpen={extendedAnswerOpen}
-            setExtendedOpen={setExtendedAnswerOpen}
-          />
+          <div className={styles.aiPending}>
+            <h2 className={styles.aiPendingTitle}>AI search coming in Phase 12</h2>
+            <p className={styles.aiPendingText}>
+              Your query &quot;{pendingMessage}&quot; is ready. Intelligent answers will
+              be connected in the next release. Browse topics or open a published article
+              in the meantime.
+            </p>
+          </div>
           <FeedbackModal
             isOpen={modalOpen}
             onClose={() => setModalOpen(false)}
-            onSubmit={() => {
-              setModalOpen(false);
-              setThumbsDownClicked(true);
-              setThumbsUpClicked(false);
-            }}
+            onSubmit={() => setModalOpen(false)}
           />
         </section>
-      )}
+      ) : null}
     </div>
   );
 }

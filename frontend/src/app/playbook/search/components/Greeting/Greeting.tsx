@@ -1,8 +1,13 @@
+"use client";
+
 import Image from "next/image";
 import styles from "./Greeting.module.css";
-import { user } from "@/lib/data/user";
+import { getDisplayFirstName, usePlaybookSession } from "@/lib/hooks/usePlaybookSession";
 
 export default function Greeting() {
+  const user = usePlaybookSession();
+  const firstName = getDisplayFirstName(user);
+
   return (
     <div className={styles.greeting}>
       <Image
@@ -13,7 +18,7 @@ export default function Greeting() {
         className={styles.avatar}
       />
       <h1 className={styles.label}>
-        Good evening, <span className={styles.name}>{user.firstName}</span>
+        Good evening, <span className={styles.name}>{firstName}</span>
       </h1>
     </div>
   );

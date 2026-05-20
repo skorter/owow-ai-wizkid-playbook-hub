@@ -1,4 +1,5 @@
 import { apiGet, ApiError, endpoints } from "@/lib/api";
+import { unwrapListData } from "@/lib/api/unwrap";
 import type { ApiArticle, ApiCategory } from "@/lib/mappers/articles";
 import type { ApiOnboardingStep } from "@/lib/mappers/onboarding";
 import { categories as staticCategories } from "@/lib/data/categories";
@@ -17,19 +18,6 @@ import {
   BookOpen,
   type LucideIcon,
 } from "lucide-react";
-
-function unwrapListData<T>(body: unknown): T[] {
-  if (Array.isArray(body)) return body;
-  if (
-    body &&
-    typeof body === "object" &&
-    "data" in body &&
-    Array.isArray((body as { data: unknown }).data)
-  ) {
-    return (body as { data: T[] }).data;
-  }
-  return [];
-}
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   "owow-general": Building2,
@@ -133,10 +121,6 @@ export async function fetchPlaybookTopics(): Promise<PlaybookTopicsResult> {
     ]);
 
     const categories = mapApiToPlaybookCategories(apiCategories, articles);
-    if (categories.length === 0) {
-      return { categories: staticCategories, fromFallback: true };
-    }
-
     return { categories, fromFallback: false };
   } catch {
     return { categories: staticCategories, fromFallback: true };
@@ -231,11 +215,6 @@ export async function fetchPlaybookOnboarding(): Promise<PlaybookOnboardingResul
     const raw = await apiGet<unknown>(endpoints.onboarding.list);
     const apiSteps = unwrapListData<ApiOnboardingStep>(raw);
     const steps = mapApiOnboardingToEmployeeSteps(apiSteps);
-
-    if (steps.length === 0) {
-      return { steps: staticOnboardingSteps, fromFallback: true };
-    }
-
     return { steps, fromFallback: false };
   } catch {
     return { steps: staticOnboardingSteps, fromFallback: true };

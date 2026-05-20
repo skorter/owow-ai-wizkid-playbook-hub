@@ -24,7 +24,6 @@ import OnboardingFormModal, {
 import OnboardingPreviewModal from "@/components/admin/documents/OnboardingPreviewModal";
 import HubToast from "@/components/admin/documents/HubToast";
 import {
-  documentStats,
   documentFilterStatuses,
   documentSortOptions,
 } from "@/data/adminMockData";
@@ -67,7 +66,16 @@ import {
   updateMissingInfoGroupStatus,
   type AdminMissingInfoRequest,
 } from "@/lib/mappers/missingInfo";
-import { ApiError } from "@/lib/api";
+import {
+  buildDocumentInsights,
+  buildDocumentStatsMetrics,
+  type DocumentInsightsViewModel,
+} from "@/lib/mappers/documentHub";
+import {
+  mapApiArticleToAdminDocument,
+  type ApiArticle,
+} from "@/lib/mappers/articles";
+import { apiGet, ApiError, endpoints } from "@/lib/api";
 import {
   Plus,
   FolderPlus,
@@ -147,6 +155,31 @@ function sortArticles(list: AdminDocument[], sortBy: string): AdminDocument[] {
   return sorted;
 }
 
+type HubOverviewBundle = {
+  allArticles: AdminDocument[];
+  rawArticles: ApiArticle[];
+  missing: AdminMissingInfoRequest[];
+};
+
+async function fetchHubOverviewBundle(): Promise<HubOverviewBundle> {
+  const [rawArticles, missing] = await Promise.all([
+    apiGet<ApiArticle[]>(endpoints.articles.adminAll),
+    fetchMissingInfoRequests(),
+  ]);
+
+  return {
+    allArticles: rawArticles.map(mapApiArticleToAdminDocument),
+    rawArticles,
+    missing,
+  };
+}
+
+function hubOverviewErrorMessage(err: unknown): string {
+  return err instanceof ApiError
+    ? err.message
+    : "Could not load hub insights. Please try again.";
+}
+
 export default function DocumentsPage() {
   const [activeTab, setActiveTab] = useState<ManagementTabId>("articles");
   const [articles, setArticles] = useState<AdminDocument[]>([]);
@@ -175,6 +208,13 @@ export default function DocumentsPage() {
   const [missingError, setMissingError] = useState("");
   const [savingMissing, setSavingMissing] = useState(false);
 
+  const [hubStatsArticles, setHubStatsArticles] = useState<AdminDocument[]>([]);
+  const [hubInsights, setHubInsights] = useState<DocumentInsightsViewModel | null>(null);
+  const [hubInsightsLoadState, setHubInsightsLoadState] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
+  const [hubInsightsError, setHubInsightsError] = useState("");
+
   const [articlesLoadState, setArticlesLoadState] = useState<ArticlesLoadState>("loading");
   const [articlesError, setArticlesError] = useState("");
   const [savingArticle, setSavingArticle] = useState(false);
@@ -194,6 +234,56 @@ export default function DocumentsPage() {
     () => buildCategoryFilterOptions(articleCategories),
     [articleCategories],
   );
+
+  const documentMetrics = useMemo(
+    () => buildDocumentStatsMetrics(hubStatsArticles, categories.length),
+    [hubStatsArticles, categories.length],
+  );
+
+  const applyHubOverviewBundle = useCallback((bundle: HubOverviewBundle) => {
+    setHubStatsArticles(bundle.allArticles);
+    setMissingRequests(bundle.missing);
+    setHubInsights(
+      buildDocumentInsights(bundle.allArticles, bundle.missing, bundle.rawArticles),
+    );
+    setHubInsightsLoadState("ready");
+    setHubInsightsError("");
+  }, []);
+
+  const loadHubOverview = useCallback(async () => {
+    setHubInsightsLoadState("loading");
+    setHubInsightsError("");
+
+    try {
+      const bundle = await fetchHubOverviewBundle();
+      applyHubOverviewBundle(bundle);
+    } catch (err) {
+      setHubInsightsLoadState("error");
+      setHubInsightsError(hubOverviewErrorMessage(err));
+    }
+  }, [applyHubOverviewBundle]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadInitialHubOverview() {
+      try {
+        const bundle = await fetchHubOverviewBundle();
+        if (cancelled) return;
+        applyHubOverviewBundle(bundle);
+      } catch (err) {
+        if (cancelled) return;
+        setHubInsightsLoadState("error");
+        setHubInsightsError(hubOverviewErrorMessage(err));
+      }
+    }
+
+    void loadInitialHubOverview();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [applyHubOverviewBundle]);
 
   const showToast = useCallback((message: string) => {
     setToast({ visible: true, message });
@@ -384,6 +474,7 @@ export default function DocumentsPage() {
     try {
       await action();
       await loadArticles();
+      await loadHubOverview();
       showToast(successMessage);
       closeDrawer();
     } catch (err) {
@@ -472,6 +563,7 @@ export default function DocumentsPage() {
       }
 
       await loadCategories();
+      await loadHubOverview();
       closeCategoryModal();
     } catch (err) {
       showToast(
@@ -495,6 +587,7 @@ export default function DocumentsPage() {
     try {
       await deleteCategoryApi(category.id);
       await loadCategories();
+      await loadHubOverview();
       showToast(`"${category.name}" deleted`);
     } catch (err) {
       showToast(
@@ -722,6 +815,7 @@ export default function DocumentsPage() {
     try {
       await updateMissingInfoGroupStatus(request.reportIds, "REVIEWED");
       await loadMissingRequests();
+      await loadHubOverview();
       showToast("Marked as reviewed");
     } catch (err) {
       showToast(
@@ -739,6 +833,7 @@ export default function DocumentsPage() {
     try {
       await updateMissingInfoGroupStatus(request.reportIds, "RESOLVED");
       await loadMissingRequests();
+      await loadHubOverview();
       showToast("Request resolved");
     } catch (err) {
       showToast(
@@ -756,6 +851,7 @@ export default function DocumentsPage() {
     try {
       await updateArticle(doc.id, { status: "PUBLISHED" });
       await loadArticles();
+      await loadHubOverview();
       showToast(`"${doc.title}" published`);
     } catch (err) {
       showToast(err instanceof ApiError ? err.message : "Could not publish article.");
@@ -769,6 +865,7 @@ export default function DocumentsPage() {
     try {
       await updateArticle(doc.id, { status: "ARCHIVED" });
       await loadArticles();
+      await loadHubOverview();
       showToast(`"${doc.title}" archived`);
       closeDrawer();
     } catch (err) {
@@ -783,6 +880,7 @@ export default function DocumentsPage() {
     try {
       await updateArticle(doc.id, { status: "DRAFT" });
       await loadArticles();
+      await loadHubOverview();
       showToast(`"${doc.title}" restored to drafts`);
     } catch (err) {
       showToast(err instanceof ApiError ? err.message : "Could not restore article.");
@@ -796,6 +894,7 @@ export default function DocumentsPage() {
     try {
       await deleteArticleApi(doc.id);
       await loadArticles();
+      await loadHubOverview();
       showToast(`"${doc.title}" removed`);
       if (selectedDoc?.id === doc.id) closeDrawer();
     } catch (err) {
@@ -849,16 +948,19 @@ export default function DocumentsPage() {
     >
       <div className={styles.pageStack}>
         <section className={styles.metricsGrid}>
-          {documentStats.map((metric) => (
-            <AdminMetricCard
-              key={metric.id}
-              icon={metric.icon}
-              value={metric.value}
-              label={metric.label}
-              trend={metric.trend}
-              iconTone={metric.iconTone}
-            />
-          ))}
+          {hubInsightsLoadState === "loading" ? (
+            <p className={styles.stateMessage}>Loading document stats…</p>
+          ) : (
+            documentMetrics.map((metric) => (
+              <AdminMetricCard
+                key={metric.id}
+                icon={metric.icon}
+                value={metric.value}
+                label={metric.label}
+                iconTone={metric.iconTone}
+              />
+            ))
+          )}
         </section>
 
         <ManagementTabs active={activeTab} onChange={setActiveTab} />
@@ -1009,7 +1111,12 @@ export default function DocumentsPage() {
             )}
           </div>
 
-          <InsightsPanel />
+          <InsightsPanel
+            insights={hubInsights}
+            loading={hubInsightsLoadState === "loading"}
+            error={hubInsightsLoadState === "error" ? hubInsightsError : ""}
+            onRetry={loadHubOverview}
+          />
         </section>
       </div>
 

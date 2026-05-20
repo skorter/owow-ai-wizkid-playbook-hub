@@ -60,15 +60,6 @@ export default function SlugPage() {
       setArticle(null);
       setLoadState("not-found");
     } catch (err) {
-      const staticFallback = buildStaticArticleFallback(slug);
-      if (staticFallback) {
-        setArticle(staticFallback);
-        const staticPage = findStaticPageBySlug(slug);
-        setStaticSubpages(staticPage?.subpages ?? []);
-        setLoadState("ready");
-        return;
-      }
-
       setArticle(null);
       setLoadState("error");
       setErrorMessage(
@@ -117,15 +108,6 @@ export default function SlugPage() {
         setLoadState("not-found");
       } catch (err) {
         if (cancelled) return;
-
-        const staticOnError = buildStaticArticleFallback(slug);
-        if (staticOnError) {
-          setArticle(staticOnError);
-          const staticPage = findStaticPageBySlug(slug);
-          setStaticSubpages(staticPage?.subpages ?? []);
-          setLoadState("ready");
-          return;
-        }
 
         setArticle(null);
         setLoadState("error");

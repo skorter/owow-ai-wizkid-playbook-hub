@@ -1,7 +1,5 @@
 import styles from "./RecentActivity.module.css";
-import Link from "next/link";
 import { History } from "lucide-react";
-import { activities } from "@/lib/data/profile";
 
 export default function RecentActivity() {
   return (
@@ -10,40 +8,10 @@ export default function RecentActivity() {
         <History className={styles.icon} />
         <h2 className={styles.title}>Recent Activity</h2>
       </div>
-
-      <ul className={styles.list}>
-        {activities.map((activity, index) => {
-          const Icon = activity.icon;
-          const content = (
-            <>
-              <Icon className={styles.icon} />
-              <div className={styles.information}>
-                <p className={styles.label}>{activity.label}</p>
-                <p className={styles.time}>{activity.time}</p>
-              </div>
-            </>
-          );
-
-          return (
-            <li key={index} className={styles.item}>
-              {activity.slug ? (
-                <Link
-                  href={`/playbook/${activity.slug}`}
-                  className={styles.itemLink}
-                >
-                  {content}
-                </Link>
-              ) : (
-                <div className={styles.itemLink}>{content}</div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-
-      <Link href="/playbook/activity" className={styles.viewAllButton}>
-        View All →
-      </Link>
+      <p className={styles.empty}>
+        No recent activity yet. Activity will appear here after AI search is
+        connected.
+      </p>
     </section>
   );
 }

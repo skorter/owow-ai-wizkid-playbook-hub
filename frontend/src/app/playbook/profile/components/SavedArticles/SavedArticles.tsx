@@ -1,7 +1,5 @@
 import styles from "./SavedArticles.module.css";
-import { Bookmark, ArrowRight } from "lucide-react";
-import Link from "next/link";
-import { savedArticles } from "@/lib/data/profile";
+import { Bookmark } from "lucide-react";
 
 export default function SavedArticles() {
   return (
@@ -10,24 +8,10 @@ export default function SavedArticles() {
         <Bookmark className={styles.icon} />
         <h2 className={styles.title}>Saved Articles</h2>
       </div>
-
-      <ul className={styles.list}>
-        {savedArticles.map((article) => (
-          <li key={article.slug}>
-            <Link href={`/playbook/${article.slug}`} className={styles.item}>
-              <div className={styles.info}>
-                <p className={styles.label}>{article.label}</p>
-                <span className={styles.category}>{article.category}</span>
-              </div>
-              <ArrowRight className={styles.icon} />
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      <Link href="/playbook/saved" className={styles.viewAllButton}>
-        View all →
-      </Link>
+      <p className={styles.empty}>
+        Saved articles are not available yet. Bookmarking will be added in a future
+        release.
+      </p>
     </section>
   );
 }
