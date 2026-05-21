@@ -19,7 +19,7 @@ function normalizeSlug(slug) {
   return slug.trim().toLowerCase();
 }
 
-function buildPublishedListWhere(filters) {
+function buildCategoryAndSearchFilters(filters) {
   const { category: categoryRaw, search: searchRaw } = filters || {};
   const andParts = [];
 
@@ -59,10 +59,61 @@ function buildPublishedListWhere(filters) {
     });
   }
 
+  return andParts;
+}
+
+function buildPublishedListWhere(filters) {
+  const andParts = buildCategoryAndSearchFilters(filters);
+
   return {
     status: "PUBLISHED",
     ...(andParts.length ? { AND: andParts } : {}),
   };
+}
+
+function parseAdminStatusFilter(statusRaw) {
+  if (statusRaw === undefined || statusRaw === null || statusRaw === "") {
+    return { status: null };
+  }
+  if (typeof statusRaw !== "string") {
+    return {
+      error: {
+        status: 400,
+        message: `status must be one of: ${ARTICLE_STATUSES.join(", ")}`,
+      },
+    };
+  }
+  const normalized = statusRaw.trim().toUpperCase();
+  if (!ARTICLE_STATUSES.includes(normalized)) {
+    return {
+      error: {
+        status: 400,
+        message: `status must be one of: ${ARTICLE_STATUSES.join(", ")}`,
+      },
+    };
+  }
+  return { status: normalized };
+}
+
+function buildAdminListWhere(filters) {
+  const andParts = buildCategoryAndSearchFilters(filters);
+  const statusResult = parseAdminStatusFilter(filters?.status);
+
+  if (statusResult.error) {
+    return statusResult;
+  }
+
+  const where = {};
+
+  if (statusResult.status) {
+    where.status = statusResult.status;
+  }
+
+  if (andParts.length) {
+    where.AND = andParts;
+  }
+
+  return { where };
 }
 
 async function categoryExists(categoryId) {
@@ -101,11 +152,43 @@ async function getAllArticles(filters) {
   });
 }
 
+async function getAdminArticles(filters) {
+  const built = buildAdminListWhere(filters);
+  if (built.error) {
+    return built;
+  }
+
+  const articles = await prisma.article.findMany({
+    where: built.where,
+    include: articleIncludePublic,
+    orderBy: { updatedAt: "desc" },
+  });
+
+  return { articles };
+}
+
 async function getArticleById(id) {
   return prisma.article.findFirst({
     where: { id, status: "PUBLISHED" },
     include: articleIncludePublic,
   });
+}
+
+async function getAdminArticleById(id) {
+  if (!id || typeof id !== "string" || !id.trim()) {
+    return { notFound: true };
+  }
+
+  const article = await prisma.article.findUnique({
+    where: { id: id.trim() },
+    include: articleIncludePublic,
+  });
+
+  if (!article) {
+    return { notFound: true };
+  }
+
+  return { article };
 }
 
 async function getArticleBySlug(slugParam) {
@@ -378,7 +461,9 @@ async function deleteArticle(id) {
 
 module.exports = {
   getAllArticles,
+  getAdminArticles,
   getArticleById,
+  getAdminArticleById,
   getArticleBySlug,
   createArticle,
   updateArticle,
