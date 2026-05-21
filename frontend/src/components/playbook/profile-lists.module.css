@@ -1,0 +1,118 @@
+.activityList,
+.savedList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.activityItem {
+  padding: 0.85rem 1rem;
+  background-color: #1e1e1e;
+  border: 1px solid #262626;
+  border-radius: 0.75rem;
+  transition: border-color 0.2s ease;
+}
+
+.activityItem:hover {
+  border-color: #00d9ff;
+}
+
+.activityHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.activityBadge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #00d9ff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.activityTime {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.activityQuestion {
+  margin: 0 0 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.activityPreview {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.activityMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.activityLink {
+  color: #ffd500;
+  text-decoration: none;
+}
+
+.activityLink:hover {
+  text-decoration: underline;
+}
+
+.savedItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: #1e1e1e;
+  border: 1px solid #262626;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  transition: border-color 0.2s ease;
+}
+
+.savedItem:hover {
+  border-color: #ff5c5c;
+}
+
+.savedInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.savedTitle {
+  font-size: 0.9rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.savedCategory {
+  font-size: 0.75rem;
+  color: #888;
+  background-color: #262626;
+  padding: 0.15rem 0.5rem;
+  border-radius: 2rem;
+  width: fit-content;
+}
+
+.savedIcon {
+  width: 16px;
+  height: 16px;
+  color: #888;
+  flex-shrink: 0;
+}

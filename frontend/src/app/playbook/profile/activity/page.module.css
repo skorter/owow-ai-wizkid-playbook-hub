@@ -1,0 +1,56 @@
+.page {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+  color: #fff;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  color: #00d9ff;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.hero {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem 1.75rem;
+  border-radius: 1rem;
+  border: 1px solid #2a2a2a;
+  background: linear-gradient(145deg, rgba(22, 22, 22, 0.98) 0%, rgba(12, 12, 12, 1) 100%);
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.card {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid #262626;
+  background-color: #161616;
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.65);
+}

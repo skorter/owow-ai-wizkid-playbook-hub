@@ -6,7 +6,10 @@ async function listSaved(req, res, next) {
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const result = await savedArticleService.listSavedArticles(userId);
+    const result = await savedArticleService.listSavedArticles(
+      userId,
+      req.query?.limit,
+    );
     return res.status(200).json(result);
   } catch (err) {
     next(err);

@@ -1,40 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import styles from "./RecentActivity.module.css";
 import { fetchRecentSearches, type RecentSearchItem } from "@/lib/api/profile";
 import { getApiErrorMessage } from "@/lib/api";
 import PageStatus from "@/components/ui/PageStatus";
+import { formatTimeAgo } from "@/lib/formatTimeAgo";
+
+const SEARCH_PREVIEW_LIMIT = 4;
+const SEARCH_FETCH_LIMIT = 5;
 
 type RecentActivityProps = {
   onSelectQuestion: (question: string) => void;
 };
 
-function formatTimeAgo(iso: string): string {
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "Recently";
-  const seconds = Math.floor((Date.now() - then) / 1000);
-  if (seconds < 60) return "Just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
-
 export default function RecentActivity({ onSelectQuestion }: RecentActivityProps) {
   const [items, setItems] = useState<RecentSearchItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [hasMore, setHasMore] = useState(false);
 
   const load = async () => {
     setLoading(true);
     setError("");
     try {
-      const data = await fetchRecentSearches();
-      setItems(data.items ?? []);
+      const data = await fetchRecentSearches(SEARCH_FETCH_LIMIT);
+      const list = data.items ?? [];
+      setHasMore(list.length > SEARCH_PREVIEW_LIMIT);
+      setItems(list.slice(0, SEARCH_PREVIEW_LIMIT));
     } catch (err) {
       setItems([]);
+      setHasMore(false);
       setError(getApiErrorMessage(err, "Could not load recent searches."));
     } finally {
       setLoading(false);
@@ -48,12 +45,15 @@ export default function RecentActivity({ onSelectQuestion }: RecentActivityProps
       setLoading(true);
       setError("");
       try {
-        const data = await fetchRecentSearches();
+        const data = await fetchRecentSearches(SEARCH_FETCH_LIMIT);
         if (cancelled) return;
-        setItems(data.items ?? []);
+        const list = data.items ?? [];
+        setHasMore(list.length > SEARCH_PREVIEW_LIMIT);
+        setItems(list.slice(0, SEARCH_PREVIEW_LIMIT));
       } catch (err) {
         if (cancelled) return;
         setItems([]);
+        setHasMore(false);
         setError(getApiErrorMessage(err, "Could not load recent searches."));
       } finally {
         if (!cancelled) setLoading(false);
@@ -68,7 +68,14 @@ export default function RecentActivity({ onSelectQuestion }: RecentActivityProps
 
   return (
     <section className={styles.activity}>
-      <h2 className={styles.title}>Recent Searches</h2>
+      <div className={styles.header}>
+        <h2 className={styles.title}>Recent Searches</h2>
+        {hasMore && !loading && !error ? (
+          <Link href="/playbook/profile/activity" className={styles.viewHistory}>
+            View full history
+          </Link>
+        ) : null}
+      </div>
 
       {loading ? (
         <PageStatus variant="loading" message="Loading recent searches…" />
@@ -86,18 +93,24 @@ export default function RecentActivity({ onSelectQuestion }: RecentActivityProps
       ) : null}
 
       {!loading && !error && items.length > 0 ? (
-        <ul className={styles.list}>
+        <ul className={styles.grid}>
           {items.map((item) => (
             <li key={item.id}>
               <button
                 type="button"
-                className={styles.itemButton}
+                className={styles.card}
                 onClick={() => onSelectQuestion(item.question)}
               >
                 <span className={styles.question}>{item.question}</span>
-                {item.answerPreview ? (
-                  <span className={styles.preview}>{item.answerPreview}</span>
-                ) : null}
+                <span className={styles.previewBody}>
+                  {item.answerPreview ? (
+                    <span className={styles.preview}>{item.answerPreview}</span>
+                  ) : (
+                    <span className={styles.previewPlaceholder} aria-hidden>
+                      —
+                    </span>
+                  )}
+                </span>
                 <span className={styles.meta}>
                   <span>{formatTimeAgo(item.createdAt)}</span>
                   {item.confidence > 0 ? (

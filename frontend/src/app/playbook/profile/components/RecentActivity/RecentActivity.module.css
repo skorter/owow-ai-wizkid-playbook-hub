@@ -12,7 +12,26 @@
 .recentActivity .header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.viewMore {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #00d9ff;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.viewMore:hover {
+  text-decoration: underline;
 }
 
 .recentActivity .header .icon {

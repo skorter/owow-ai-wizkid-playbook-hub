@@ -42,14 +42,22 @@ export type RecentSearchesResponse = {
   items: RecentSearchItem[];
 };
 
-export async function fetchProfileActivity(): Promise<ProfileActivityResponse> {
-  return apiGet<ProfileActivityResponse>(endpoints.profile.activity);
+export async function fetchProfileActivity(
+  limit?: number,
+): Promise<ProfileActivityResponse> {
+  return apiGet<ProfileActivityResponse>(endpoints.profile.activity, {
+    query: limit != null ? { limit } : undefined,
+  });
 }
 
 export async function fetchProfileInsights(): Promise<ProfileInsightsResponse> {
   return apiGet<ProfileInsightsResponse>(endpoints.profile.insights);
 }
 
-export async function fetchRecentSearches(): Promise<RecentSearchesResponse> {
-  return apiGet<RecentSearchesResponse>(endpoints.ai.recentSearches);
+export async function fetchRecentSearches(
+  limit?: number,
+): Promise<RecentSearchesResponse> {
+  return apiGet<RecentSearchesResponse>(endpoints.ai.recentSearches, {
+    query: limit != null ? { limit } : undefined,
+  });
 }
