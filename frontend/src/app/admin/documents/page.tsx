@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AdminPageContainer,
   AdminMetricCard,
@@ -20,11 +20,9 @@ import CategoryFormModal, {
 import HubToast from "@/components/admin/documents/HubToast";
 import {
   documentStats,
-  documentsList,
   contentCategories,
   onboardingSteps,
   missingInfoRequests,
-  documentFilterCategories,
   documentFilterStatuses,
   documentSortOptions,
 } from "@/data/adminMockData";
@@ -37,6 +35,20 @@ import type {
   DocumentStatus,
 } from "@/data/adminMockData";
 import type { AdminBadgeColor } from "@/components/admin/AdminStatusBadge/AdminStatusBadge";
+import {
+  fetchAdminArticles,
+  fetchArticleCategories,
+  createArticle,
+  updateArticle,
+  deleteArticle as deleteArticleApi,
+  buildCategoryFilterOptions,
+  resolveCategoryFilterParam,
+  documentStatusToApiStatus,
+  type ArticleCategoryOption,
+  type ArticleWritePayload,
+  type AdminArticlesQuery,
+} from "@/lib/mappers/articles";
+import { ApiError } from "@/lib/api";
 import {
   Plus,
   FolderPlus,
@@ -52,39 +64,83 @@ import {
   Check,
   ListOrdered,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import styles from "./page.module.css";
 
 type ViewMode = "list" | "grid";
 type DrawerMode = "create" | "edit" | "preview" | null;
+type ArticlesLoadState = "loading" | "error" | "ready";
 
-const categoryColorMap: Record<string, AdminBadgeColor> = {
-  HR: "blue",
-  Policies: "green",
-  Tools: "orange",
-  Growth: "purple",
-  Benefits: "blue",
-  Culture: "yellow",
-  Onboarding: "blue",
-};
+function isArticleTab(tab: ManagementTabId): boolean {
+  return tab === "articles" || tab === "drafts" || tab === "archived";
+}
 
-function statusColor(status: DocumentStatus): AdminBadgeColor {
-  if (status === "Published") return "green";
-  if (status === "Draft") return "orange";
-  return "gray";
+function buildArticlesQuery(
+  tab: ManagementTabId,
+  categoryFilter: string,
+  statusFilter: string,
+  searchQuery: string,
+  articleCategories: ArticleCategoryOption[],
+): AdminArticlesQuery {
+  const query: AdminArticlesQuery = {};
+
+  const search = searchQuery.trim();
+  if (search) query.search = search;
+
+  const categoryParam = resolveCategoryFilterParam(categoryFilter, articleCategories);
+  if (categoryParam) query.category = categoryParam;
+
+  if (tab === "drafts") {
+    query.status = "DRAFT";
+  } else if (tab === "archived") {
+    query.status = "ARCHIVED";
+  } else if (tab === "articles" && statusFilter !== "All statuses") {
+    query.status = documentStatusToApiStatus(statusFilter as DocumentStatus);
+  }
+
+  return query;
+}
+
+function formToPayload(form: ArticleFormState, status: DocumentStatus): ArticleWritePayload {
+  return {
+    title: form.title.trim(),
+    slug: form.slug.trim(),
+    summary: form.summary.trim(),
+    content: form.content.trim(),
+    categoryId: form.categoryId,
+    status: documentStatusToApiStatus(status),
+  };
+}
+
+function sortArticles(list: AdminDocument[], sortBy: string): AdminDocument[] {
+  const sorted = [...list];
+  if (sortBy === "Title A–Z") {
+    sorted.sort((a, b) => a.title.localeCompare(b.title));
+  } else if (sortBy === "Most viewed") {
+    sorted.sort((a, b) => b.views - a.views);
+  } else if (sortBy === "Newest first") {
+    sorted.sort((a, b) => b.id.localeCompare(a.id));
+  }
+  return sorted;
 }
 
 export default function DocumentsPage() {
   const [activeTab, setActiveTab] = useState<ManagementTabId>("articles");
-  const [articles, setArticles] = useState<AdminDocument[]>(documentsList);
+  const [articles, setArticles] = useState<AdminDocument[]>([]);
+  const [articleCategories, setArticleCategories] = useState<ArticleCategoryOption[]>([]);
   const [categories, setCategories] = useState<ContentCategory[]>(contentCategories);
   const [onboarding, setOnboarding] = useState<OnboardingStep[]>(onboardingSteps);
   const [missingRequests, setMissingRequests] =
     useState<MissingInfoRequest[]>(missingInfoRequests);
 
+  const [articlesLoadState, setArticlesLoadState] = useState<ArticlesLoadState>("loading");
+  const [articlesError, setArticlesError] = useState("");
+  const [savingArticle, setSavingArticle] = useState(false);
+
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState(documentFilterCategories[0]);
+  const [categoryFilter, setCategoryFilter] = useState("All categories");
   const [statusFilter, setStatusFilter] = useState(documentFilterStatuses[0]);
   const [sortBy, setSortBy] = useState(documentSortOptions[0]);
 
@@ -93,33 +149,103 @@ export default function DocumentsPage() {
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [toast, setToast] = useState({ visible: false, message: "" });
 
+  const categoryFilterOptions = useMemo(
+    () => buildCategoryFilterOptions(articleCategories),
+    [articleCategories],
+  );
+
   const showToast = useCallback((message: string) => {
     setToast({ visible: true, message });
     setTimeout(() => setToast({ visible: false, message: "" }), 2800);
   }, []);
 
-  const filteredArticles = useMemo(() => {
-    let list = articles.filter((d) => d.status !== "Archived");
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter(
-        (d) =>
-          d.title.toLowerCase().includes(q) || d.author.toLowerCase().includes(q)
+  const loadArticles = useCallback(async () => {
+    if (!isArticleTab(activeTab)) return;
+
+    setArticlesLoadState("loading");
+    setArticlesError("");
+
+    try {
+      const query = buildArticlesQuery(
+        activeTab,
+        categoryFilter,
+        statusFilter,
+        searchQuery,
+        articleCategories,
+      );
+      const data = await fetchAdminArticles(query);
+      setArticles(data);
+      setArticlesLoadState("ready");
+    } catch (err) {
+      setArticles([]);
+      setArticlesLoadState("error");
+      setArticlesError(
+        err instanceof ApiError
+          ? err.message
+          : "Could not load articles. Please try again.",
       );
     }
-    if (categoryFilter !== "All categories") {
-      list = list.filter((d) => d.category === categoryFilter);
-    }
-    if (statusFilter !== "All statuses") {
-      list = list.filter((d) => d.status === statusFilter);
-    }
-    if (sortBy === "Title A–Z") list = [...list].sort((a, b) => a.title.localeCompare(b.title));
-    if (sortBy === "Most viewed") list = [...list].sort((a, b) => b.views - a.views);
-    return list;
-  }, [articles, searchQuery, categoryFilter, statusFilter, sortBy]);
+  }, [activeTab, categoryFilter, statusFilter, searchQuery, articleCategories]);
 
-  const draftDocs = useMemo(() => articles.filter((d) => d.status === "Draft"), [articles]);
-  const archivedDocs = useMemo(() => articles.filter((d) => d.status === "Archived"), [articles]);
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCategories() {
+      try {
+        const cats = await fetchArticleCategories();
+        if (!cancelled) {
+          setArticleCategories(cats);
+          setCategoryFilter((prev) =>
+            prev === "All categories" || cats.some((c) => c.name === prev)
+              ? prev
+              : "All categories",
+          );
+        }
+      } catch {
+        if (!cancelled) {
+          setArticleCategories([]);
+        }
+      }
+    }
+
+    loadCategories();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isArticleTab(activeTab)) return undefined;
+
+    const delay = searchQuery.trim() ? 300 : 0;
+    const timer = window.setTimeout(() => {
+      void loadArticles();
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [activeTab, loadArticles, searchQuery]);
+
+  const filteredArticles = useMemo(() => {
+    let list = articles;
+    if (activeTab === "articles") {
+      list = list.filter((d) => d.status !== "Archived");
+      if (statusFilter !== "All statuses") {
+        list = list.filter((d) => d.status === statusFilter);
+      }
+    }
+    return sortArticles(list, sortBy);
+  }, [articles, activeTab, statusFilter, sortBy]);
+
+  const draftDocs = useMemo(
+    () => sortArticles(articles.filter((d) => d.status === "Draft"), sortBy),
+    [articles, sortBy],
+  );
+
+  const archivedDocs = useMemo(
+    () => sortArticles(articles.filter((d) => d.status === "Archived"), sortBy),
+    [articles, sortBy],
+  );
 
   const openCreateArticle = () => {
     setSelectedDoc(null);
@@ -141,51 +267,44 @@ export default function DocumentsPage() {
     setSelectedDoc(null);
   };
 
-  const upsertArticle = (form: ArticleFormState, status: DocumentStatus) => {
-    const catColor = categoryColorMap[form.category] ?? "blue";
-    if (selectedDoc && drawerMode === "edit") {
-      setArticles((prev) =>
-        prev.map((d) =>
-          d.id === selectedDoc.id
-            ? {
-                ...d,
-                title: form.title || d.title,
-                slug: form.slug || d.slug,
-                category: form.category,
-                categoryColor: catColor,
-                status,
-                statusColor: statusColor(status),
-                summary: form.summary,
-                content: form.content,
-                author: form.author,
-                updatedAt: "Just now",
-                linkedOnboardingStep: form.linkedOnboarding ? "Linked step" : undefined,
-              }
-            : d
-        )
+  const runArticleMutation = async (
+    action: () => Promise<void>,
+    successMessage: string,
+  ) => {
+    setSavingArticle(true);
+    try {
+      await action();
+      await loadArticles();
+      showToast(successMessage);
+      closeDrawer();
+    } catch (err) {
+      showToast(
+        err instanceof ApiError ? err.message : "Something went wrong. Please try again.",
       );
-      showToast(status === "Archived" ? "Article archived" : "Changes saved");
-    } else {
-      const newDoc: AdminDocument = {
-        id: `doc-${Date.now()}`,
-        title: form.title || "Untitled article",
-        slug: form.slug || "untitled",
-        category: form.category,
-        categoryColor: catColor,
-        status,
-        statusColor: statusColor(status),
-        updatedAt: "Just now",
-        views: 0,
-        author: form.author || "You",
-        summary: form.summary,
-        content: form.content,
-        feedbackCount: 0,
-        linkedOnboardingStep: form.linkedOnboarding ? "New onboarding link" : undefined,
-      };
-      setArticles((prev) => [newDoc, ...prev]);
-      showToast(status === "Published" ? "Article published" : "Draft saved");
+    } finally {
+      setSavingArticle(false);
     }
-    closeDrawer();
+  };
+
+  const upsertArticle = async (form: ArticleFormState, status: DocumentStatus) => {
+    const payload = formToPayload(form, status);
+
+    if (selectedDoc && drawerMode === "edit") {
+      await runArticleMutation(
+        async () => {
+          await updateArticle(selectedDoc.id, payload);
+        },
+        status === "Archived" ? "Article archived" : "Changes saved",
+      );
+      return;
+    }
+
+    await runArticleMutation(
+      async () => {
+        await createArticle(payload);
+      },
+      status === "Published" ? "Article published" : "Draft saved",
+    );
   };
 
   const handleCreateCategory = (form: CategoryFormState) => {
@@ -204,43 +323,58 @@ export default function DocumentsPage() {
     showToast("Category created");
   };
 
-  const publishDoc = (doc: AdminDocument) => {
-    setArticles((prev) =>
-      prev.map((d) =>
-        d.id === doc.id
-          ? { ...d, status: "Published", statusColor: "green", updatedAt: "Just now" }
-          : d
-      )
-    );
-    showToast(`"${doc.title}" published`);
+  const publishDoc = async (doc: AdminDocument) => {
+    setSavingArticle(true);
+    try {
+      await updateArticle(doc.id, { status: "PUBLISHED" });
+      await loadArticles();
+      showToast(`"${doc.title}" published`);
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : "Could not publish article.");
+    } finally {
+      setSavingArticle(false);
+    }
   };
 
-  const archiveDoc = (doc: AdminDocument) => {
-    setArticles((prev) =>
-      prev.map((d) =>
-        d.id === doc.id
-          ? { ...d, status: "Archived", statusColor: "gray", updatedAt: "Just now" }
-          : d
-      )
-    );
-    showToast(`"${doc.title}" archived`);
-    closeDrawer();
+  const archiveDoc = async (doc: AdminDocument) => {
+    setSavingArticle(true);
+    try {
+      await updateArticle(doc.id, { status: "ARCHIVED" });
+      await loadArticles();
+      showToast(`"${doc.title}" archived`);
+      closeDrawer();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : "Could not archive article.");
+    } finally {
+      setSavingArticle(false);
+    }
   };
 
-  const restoreDoc = (doc: AdminDocument) => {
-    setArticles((prev) =>
-      prev.map((d) =>
-        d.id === doc.id
-          ? { ...d, status: "Draft", statusColor: "orange", updatedAt: "Just now" }
-          : d
-      )
-    );
-    showToast(`"${doc.title}" restored to drafts`);
+  const restoreDoc = async (doc: AdminDocument) => {
+    setSavingArticle(true);
+    try {
+      await updateArticle(doc.id, { status: "DRAFT" });
+      await loadArticles();
+      showToast(`"${doc.title}" restored to drafts`);
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : "Could not restore article.");
+    } finally {
+      setSavingArticle(false);
+    }
   };
 
-  const deleteDoc = (doc: AdminDocument) => {
-    setArticles((prev) => prev.filter((d) => d.id !== doc.id));
-    showToast(`"${doc.title}" removed`);
+  const deleteDoc = async (doc: AdminDocument) => {
+    setSavingArticle(true);
+    try {
+      await deleteArticleApi(doc.id);
+      await loadArticles();
+      showToast(`"${doc.title}" removed`);
+      if (selectedDoc?.id === doc.id) closeDrawer();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : "Could not delete article.");
+    } finally {
+      setSavingArticle(false);
+    }
   };
 
   const panelTitle = {
@@ -262,6 +396,12 @@ export default function DocumentsPage() {
   }[activeTab];
 
   const showArticleToolbar = activeTab === "articles" || activeTab === "drafts";
+
+  const articleListProps = {
+    loading: articlesLoadState === "loading",
+    error: articlesLoadState === "error" ? articlesError : "",
+    onRetry: loadArticles,
+  };
 
   return (
     <AdminPageContainer
@@ -312,7 +452,7 @@ export default function DocumentsPage() {
               <FilterSelect
                 label="Category"
                 value={categoryFilter}
-                options={documentFilterCategories}
+                options={categoryFilterOptions}
                 onChange={setCategoryFilter}
               />
               {activeTab === "articles" ? (
@@ -377,7 +517,8 @@ export default function DocumentsPage() {
                 variant="default"
                 onEdit={openEditArticle}
                 onPreview={openPreview}
-                onDelete={deleteDoc}
+                onDelete={(doc) => void deleteDoc(doc)}
+                {...articleListProps}
               />
             )}
             {activeTab === "drafts" && (
@@ -387,8 +528,9 @@ export default function DocumentsPage() {
                 variant="draft"
                 onEdit={openEditArticle}
                 onPreview={openPreview}
-                onPublish={publishDoc}
-                onDelete={deleteDoc}
+                onPublish={(doc) => void publishDoc(doc)}
+                onDelete={(doc) => void deleteDoc(doc)}
+                {...articleListProps}
               />
             )}
             {activeTab === "archived" && (
@@ -398,8 +540,9 @@ export default function DocumentsPage() {
                 variant="archived"
                 onEdit={openEditArticle}
                 onPreview={openPreview}
-                onRestore={restoreDoc}
-                onDelete={deleteDoc}
+                onRestore={(doc) => void restoreDoc(doc)}
+                onDelete={(doc) => void deleteDoc(doc)}
+                {...articleListProps}
               />
             )}
             {activeTab === "categories" && (
@@ -436,14 +579,16 @@ export default function DocumentsPage() {
         open={drawerMode === "create" || drawerMode === "edit"}
         mode={drawerMode === "edit" ? "edit" : "create"}
         initial={selectedDoc}
+        categories={articleCategories}
+        saving={savingArticle}
         onClose={closeDrawer}
         onSaveDraft={(form) => upsertArticle(form, "Draft")}
         onPublish={(form) =>
           upsertArticle(form, drawerMode === "edit" ? form.status : "Published")
         }
         onArchive={(form) => {
-          if (selectedDoc) archiveDoc(selectedDoc);
-          else upsertArticle(form, "Archived");
+          if (selectedDoc) void archiveDoc(selectedDoc);
+          else void upsertArticle(form, "Archived");
         }}
       />
 
@@ -452,7 +597,7 @@ export default function DocumentsPage() {
         doc={selectedDoc}
         onClose={closeDrawer}
         onEdit={() => selectedDoc && openEditArticle(selectedDoc)}
-        onArchive={() => selectedDoc && archiveDoc(selectedDoc)}
+        onArchive={() => selectedDoc && void archiveDoc(selectedDoc)}
       />
 
       <CategoryFormModal
@@ -500,6 +645,9 @@ type ArticlesListProps = {
   docs: AdminDocument[];
   viewMode: ViewMode;
   variant: "default" | "draft" | "archived";
+  loading?: boolean;
+  error?: string;
+  onRetry?: () => void;
   onEdit: (doc: AdminDocument) => void;
   onPreview: (doc: AdminDocument) => void;
   onDelete?: (doc: AdminDocument) => void;
@@ -511,15 +659,42 @@ function ArticlesList({
   docs,
   viewMode,
   variant,
+  loading = false,
+  error = "",
+  onRetry,
   onEdit,
   onPreview,
   onDelete,
   onPublish,
   onRestore,
 }: ArticlesListProps) {
-  if (docs.length === 0) {
-    return <p className={styles.emptyState}>No content in this section yet.</p>;
+  if (loading) {
+    return <p className={styles.stateMessage}>Loading articles…</p>;
   }
+
+  if (error) {
+    return (
+      <div className={styles.stateBlock}>
+        <p className={styles.stateError}>{error}</p>
+        {onRetry ? (
+          <AdminButton variant="primary" icon={RefreshCw} onClick={() => void onRetry()}>
+            Retry
+          </AdminButton>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (docs.length === 0) {
+    const emptyMessage =
+      variant === "draft"
+        ? "No draft articles yet. Create one with New Article."
+        : variant === "archived"
+          ? "No archived articles."
+          : "No articles match your filters.";
+    return <p className={styles.emptyState}>{emptyMessage}</p>;
+  }
+
   if (viewMode === "grid") {
     return (
       <ul className={styles.docGrid}>
