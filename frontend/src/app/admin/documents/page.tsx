@@ -17,10 +17,14 @@ import {
 import CategoryFormModal, {
   type CategoryFormState,
 } from "@/components/admin/documents/CategoryFormModal";
+import OnboardingFormModal, {
+  type OnboardingFormState,
+  type ArticleLinkOption,
+} from "@/components/admin/documents/OnboardingFormModal";
+import OnboardingPreviewModal from "@/components/admin/documents/OnboardingPreviewModal";
 import HubToast from "@/components/admin/documents/HubToast";
 import {
   documentStats,
-  onboardingSteps,
   missingInfoRequests,
   documentFilterStatuses,
   documentSortOptions,
@@ -28,7 +32,6 @@ import {
 import type {
   AdminDocument,
   ContentCategory,
-  OnboardingStep,
   MissingInfoRequest,
   ManagementTabId,
   DocumentStatus,
@@ -53,6 +56,14 @@ import {
   deleteCategory as deleteCategoryApi,
   toArticleCategoryOptions,
 } from "@/lib/mappers/categories";
+import {
+  fetchAdminOnboardingSteps,
+  createOnboardingStep,
+  updateOnboardingStep,
+  statusToIsActive,
+  type AdminOnboardingStep,
+  type OnboardingWritePayload,
+} from "@/lib/mappers/onboarding";
 import { ApiError } from "@/lib/api";
 import {
   Plus,
@@ -77,6 +88,7 @@ type ViewMode = "list" | "grid";
 type DrawerMode = "create" | "edit" | "preview" | null;
 type ArticlesLoadState = "loading" | "error" | "ready";
 type CategoriesLoadState = "loading" | "error" | "ready";
+type OnboardingLoadState = "loading" | "error" | "ready";
 
 function isArticleTab(tab: ManagementTabId): boolean {
   return tab === "articles" || tab === "drafts" || tab === "archived";
@@ -141,7 +153,19 @@ export default function DocumentsPage() {
   const [savingCategory, setSavingCategory] = useState(false);
   const [categoryModalMode, setCategoryModalMode] = useState<"create" | "edit">("create");
   const [editingCategory, setEditingCategory] = useState<ContentCategory | null>(null);
-  const [onboarding, setOnboarding] = useState<OnboardingStep[]>(onboardingSteps);
+  const [onboarding, setOnboarding] = useState<AdminOnboardingStep[]>([]);
+  const [onboardingLoadState, setOnboardingLoadState] =
+    useState<OnboardingLoadState>("loading");
+  const [onboardingError, setOnboardingError] = useState("");
+  const [savingOnboarding, setSavingOnboarding] = useState(false);
+  const [onboardingModalMode, setOnboardingModalMode] = useState<"create" | "edit">("create");
+  const [editingOnboarding, setEditingOnboarding] = useState<AdminOnboardingStep | null>(null);
+  const [previewOnboarding, setPreviewOnboarding] = useState<AdminOnboardingStep | null>(null);
+  const [onboardingFormOpen, setOnboardingFormOpen] = useState(false);
+  const [onboardingPreviewOpen, setOnboardingPreviewOpen] = useState(false);
+  const [onboardingArticleOptions, setOnboardingArticleOptions] = useState<ArticleLinkOption[]>(
+    [],
+  );
   const [missingRequests, setMissingRequests] =
     useState<MissingInfoRequest[]>(missingInfoRequests);
 
@@ -480,6 +504,160 @@ export default function DocumentsPage() {
     setCategoryFilter(category.name);
   };
 
+  const nextOnboardingOrder = useMemo(() => {
+    if (onboarding.length === 0) return 1;
+    return Math.max(...onboarding.map((step) => step.order)) + 1;
+  }, [onboarding]);
+
+  const loadOnboarding = useCallback(async () => {
+    try {
+      const [steps, publishedArticles] = await Promise.all([
+        fetchAdminOnboardingSteps(),
+        fetchAdminArticles({ status: "PUBLISHED" }),
+      ]);
+      setOnboarding(steps);
+      setOnboardingArticleOptions(
+        publishedArticles.map((article) => ({ id: article.id, title: article.title })),
+      );
+      setOnboardingLoadState("ready");
+      setOnboardingError("");
+    } catch (err) {
+      setOnboarding([]);
+      setOnboardingArticleOptions([]);
+      setOnboardingLoadState("error");
+      setOnboardingError(
+        err instanceof ApiError
+          ? err.message
+          : "Could not load onboarding steps. Please try again.",
+      );
+    }
+  }, []);
+
+  const retryLoadOnboarding = useCallback(() => {
+    setOnboardingLoadState("loading");
+    void loadOnboarding();
+  }, [loadOnboarding]);
+
+  useEffect(() => {
+    if (activeTab !== "onboarding") return;
+
+    let cancelled = false;
+
+    async function loadOnboardingTab() {
+      try {
+        const [steps, publishedArticles] = await Promise.all([
+          fetchAdminOnboardingSteps(),
+          fetchAdminArticles({ status: "PUBLISHED" }),
+        ]);
+        if (cancelled) return;
+        setOnboarding(steps);
+        setOnboardingArticleOptions(
+          publishedArticles.map((article) => ({ id: article.id, title: article.title })),
+        );
+        setOnboardingLoadState("ready");
+        setOnboardingError("");
+      } catch (err) {
+        if (cancelled) return;
+        setOnboarding([]);
+        setOnboardingArticleOptions([]);
+        setOnboardingLoadState("error");
+        setOnboardingError(
+          err instanceof ApiError
+            ? err.message
+            : "Could not load onboarding steps. Please try again.",
+        );
+      }
+    }
+
+    void loadOnboardingTab();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
+
+  const formToOnboardingPayload = (form: OnboardingFormState): OnboardingWritePayload => {
+    const order = Number.parseInt(form.order, 10);
+    return {
+      title: form.title.trim(),
+      content: form.content.trim(),
+      order: Number.isInteger(order) && order >= 1 ? order : 1,
+      isActive: statusToIsActive(form.status),
+      articleId: form.articleId.trim() ? form.articleId.trim() : null,
+    };
+  };
+
+  const openCreateOnboardingModal = () => {
+    setEditingOnboarding(null);
+    setOnboardingModalMode("create");
+    setOnboardingFormOpen(true);
+  };
+
+  const openEditOnboardingModal = (step: AdminOnboardingStep) => {
+    setEditingOnboarding(step);
+    setOnboardingModalMode("edit");
+    setOnboardingFormOpen(true);
+    setOnboardingPreviewOpen(false);
+  };
+
+  const closeOnboardingFormModal = () => {
+    setOnboardingFormOpen(false);
+    setEditingOnboarding(null);
+  };
+
+  const openOnboardingPreview = (step: AdminOnboardingStep) => {
+    setPreviewOnboarding(step);
+    setOnboardingPreviewOpen(true);
+  };
+
+  const closeOnboardingPreview = () => {
+    setOnboardingPreviewOpen(false);
+    setPreviewOnboarding(null);
+  };
+
+  const handleSubmitOnboarding = async (form: OnboardingFormState) => {
+    const payload = formToOnboardingPayload(form);
+
+    setSavingOnboarding(true);
+    try {
+      if (onboardingModalMode === "edit" && editingOnboarding) {
+        await updateOnboardingStep(editingOnboarding.id, payload);
+        showToast("Onboarding step updated");
+      } else {
+        await createOnboardingStep(payload);
+        showToast("Onboarding step created");
+      }
+      await loadOnboarding();
+      closeOnboardingFormModal();
+    } catch (err) {
+      showToast(
+        err instanceof ApiError
+          ? err.message
+          : "Could not save onboarding step. Please try again.",
+      );
+    } finally {
+      setSavingOnboarding(false);
+    }
+  };
+
+  const handleToggleOnboardingActive = async (step: AdminOnboardingStep) => {
+    const enable = step.status === "Inactive";
+    setSavingOnboarding(true);
+    try {
+      await updateOnboardingStep(step.id, { isActive: enable });
+      await loadOnboarding();
+      showToast(enable ? `"${step.title}" enabled` : `"${step.title}" disabled`);
+    } catch (err) {
+      showToast(
+        err instanceof ApiError
+          ? err.message
+          : "Could not update onboarding step. Please try again.",
+      );
+    } finally {
+      setSavingOnboarding(false);
+    }
+  };
+
   const publishDoc = async (doc: AdminDocument) => {
     setSavingArticle(true);
     try {
@@ -660,7 +838,7 @@ export default function DocumentsPage() {
                   variant="secondary"
                   size="sm"
                   icon={Plus}
-                  onClick={() => showToast("Onboarding step form coming soon")}
+                  onClick={openCreateOnboardingModal}
                 >
                   New Onboarding Step
                 </AdminButton>
@@ -714,7 +892,15 @@ export default function DocumentsPage() {
               />
             )}
             {activeTab === "onboarding" && (
-              <OnboardingList steps={onboarding} onAction={() => showToast("Onboarding step updated")} />
+              <OnboardingList
+                steps={onboarding}
+                loading={onboardingLoadState === "loading"}
+                error={onboardingLoadState === "error" ? onboardingError : ""}
+                onRetry={retryLoadOnboarding}
+                onEdit={openEditOnboardingModal}
+                onPreview={openOnboardingPreview}
+                onToggleActive={(step) => void handleToggleOnboardingActive(step)}
+              />
             )}
             {activeTab === "missing" && (
               <MissingRequestsList
@@ -772,6 +958,24 @@ export default function DocumentsPage() {
         saving={savingCategory}
         onClose={closeCategoryModal}
         onSubmit={handleSubmitCategory}
+      />
+
+      <OnboardingFormModal
+        open={onboardingFormOpen}
+        mode={onboardingModalMode}
+        initial={editingOnboarding}
+        nextOrder={nextOnboardingOrder}
+        articleOptions={onboardingArticleOptions}
+        saving={savingOnboarding}
+        onClose={closeOnboardingFormModal}
+        onSubmit={handleSubmitOnboarding}
+      />
+
+      <OnboardingPreviewModal
+        open={onboardingPreviewOpen}
+        step={previewOnboarding}
+        onClose={closeOnboardingPreview}
+        onEdit={() => previewOnboarding && openEditOnboardingModal(previewOnboarding)}
       />
 
       <HubToast message={toast.message} visible={toast.visible} />
@@ -1095,11 +1299,46 @@ function CategoriesList({
 
 function OnboardingList({
   steps,
-  onAction,
+  loading = false,
+  error = "",
+  onRetry,
+  onEdit,
+  onPreview,
+  onToggleActive,
 }: {
-  steps: OnboardingStep[];
-  onAction: () => void;
+  steps: AdminOnboardingStep[];
+  loading?: boolean;
+  error?: string;
+  onRetry?: () => void;
+  onEdit: (step: AdminOnboardingStep) => void;
+  onPreview: (step: AdminOnboardingStep) => void;
+  onToggleActive: (step: AdminOnboardingStep) => void;
 }) {
+  if (loading) {
+    return <p className={styles.stateMessage}>Loading onboarding steps…</p>;
+  }
+
+  if (error) {
+    return (
+      <div className={styles.stateBlock}>
+        <p className={styles.stateError}>{error}</p>
+        {onRetry ? (
+          <AdminButton variant="primary" icon={RefreshCw} onClick={() => void onRetry()}>
+            Retry
+          </AdminButton>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (steps.length === 0) {
+    return (
+      <p className={styles.emptyState}>
+        No onboarding steps yet. Create one with New Onboarding Step.
+      </p>
+    );
+  }
+
   return (
     <div className={styles.hubTable}>
       <HubTableHead
@@ -1117,15 +1356,20 @@ function OnboardingList({
             <span className={styles.cellMuted}>{step.linkedArticle}</span>
             <span className={styles.cellMuted}>{step.updatedAt}</span>
             <div className={styles.rowActions}>
-              <button type="button" className={styles.actionBtn} onClick={onAction}>
+              <button type="button" className={styles.actionBtn} onClick={() => onEdit(step)}>
                 <Pencil size={14} />
                 <span>Edit</span>
               </button>
-              <button type="button" className={styles.actionBtnIcon} onClick={onAction} aria-label="Preview">
+              <button
+                type="button"
+                className={styles.actionBtnIcon}
+                onClick={() => onPreview(step)}
+                aria-label="Preview"
+              >
                 <Eye size={14} />
               </button>
-              <button type="button" className={styles.actionBtn} onClick={onAction}>
-                Disable
+              <button type="button" className={styles.actionBtn} onClick={() => onToggleActive(step)}>
+                {step.status === "Active" ? "Disable" : "Enable"}
               </button>
             </div>
           </li>
