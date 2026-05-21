@@ -65,10 +65,66 @@ async function getMissingInfoAnalytics(req, res, next) {
   }
 }
 
+async function getUsageTrends(req, res, next) {
+  try {
+    const data = await analyticsService.getUsageTrends(req.query);
+    return res.status(200).json({
+      success: true,
+      message: "Usage trends retrieved successfully",
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getPeakHours(req, res, next) {
+  try {
+    const data = await analyticsService.getPeakHours();
+    return res.status(200).json({
+      success: true,
+      message: "Peak hours retrieved successfully",
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getUnansweredQuestions(req, res, next) {
+  try {
+    const data = await analyticsService.getUnansweredQuestions(req.query);
+    return res.status(200).json({
+      success: true,
+      message: "Unanswered questions retrieved successfully",
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getPerformance(req, res, next) {
+  try {
+    const data = await analyticsService.getPerformanceAnalytics();
+    return res.status(200).json({
+      success: true,
+      message: "Performance analytics retrieved successfully",
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getOverview,
   getSearches,
   getPopularQuestions,
   getFeedbackAnalytics,
   getMissingInfoAnalytics,
+  getUsageTrends,
+  getPeakHours,
+  getUnansweredQuestions,
+  getPerformance,
 };

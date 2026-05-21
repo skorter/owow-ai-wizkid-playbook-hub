@@ -1,40 +1,184 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
-import { categories } from "@/lib/data/categories";
-import { notFound } from "next/navigation";
 import Link from "next/link";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import BackButton from "./components/BackButton/BackButton";
+import {
+  buildStaticArticleFallback,
+  fetchPlaybookArticleBySlug,
+  findStaticPageBySlug,
+  type PlaybookArticleDetail,
+} from "@/lib/mappers/playbook";
+import { ApiError } from "@/lib/api";
+import { RefreshCw } from "lucide-react";
 
-type SlugPageProps = {
-  params: {
-    slug: string;
+type LoadState = "loading" | "error" | "ready" | "not-found";
+
+export default function SlugPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const slug = typeof params.slug === "string" ? params.slug : "";
+  const from = searchParams.get("from") ?? undefined;
+
+  const [loadState, setLoadState] = useState<LoadState>("loading");
+  const [article, setArticle] = useState<PlaybookArticleDetail | null>(null);
+  const [staticSubpages, setStaticSubpages] = useState<
+    { label: string; slug: string }[]
+  >([]);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const loadArticle = async () => {
+    if (!slug) {
+      setLoadState("not-found");
+      return;
+    }
+
+    setLoadState("loading");
+    setErrorMessage("");
+    setStaticSubpages([]);
+
+    try {
+      const data = await fetchPlaybookArticleBySlug(slug);
+      if (data) {
+        setArticle(data);
+        setLoadState("ready");
+        return;
+      }
+
+      const staticFallback = buildStaticArticleFallback(slug);
+      if (staticFallback) {
+        setArticle(staticFallback);
+        const staticPage = findStaticPageBySlug(slug);
+        setStaticSubpages(staticPage?.subpages ?? []);
+        setLoadState("ready");
+        return;
+      }
+
+      setArticle(null);
+      setLoadState("not-found");
+    } catch (err) {
+      const staticFallback = buildStaticArticleFallback(slug);
+      if (staticFallback) {
+        setArticle(staticFallback);
+        const staticPage = findStaticPageBySlug(slug);
+        setStaticSubpages(staticPage?.subpages ?? []);
+        setLoadState("ready");
+        return;
+      }
+
+      setArticle(null);
+      setLoadState("error");
+      setErrorMessage(
+        err instanceof ApiError
+          ? err.message
+          : "Could not load this article. Please try again.",
+      );
+    }
   };
-  searchParams: { from?: string };
-};
 
-export default async function SlugPage({
-  params,
-  searchParams,
-}: SlugPageProps) {
-  const { slug } = await params;
-  const { from } = await searchParams;
+  useEffect(() => {
+    let cancelled = false;
 
-  // find the article with the matching slug from all categories
-  const allPages = categories.flatMap((category) => category.pages);
-  const page = allPages.find((page) => page.slug === slug);
+    async function load() {
+      if (!slug) {
+        if (!cancelled) setLoadState("not-found");
+        return;
+      }
 
-  // find the subpage with the matching slug from all categories
-  const allSubpages = categories.flatMap((category) =>
-    category.pages.flatMap((page) => page.subpages),
-  );
-  const subpage = allSubpages.find((subpage) => subpage.slug === slug);
+      if (!cancelled) {
+        setLoadState("loading");
+        setErrorMessage("");
+        setStaticSubpages([]);
+      }
 
-  // if no page or subpage is found, return a 404 page
-  if (!page && !subpage) {
-    notFound();
+      try {
+        const data = await fetchPlaybookArticleBySlug(slug);
+        if (cancelled) return;
+
+        if (data) {
+          setArticle(data);
+          setLoadState("ready");
+          return;
+        }
+
+        const staticFallback = buildStaticArticleFallback(slug);
+        if (staticFallback) {
+          setArticle(staticFallback);
+          const staticPage = findStaticPageBySlug(slug);
+          setStaticSubpages(staticPage?.subpages ?? []);
+          setLoadState("ready");
+          return;
+        }
+
+        setArticle(null);
+        setLoadState("not-found");
+      } catch (err) {
+        if (cancelled) return;
+
+        const staticOnError = buildStaticArticleFallback(slug);
+        if (staticOnError) {
+          setArticle(staticOnError);
+          const staticPage = findStaticPageBySlug(slug);
+          setStaticSubpages(staticPage?.subpages ?? []);
+          setLoadState("ready");
+          return;
+        }
+
+        setArticle(null);
+        setLoadState("error");
+        setErrorMessage(
+          err instanceof ApiError
+            ? err.message
+            : "Could not load this article. Please try again.",
+        );
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  useEffect(() => {
+    if (loadState === "not-found") {
+      router.replace("/playbook/topics");
+    }
+  }, [loadState, router]);
+
+  if (loadState === "loading") {
+    return (
+      <div className={styles.slugPage}>
+        <p className={styles.stateMessage}>Loading article…</p>
+      </div>
+    );
   }
 
-  // if a page is found, use it; otherwise, use the subpage
-  const article = page || subpage;
+  if (loadState === "error") {
+    return (
+      <div className={styles.slugPage}>
+        <div className={styles.stateBlock}>
+          <p className={styles.stateError}>{errorMessage}</p>
+          <button type="button" className={styles.retryButton} onClick={loadArticle}>
+            <RefreshCw size={16} aria-hidden />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadState === "not-found" || !article) {
+    return (
+      <div className={styles.slugPage}>
+        <p className={styles.stateMessage}>Article not found. Redirecting…</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.slugPage}>
@@ -45,36 +189,44 @@ export default async function SlugPage({
       ) : (
         <BackButton />
       )}
-      <h1 className={styles.title}>{article?.label}</h1>
-      {page?.description && (
-        <p className={styles.description}>{page.description}</p>
-      )}
-      {page?.subpages && page.subpages.length > 0 && (
+      <h1 className={styles.title}>{article.title}</h1>
+      {article.summary ? (
+        <p className={styles.description}>{article.summary}</p>
+      ) : null}
+      {staticSubpages.length > 0 ? (
         <div className={styles.subpages}>
           <h2 className={styles.subpagesTitle}>Subtopics</h2>
           <ul className={styles.subpagesList}>
-            {page.subpages.map((sub) => (
-              <Link
-                key={sub.slug}
-                href={`/playbook/${sub.slug}${from ? `?from=${from}` : ""}`}
-                className={styles.subpage}
-              >
-                {sub.label}
-              </Link>
+            {staticSubpages.map((sub) => (
+              <li key={sub.slug}>
+                <Link
+                  href={`/playbook/${sub.slug}${from ? `?from=${from}` : ""}`}
+                  className={styles.subpage}
+                >
+                  {sub.label}
+                </Link>
+              </li>
             ))}
           </ul>
         </div>
-      )}
+      ) : null}
       <div className={styles.content}>
-        <p className={styles.placeholder}>
-          Content coming soon — this article will be loaded from Jira once the
-          backend is connected.
-        </p>
+        {article.content.split(/\n\n+/).map((paragraph, index) => (
+          <p key={index} className={styles.paragraph}>
+            {paragraph}
+          </p>
+        ))}
       </div>
-      {from === "onboarding" &&
-        (!page?.subpages || page.subpages.length === 0) && (
-          <button className={styles.completeButton}>Mark as complete ✓</button>
-        )}
+      {article.fromFallback ? (
+        <p className={styles.fallbackNote}>
+          Showing preview metadata until this article is published from the admin hub.
+        </p>
+      ) : null}
+      {from === "onboarding" && staticSubpages.length === 0 ? (
+        <button type="button" className={styles.completeButton}>
+          Mark as complete ✓
+        </button>
+      ) : null}
     </div>
   );
 }
