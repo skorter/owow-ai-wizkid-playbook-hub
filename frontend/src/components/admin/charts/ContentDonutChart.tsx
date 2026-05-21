@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { contentDistributionSegments } from "@/data/adminMockData";
+import { useMemo, useState } from "react";
+import type { ContentDistributionSegment } from "@/data/adminMockData";
 import styles from "./ContentDonutChart.module.css";
 
 const SIZE = 260;
@@ -15,20 +15,19 @@ const HIT_STROKE_WIDTH = 40;
 const circumference = 2 * Math.PI * RADIUS;
 const HOLE_RADIUS = RADIUS - STROKE_WIDTH / 2 - 1;
 
-type RingSegment = {
-  label: string;
-  value: number;
-  color: string;
+type RingSegment = ContentDistributionSegment & {
   dashLength: number;
   dashoffset: number;
   midAngle: number;
 };
 
-function buildRings(): RingSegment[] {
+function buildRings(segments: ContentDistributionSegment[]): RingSegment[] {
+  const total = segments.reduce((sum, s) => sum + s.value, 0) || 100;
   let cumulativeOffset = 0;
 
-  return contentDistributionSegments.map((segment) => {
-    const segmentArc = (segment.value / 100) * circumference;
+  return segments.map((segment) => {
+    const share = segment.value / total;
+    const segmentArc = share * circumference;
     const dashLength = Math.max(segmentArc - SEGMENT_GAP, 0);
     const dashoffset = -cumulativeOffset;
     const midArc = cumulativeOffset + segmentArc / 2;
@@ -44,17 +43,27 @@ function buildRings(): RingSegment[] {
   });
 }
 
-const rings = buildRings();
+type ContentDonutChartProps = {
+  segments: ContentDistributionSegment[];
+  emptyMessage?: string;
+};
 
-export default function ContentDonutChart() {
+export default function ContentDonutChart({
+  segments,
+  emptyMessage = "No published articles to chart yet.",
+}: ContentDonutChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const rings = useMemo(() => buildRings(segments), [segments]);
+
+  if (segments.length === 0) {
+    return <p className={styles.emptyState}>{emptyMessage}</p>;
+  }
 
   const hovered = hoveredIndex !== null ? rings[hoveredIndex] : null;
 
-  const tooltipLeft =
-    hovered !== null ? 50 + (Math.cos(hovered.midAngle) * 38) : 50;
-  const tooltipTop =
-    hovered !== null ? 50 + (Math.sin(hovered.midAngle) * 38) : 50;
+  const tooltipLeft = hovered !== null ? 50 + Math.cos(hovered.midAngle) * 38 : 50;
+  const tooltipTop = hovered !== null ? 50 + Math.sin(hovered.midAngle) * 38 : 50;
 
   return (
     <div className={styles.wrap}>
@@ -72,7 +81,7 @@ export default function ContentDonutChart() {
               const isDimmed = hoveredIndex !== null && !isHovered;
 
               return (
-                <g key={segment.label}>
+                <g key={`${segment.label}-${index}`}>
                   <circle
                     cx={CX}
                     cy={CY}
@@ -121,7 +130,7 @@ export default function ContentDonutChart() {
       </div>
 
       <ul className={styles.legend}>
-        {contentDistributionSegments.map((segment) => (
+        {segments.map((segment) => (
           <li key={segment.label} className={styles.legendItem}>
             <span className={styles.legendDot} style={{ backgroundColor: segment.color }} />
             <span className={styles.legendLabel}>{segment.label}</span>

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import {
   AdminPageContainer,
   AdminMetricCard,
@@ -7,24 +10,104 @@ import {
 } from "@/components/admin";
 import TopicsBarChart from "@/components/admin/charts/TopicsBarChart";
 import ContentDonutChart from "@/components/admin/charts/ContentDonutChart";
-import {
-  dashboardMetrics,
-  dashboardMissingInfo,
-  dashboardRecentArticles,
-  missingInfoPendingCount,
-} from "@/data/adminMockData";
 import type { DashboardMissingInfoItem } from "@/data/adminMockData";
-import { Plus, Trash2, TrendingUp, Eye } from "lucide-react";
+import { fetchDashboardData, type DashboardViewModel } from "@/lib/mappers/adminDashboard";
+import { ApiError } from "@/lib/api";
+import { Plus, Trash2, TrendingUp, Eye, RefreshCw } from "lucide-react";
 import styles from "./page.module.css";
 
+type LoadState = "loading" | "error" | "ready";
+
 export default function DashboardPage() {
+  const [loadState, setLoadState] = useState<LoadState>("loading");
+  const [data, setData] = useState<DashboardViewModel | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadInitialDashboard() {
+      try {
+        const dashboard = await fetchDashboardData();
+        if (cancelled) return;
+        setData(dashboard);
+        setLoadState("ready");
+      } catch (err) {
+        if (cancelled) return;
+        setData(null);
+        setLoadState("error");
+        setErrorMessage(
+          err instanceof ApiError
+            ? err.message
+            : "Could not load dashboard data. Please try again.",
+        );
+      }
+    }
+
+    loadInitialDashboard();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleRetry = async () => {
+    setLoadState("loading");
+    setErrorMessage("");
+
+    try {
+      const dashboard = await fetchDashboardData();
+      setData(dashboard);
+      setLoadState("ready");
+    } catch (err) {
+      setData(null);
+      setLoadState("error");
+      setErrorMessage(
+        err instanceof ApiError
+          ? err.message
+          : "Could not load dashboard data. Please try again.",
+      );
+    }
+  };
+
+  if (loadState === "loading") {
+    return (
+      <AdminPageContainer
+        title="HR Admin Dashboard"
+        subtitle="Content management and analytics overview"
+      >
+        <p className={styles.stateMessage}>Loading dashboard…</p>
+      </AdminPageContainer>
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <AdminPageContainer
+        title="HR Admin Dashboard"
+        subtitle="Content management and analytics overview"
+      >
+        <div className={styles.stateBlock}>
+          <p className={styles.stateError}>{errorMessage}</p>
+          <AdminButton variant="primary" icon={RefreshCw} onClick={handleRetry}>
+            Retry
+          </AdminButton>
+        </div>
+      </AdminPageContainer>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
   return (
     <AdminPageContainer
       title="HR Admin Dashboard"
       subtitle="Content management and analytics overview"
     >
       <section className={styles.metricsGrid}>
-        {dashboardMetrics.map((metric) => (
+        {data.metrics.map((metric) => (
           <AdminMetricCard
             key={metric.id}
             icon={metric.icon}
@@ -43,13 +126,17 @@ export default function DashboardPage() {
           className={styles.chartPanel}
         >
           <div className={styles.chartPanelBody}>
-            <TopicsBarChart />
+            <TopicsBarChart
+              topics={data.searchedTopics}
+              yMax={data.searchedTopicsYMax}
+              yTicks={data.searchedTopicsYTicks}
+            />
           </div>
         </AdminPanelCard>
 
         <AdminPanelCard title="Content Distribution" className={styles.chartPanel}>
           <div className={`${styles.chartPanelBody} ${styles.donutPanelBody}`}>
-            <ContentDonutChart />
+            <ContentDonutChart segments={data.contentDistribution} />
           </div>
         </AdminPanelCard>
       </section>
@@ -57,29 +144,23 @@ export default function DashboardPage() {
       <section className={styles.lowerGrid}>
         <AdminPanelCard
           title="Missing Information Requests"
-          badge={<span className={styles.pendingBadge}>{missingInfoPendingCount} pending</span>}
+          badge={
+            data.missingInfoPendingCount > 0 ? (
+              <span className={styles.pendingBadge}>
+                {data.missingInfoPendingCount} pending
+              </span>
+            ) : undefined
+          }
         >
-          <ul className={styles.miniCardList}>
-            {dashboardMissingInfo.map((item) => (
-              <li key={item.id} className={styles.miniCard}>
-                <div className={styles.miniCardTop}>
-                  <h3 className={styles.miniCardTitle}>{item.title}</h3>
-                  <span className={styles.requestStat}>
-                    <TrendingUp className={styles.requestTrendIcon} aria-hidden />
-                    {item.requestCount}
-                  </span>
-                </div>
-                <ItemMeta
-                  category={item.category}
-                  categoryColor={item.categoryColor}
-                  secondary={item.timeAgo}
-                />
-                <AdminButton variant="primary" size="sm" className={styles.fullWidthButton}>
-                  Create Article
-                </AdminButton>
-              </li>
-            ))}
-          </ul>
+          {data.missingInfoItems.length === 0 ? (
+            <p className={styles.panelEmpty}>No open missing information requests.</p>
+          ) : (
+            <ul className={styles.miniCardList}>
+              {data.missingInfoItems.map((item) => (
+                <MissingInfoCard key={item.id} item={item} />
+              ))}
+            </ul>
+          )}
         </AdminPanelCard>
 
         <AdminPanelCard
@@ -90,39 +171,65 @@ export default function DashboardPage() {
             </AdminButton>
           }
         >
-          <ul className={styles.miniCardList}>
-            {dashboardRecentArticles.map((article) => (
-              <li key={article.id} className={styles.miniCard}>
-                <div className={styles.miniCardTop}>
-                  <h3 className={styles.miniCardTitle}>{article.title}</h3>
-                  <span className={styles.viewsStat}>
-                    <Eye className={styles.viewsIcon} aria-hidden />
-                    {article.views}
-                  </span>
-                </div>
-                <ItemMeta
-                  category={article.category}
-                  categoryColor={article.categoryColor}
-                  secondary={`Updated ${article.updatedAgo}`}
-                />
-                <div className={styles.articleActionRow}>
-                  <button type="button" className={styles.editButton}>
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-                    aria-label={`Delete ${article.title}`}
-                  >
-                    <Trash2 />
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {data.recentArticles.length === 0 ? (
+            <p className={styles.panelEmpty}>No published articles yet.</p>
+          ) : (
+            <ul className={styles.miniCardList}>
+              {data.recentArticles.map((article) => (
+                <li key={article.id} className={styles.miniCard}>
+                  <div className={styles.miniCardTop}>
+                    <h3 className={styles.miniCardTitle}>{article.title}</h3>
+                    <span className={styles.viewsStat}>
+                      <Eye className={styles.viewsIcon} aria-hidden />
+                      {article.views > 0 ? article.views : "—"}
+                    </span>
+                  </div>
+                  <ItemMeta
+                    category={article.category}
+                    categoryColor={article.categoryColor}
+                    secondary={`Updated ${article.updatedAgo}`}
+                  />
+                  <div className={styles.articleActionRow}>
+                    <button type="button" className={styles.editButton}>
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.iconButton} ${styles.iconButtonDanger}`}
+                      aria-label={`Delete ${article.title}`}
+                    >
+                      <Trash2 />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </AdminPanelCard>
       </section>
     </AdminPageContainer>
+  );
+}
+
+function MissingInfoCard({ item }: { item: DashboardMissingInfoItem }) {
+  return (
+    <li className={styles.miniCard}>
+      <div className={styles.miniCardTop}>
+        <h3 className={styles.miniCardTitle}>{item.title}</h3>
+        <span className={styles.requestStat}>
+          <TrendingUp className={styles.requestTrendIcon} aria-hidden />
+          {item.requestCount}
+        </span>
+      </div>
+      <ItemMeta
+        category={item.category}
+        categoryColor={item.categoryColor}
+        secondary={item.timeAgo}
+      />
+      <AdminButton variant="primary" size="sm" className={styles.fullWidthButton}>
+        Create Article
+      </AdminButton>
+    </li>
   );
 }
 

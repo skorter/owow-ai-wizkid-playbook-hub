@@ -1,3 +1,34 @@
+.stateMessage {
+  margin: 0;
+  padding: 2rem 0;
+  font-size: 0.95rem;
+  color: var(--admin-text-muted);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.stateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.stateError {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--admin-accent-red, #ef4444);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.panelEmpty {
+  margin: 0;
+  padding: 1.5rem 0;
+  font-size: 0.9rem;
+  color: var(--admin-text-muted);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
