@@ -1,6 +1,5 @@
-import { AuthUser } from "@/types/auth";
-
-export const MOCK_USERS: AuthUser[] = [
+import type { MockAuthUser } from "@/types/auth";
+export const MOCK_USERS: MockAuthUser[] = [
   {
     email: "user@owow.io",
     password: "user123",

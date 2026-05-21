@@ -1,5 +1,8 @@
 .footer {
   display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.85rem;
 }
 
 .footer .profile {
@@ -37,4 +40,31 @@
   font-weight: 400;
   font-family: sans-serif;
   color: #bcbcbc;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #262626;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #bcbcbc;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-geist-sans), sans-serif;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.logoutBtn:hover {
+  border-color: rgba(255, 213, 0, 0.35);
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.04);
 }
