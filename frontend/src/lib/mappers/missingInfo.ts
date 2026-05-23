@@ -1,4 +1,5 @@
-import { apiDelete, apiGet, apiPut, endpoints } from "@/lib/api";
+import { apiDelete, apiGet, apiPost, apiPut, endpoints } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import { unwrapListData } from "@/lib/api/unwrap";
 import type { MissingInfoRequest, MissingRequestStatus } from "@/data/adminMockData";
 
@@ -135,4 +136,25 @@ export async function updateMissingInfoGroupStatus(
 
 export async function deleteMissingInfoReport(id: string): Promise<void> {
   await apiDelete<unknown>(endpoints.missingInfo.byId(id));
+}
+
+export async function submitMissingInfoReport(input: {
+  type: string;
+  title: string;
+  description: string;
+  articleId?: string | null;
+}): Promise<void> {
+  try {
+    await apiPost<unknown>(endpoints.missingInfo.list, {
+      type: input.type,
+      title: input.title,
+      description: input.description,
+      articleId: input.articleId ?? null,
+    });
+  } catch (err) {
+    if (err instanceof ApiError) {
+      throw new Error(err.message);
+    }
+    throw err;
+  }
 }

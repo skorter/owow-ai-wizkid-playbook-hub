@@ -23,7 +23,7 @@ export default function Steps({
           <button
             className={`${styles.step} ${index === currentStep ? styles.active : ""} ${isStepCompleted(index) ? styles.completed : ""}`}
             onClick={() => onStepClick(index)}
-            disabled={index > currentStep && !isStepCompleted(currentStep)}
+            disabled={index > currentStep && !isStepCompleted(index - 1)}
           >
             <div className={styles.indicator}>
               {isStepCompleted(index) ? (

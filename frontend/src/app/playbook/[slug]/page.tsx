@@ -24,6 +24,9 @@ import {
 } from "@/lib/auth/session";
 import { ApiError } from "@/lib/api";
 import { CheckCircle, RefreshCw } from "lucide-react";
+import FeedbackModal from "@/components/playbook/FeedbackModal";
+import MissingInfoModal from "@/components/playbook/MissingInfoModal";
+import PlaybookSupportActions from "@/components/playbook/PlaybookSupportActions";
 
 type LoadState = "loading" | "error" | "ready" | "not-found";
 
@@ -33,6 +36,7 @@ export default function SlugPage() {
   const router = useRouter();
   const slug = typeof params.slug === "string" ? params.slug : "";
   const from = searchParams.get("from") ?? undefined;
+  const onboardingStep = searchParams.get("step");
 
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [article, setArticle] = useState<PlaybookArticleDetail | null>(null);
@@ -42,6 +46,8 @@ export default function SlugPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [completionVersion, setCompletionVersion] = useState(0);
   const [completing, setCompleting] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [missingInfoOpen, setMissingInfoOpen] = useState(false);
 
   const userSnapshot = useSyncExternalStore(
     subscribeSession,
@@ -76,7 +82,13 @@ export default function SlugPage() {
     markArticleComplete(progressKey, slug);
 
     if (from === "onboarding") {
-      router.push(`/playbook/onboarding?completed=${encodeURIComponent(slug)}`);
+      const params = new URLSearchParams({
+        completed: slug,
+      });
+      if (onboardingStep != null && onboardingStep.trim() !== "") {
+        params.set("step", onboardingStep.trim());
+      }
+      router.push(`/playbook/onboarding?${params.toString()}`);
       return;
     }
 
@@ -264,6 +276,30 @@ export default function SlugPage() {
           Showing preview metadata until this article is published from the admin hub.
         </p>
       ) : null}
+
+      <section className={styles.supportCard}>
+        <PlaybookSupportActions
+          onFeedback={() => setFeedbackOpen(true)}
+          onMissingInfo={() => setMissingInfoOpen(true)}
+          missingLabel="Something missing?"
+        />
+      </section>
+
+      <FeedbackModal
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        articleId={article.id}
+        articleTitle={article.title}
+        articleSlug={article.slug}
+      />
+      <MissingInfoModal
+        open={missingInfoOpen}
+        onClose={() => setMissingInfoOpen(false)}
+        articleId={article.id}
+        articleSlug={article.slug}
+        sourceHint={`Article: ${article.title}`}
+        defaultTitle={`Missing info: ${article.title}`}
+      />
 
       {showOnboardingCta ? (
         <section className={styles.completeCard}>

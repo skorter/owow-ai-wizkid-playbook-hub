@@ -1,0 +1,48 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.secondaryButton,
+.ghostButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 0.55rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.secondaryButton {
+  border: 1px solid rgba(255, 213, 0, 0.45);
+  background: rgba(255, 213, 0, 0.08);
+  color: #ffd500;
+}
+
+.secondaryButton:hover {
+  background: rgba(255, 213, 0, 0.16);
+}
+
+.ghostButton {
+  border: 1px solid #333;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.ghostButton:hover {
+  border-color: #555;
+  color: #fff;
+}
