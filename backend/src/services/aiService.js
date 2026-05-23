@@ -400,6 +400,11 @@ async function saveSearchLog({
   answer,
   userId,
   source = "PLAYBOOK_SEARCH",
+  confidence = null,
+  fallback = null,
+  sourceCount = null,
+  articleId = null,
+  articleTitle = null,
 }) {
   try {
     await prisma.searchLog.create({
@@ -408,6 +413,11 @@ async function saveSearchLog({
         question,
         answer: answer ?? null,
         userId: userId ?? null,
+        confidence: confidence ?? null,
+        fallback: fallback ?? null,
+        sourceCount: sourceCount ?? null,
+        articleId: articleId ?? null,
+        articleTitle: articleTitle ?? null,
       },
     });
   } catch (err) {
@@ -673,6 +683,11 @@ async function runAskPageAI(payload, userId = null) {
     answer: result.answer,
     userId,
     source: "AI_CHAT",
+    confidence: result.confidence,
+    fallback: result.fallback,
+    sourceCount: 1,
+    articleId: article.id !== "page-context" ? article.id : null,
+    articleTitle: article.title !== "Current page" ? article.title : null,
   });
 
   return result;
@@ -793,6 +808,9 @@ async function runAISearch(question, userId = null) {
       question: trimmed,
       answer: emptyResult.answer,
       userId,
+      confidence: 0,
+      fallback: true,
+      sourceCount: 0,
     });
 
     return emptyResult;
@@ -812,9 +830,47 @@ async function runAISearch(question, userId = null) {
     question: trimmed,
     answer: result.answer,
     userId,
+    confidence: result.confidence,
+    fallback: result.fallback,
+    sourceCount: result.sources.length,
   });
 
   return result;
+}
+
+const RECENT_SEARCHS_LIMIT = 8;
+
+function buildAnswerPreview(answer, maxLen = 140) {
+  const text = (answer || "").trim();
+  if (!text) return null;
+  if (text.length <= maxLen) return text;
+  return `${text.slice(0, maxLen - 1).trim()}…`;
+}
+
+async function getRecentSearchesForUser(userId, limit = RECENT_SEARCHS_LIMIT) {
+  if (!userId) {
+    return { items: [] };
+  }
+
+  const rows = await prisma.searchLog.findMany({
+    where: {
+      userId,
+      source: "PLAYBOOK_SEARCH",
+    },
+    orderBy: { createdAt: "desc" },
+    take: Math.min(limit, 20),
+  });
+
+  const items = rows.map((row) => ({
+    id: row.id,
+    question: row.question,
+    answerPreview: buildAnswerPreview(row.answer),
+    confidence: row.confidence ?? 0,
+    sourceCount: row.sourceCount ?? 0,
+    createdAt: row.createdAt,
+  }));
+
+  return { items };
 }
 
 module.exports = {
@@ -824,6 +880,7 @@ module.exports = {
   generateAnswerFromSources,
   runAISearch,
   runAskPageAI,
+  getRecentSearchesForUser,
   validateQuestion,
   validateAskPageRequest,
 };

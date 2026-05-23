@@ -117,6 +117,19 @@ async function getPerformance(req, res, next) {
   }
 }
 
+async function getDashboard(req, res, next) {
+  try {
+    const data = await analyticsService.getAdminAnalyticsDashboard();
+    return res.status(200).json({
+      success: true,
+      message: "Admin analytics dashboard retrieved successfully",
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getOverview,
   getSearches,
@@ -127,4 +140,5 @@ module.exports = {
   getPeakHours,
   getUnansweredQuestions,
   getPerformance,
+  getDashboard,
 };

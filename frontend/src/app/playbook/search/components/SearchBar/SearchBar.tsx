@@ -7,17 +7,31 @@ import { Search, Paperclip, Send } from "lucide-react";
 
 type SearchBarProps = {
   initialQuery?: string;
+  query?: string;
+  onQueryChange?: (value: string) => void;
   onSearch: (query: string) => void;
   loading?: boolean;
 };
 
 export default function SearchBar({
   initialQuery = "",
+  query: controlledQuery,
+  onQueryChange,
   onSearch,
   loading = false,
 }: SearchBarProps) {
   const router = useRouter();
-  const [query, setQuery] = useState(() => initialQuery);
+  const [internalQuery, setInternalQuery] = useState(() => initialQuery);
+  const isControlled = controlledQuery !== undefined;
+  const query = isControlled ? controlledQuery : internalQuery;
+
+  const setQuery = (value: string) => {
+    if (isControlled) {
+      onQueryChange?.(value);
+    } else {
+      setInternalQuery(value);
+    }
+  };
 
   const submit = (value: string) => {
     const trimmed = value.trim();

@@ -41,6 +41,7 @@ export const endpoints = {
     peakHours: "/api/analytics/peak-hours",
     unansweredQuestions: "/api/analytics/unanswered-questions",
     performance: "/api/analytics/performance",
+    dashboard: "/api/analytics/dashboard",
   },
 
   onboarding: {
@@ -53,5 +54,17 @@ export const endpoints = {
     status: "/api/ai/status",
     search: "/api/ai/search",
     askPage: "/api/ai/ask-page",
+    recentSearches: "/api/ai/recent-searches",
+  },
+
+  profile: {
+    activity: "/api/profile/activity",
+    insights: "/api/profile/insights",
+  },
+
+  savedArticles: {
+    list: "/api/saved-articles",
+    byArticleId: (articleId: string) =>
+      `/api/saved-articles/${encodeURIComponent(articleId)}`,
   },
 } as const;

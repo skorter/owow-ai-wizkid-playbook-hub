@@ -5,7 +5,6 @@
     "identity identity"
     "personalInformation onboardingProgress"
     "recentActivity savedArticles"
-    "settingsGrid settingsGrid"
     "aiSettings aiSettings"
     "aiInsights aiInsights";
   gap: 2rem;
@@ -32,7 +31,4 @@
 }
 .aiInsights {
   grid-area: aiInsights;
-}
-.settingsGrid {
-  grid-area: settingsGrid;
 }

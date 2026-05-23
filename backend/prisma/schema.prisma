@@ -57,6 +57,7 @@ model User {
   feedback           Feedback[]
   searchLogs         SearchLog[]
   missingInfoReports MissingInfoReport[]
+  savedArticles      SavedArticle[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -93,6 +94,7 @@ model Article {
   missingInfoReports MissingInfoReport[]
   onboardingSteps    OnboardingStep[]
   onboardingStepLinks OnboardingStepArticle[]
+  savedBy            SavedArticle[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -104,6 +106,12 @@ model SearchLog {
   question String
   answer   String?
 
+  confidence   Float?
+  fallback     Boolean?
+  sourceCount  Int?
+  articleId    String?
+  articleTitle String?
+
   userId String?
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -111,6 +119,20 @@ model SearchLog {
 
   @@index([userId])
   @@index([createdAt])
+  @@index([source])
+}
+
+model SavedArticle {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@index([articleId])
 }
 
 model Feedback {

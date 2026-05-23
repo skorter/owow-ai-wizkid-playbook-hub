@@ -144,10 +144,10 @@ export default function AnalyticsPage() {
         <article className={styles.aiInsightCard}>
           <Sparkles className={styles.aiInsightIcon} aria-hidden />
           <div>
-            <h2 className={styles.aiInsightTitle}>AI insights coming soon</h2>
+            <h2 className={styles.aiInsightTitle}>AI insights from playbook activity</h2>
             <p className={styles.aiInsightText}>
-              Phase 12 will add intelligent search analytics, answer quality scoring, and
-              content gap recommendations — without changing this dashboard layout.
+              AI insights are generated from playbook searches, unanswered questions, and
+              content activity.
             </p>
           </div>
         </article>
@@ -221,7 +221,11 @@ export default function AnalyticsPage() {
                 hint="Missing-info requests are tracked separately in Documents → Missing Requests."
               />
             )}
-            <AdminButton variant="primary" className={styles.fullWidthCta}>
+            <AdminButton
+              variant="primary"
+              className={styles.fullWidthCta}
+              href="/admin/documents?tab=articles"
+            >
               Create Content for These Topics
             </AdminButton>
           </AdminPanelCard>

@@ -7,7 +7,14 @@ import type {
   UsageTrendPoint,
 } from "@/data/adminMockData";
 import type { AdminBadgeColor } from "@/components/admin/AdminStatusBadge/AdminStatusBadge";
-import { AlertTriangle, Timer, TrendingUp, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  Bookmark,
+  Search,
+  TrendingUp,
+  Users,
+  Zap,
+} from "lucide-react";
 export type UsageTrendsAnalytics = {
   points: UsageTrendPoint[];
   yMax: number;
@@ -24,9 +31,12 @@ export type PeakHoursAnalytics = {
 
 export type PerformanceAnalytics = {
   successRatePercent: number;
+  averageConfidence: number;
   avgResponseTimeLabel: string | null;
   dailyActiveUsers: number;
   unansweredCount: number;
+  totalSearches: number;
+  savedArticlesCount: number;
   cards: PerformanceCard[];
 };
 
@@ -75,9 +85,9 @@ function mapUnanswered(items: {
 }
 
 function buildTopMetrics(performance: PerformanceAnalytics): AnalyticsMetric[] {
-  const responseTime =
-    performance.avgResponseTimeLabel && performance.avgResponseTimeLabel.trim().length > 0
-      ? performance.avgResponseTimeLabel
+  const confidenceLabel =
+    performance.averageConfidence > 0
+      ? formatPercent(Math.round(performance.averageConfidence * 100))
       : "—";
 
   return [
@@ -85,29 +95,43 @@ function buildTopMetrics(performance: PerformanceAnalytics): AnalyticsMetric[] {
       id: "search-success",
       icon: TrendingUp,
       value: formatPercent(performance.successRatePercent),
-      label: "Avg Search Success",
+      label: "Search Success Rate",
       iconTone: "green",
     },
     {
-      id: "response-time",
-      icon: Timer,
-      value: responseTime,
-      label: "Avg Response Time",
+      id: "avg-confidence",
+      icon: Zap,
+      value: confidenceLabel,
+      label: "Avg Response Confidence",
       iconTone: "cyan",
     },
     {
       id: "daily-users",
       icon: Users,
       value: String(performance.dailyActiveUsers),
-      label: "Daily Active Users",
+      label: "Active Search Users",
       iconTone: "yellow",
     },
     {
       id: "unanswered",
       icon: AlertTriangle,
       value: String(performance.unansweredCount),
-      label: "Unanswered",
+      label: "Unanswered Questions",
       iconTone: "orange",
+    },
+    {
+      id: "total-searches",
+      icon: Search,
+      value: String(performance.totalSearches),
+      label: "Total AI Searches",
+      iconTone: "purple",
+    },
+    {
+      id: "saved-articles",
+      icon: Bookmark,
+      value: String(performance.savedArticlesCount),
+      label: "Saved Articles",
+      iconTone: "green",
     },
   ];
 }
