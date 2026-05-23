@@ -11,7 +11,7 @@ export type OnboardingFormState = {
   content: string;
   order: string;
   status: "Active" | "Inactive";
-  articleId: string;
+  articleIds: string[];
 };
 
 export type ArticleLinkOption = {
@@ -24,7 +24,7 @@ const defaultForm = (nextOrder: number): OnboardingFormState => ({
   content: "",
   order: String(nextOrder),
   status: "Active",
-  articleId: "",
+  articleIds: [],
 });
 
 function stepToForm(step: AdminOnboardingStep): OnboardingFormState {
@@ -33,8 +33,14 @@ function stepToForm(step: AdminOnboardingStep): OnboardingFormState {
     content: step.content,
     order: String(step.order),
     status: step.status,
-    articleId: step.articleId ?? "",
+    articleIds: [...step.articleIds],
   };
+}
+
+function toggleArticleId(ids: string[], articleId: string): string[] {
+  return ids.includes(articleId)
+    ? ids.filter((id) => id !== articleId)
+    : [...ids, articleId];
 }
 
 type OnboardingFormModalSessionProps = {
@@ -136,21 +142,37 @@ function OnboardingFormFields({
           <option value="Inactive">Inactive</option>
         </select>
       </label>
-      <label className={hubStyles.field}>
-        <span className={hubStyles.fieldLabel}>Linked article</span>
-        <select
-          className={hubStyles.fieldSelect}
-          value={form.articleId}
-          onChange={(e) => setForm((p) => ({ ...p, articleId: e.target.value }))}
-        >
-          <option value="">No linked article</option>
-          {articleOptions.map((article) => (
-            <option key={article.id} value={article.id}>
-              {article.title}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className={hubStyles.field}>
+        <span className={hubStyles.fieldLabel}>
+          Linked articles ({form.articleIds.length} selected)
+        </span>
+        {articleOptions.length === 0 ? (
+          <p className={hubStyles.importHelp}>No published articles available to link.</p>
+        ) : (
+          <ul className={hubStyles.articleChecklist}>
+            {articleOptions.map((article) => {
+              const checked = form.articleIds.includes(article.id);
+              return (
+                <li key={article.id}>
+                  <label className={hubStyles.articleCheckItem}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() =>
+                        setForm((p) => ({
+                          ...p,
+                          articleIds: toggleArticleId(p.articleIds, article.id),
+                        }))
+                      }
+                    />
+                    <span>{article.title}</span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
       <label className={hubStyles.field}>
         <span className={hubStyles.fieldLabel}>Content</span>
         <textarea

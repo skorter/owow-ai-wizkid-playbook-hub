@@ -138,24 +138,45 @@ async function upsertArticles(userByEmail, categoryBySlug) {
 
 async function upsertOnboardingSteps(articleBySlug) {
   for (const s of ONBOARDING_SEEDS) {
-    const linked = s.articleSlug ? articleBySlug[s.articleSlug] : null;
+    const slugList =
+      s.articleSlugs ??
+      (s.articleSlug ? [s.articleSlug] : []);
+    const articleIds = slugList
+      .map((slug) => articleBySlug[slug]?.id)
+      .filter(Boolean);
+    const primaryId = articleIds[0] ?? null;
 
-    await prisma.onboardingStep.upsert({
+    const step = await prisma.onboardingStep.upsert({
       where: { order: s.order },
       update: {
         title: s.title,
         content: s.content,
         isActive: true,
-        ...(linked ? { articleId: linked.id } : {}),
+        articleId: primaryId,
       },
       create: {
         order: s.order,
         title: s.title,
         content: s.content,
         isActive: true,
-        ...(linked ? { articleId: linked.id } : {}),
+        articleId: primaryId,
       },
     });
+
+    await prisma.onboardingStepArticle.deleteMany({
+      where: { onboardingStepId: step.id },
+    });
+
+    if (articleIds.length > 0) {
+      await prisma.onboardingStepArticle.createMany({
+        data: articleIds.map((articleId, order) => ({
+          onboardingStepId: step.id,
+          articleId,
+          order,
+        })),
+        skipDuplicates: true,
+      });
+    }
   }
 }
 

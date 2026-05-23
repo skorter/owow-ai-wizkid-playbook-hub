@@ -210,32 +210,37 @@ const ONBOARDING_SEEDS = [
   {
     order: 1,
     title: "Welcome to OWOW",
-    content: "Read the welcome article and bookmark the playbook hub.",
-    articleSlug: "welcome-to-owow",
+    content: "Read the welcome articles and bookmark the playbook hub.",
+    articleSlugs: ["welcome-to-owow", "mission-vision-promise"],
   },
   {
     order: 2,
     title: "Set up your tools",
-    content: "Complete Simplicate access and review the tools guide.",
-    articleSlug: "simplicate-login-guide",
+    content: "Complete Simplicate access and review the online library.",
+    articleSlugs: ["simplicate-login-guide", "owow-online-library"],
   },
   {
     order: 3,
     title: "Learn company culture",
-    content: "Review core values and our way of working.",
-    articleSlug: "core-values",
+    content: "Review core values, work culture, and our way of working.",
+    articleSlugs: ["core-values", "work-culture", "way-of-working"],
   },
   {
     order: 4,
     title: "Understand policies",
-    content: "Read inclusion and wellbeing articles in Policy & Conduct.",
-    articleSlug: "wellbeing-in-the-workplace",
+    content: "Read key HR policies in Policy & Conduct.",
+    articleSlugs: [
+      "sickness-reporting",
+      "leave-request-process",
+      "anti-harassment-reporting",
+      "equal-treatment",
+    ],
   },
   {
     order: 5,
     title: "Meet your team",
     content: "Schedule intros with your lead and review team structure.",
-    articleSlug: "team-structure",
+    articleSlugs: ["team-structure", "roles", "our-office"],
   },
 ];
 

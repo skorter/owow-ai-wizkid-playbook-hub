@@ -192,6 +192,24 @@ export function buildStaticArticleFallback(slug: string): PlaybookArticleDetail 
   };
 }
 
+function collectOnboardingArticles(step: ApiOnboardingStep): OnboardingStep["articles"] {
+  const seen = new Set<string>();
+  const list: OnboardingStep["articles"] = [];
+
+  for (const article of step.articles ?? []) {
+    if (!seen.has(article.slug)) {
+      seen.add(article.slug);
+      list.push({ label: article.title, slug: article.slug });
+    }
+  }
+
+  if (step.article && !seen.has(step.article.slug)) {
+    list.unshift({ label: step.article.title, slug: step.article.slug });
+  }
+
+  return list;
+}
+
 export function mapApiOnboardingToEmployeeSteps(
   apiSteps: ApiOnboardingStep[],
 ): OnboardingStep[] {
@@ -204,9 +222,7 @@ export function mapApiOnboardingToEmployeeSteps(
       slug: `onboarding-step-${step.order}`,
       icon: ONBOARDING_STEP_ICONS[index % ONBOARDING_STEP_ICONS.length],
       description: step.content,
-      articles: step.article
-        ? [{ label: step.article.title, slug: step.article.slug }]
-        : [],
+      articles: collectOnboardingArticles(step),
     }));
 }
 

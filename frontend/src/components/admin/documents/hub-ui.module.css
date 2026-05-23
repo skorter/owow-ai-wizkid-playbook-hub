@@ -457,6 +457,41 @@
   color: #f87171;
 }
 
+.articleChecklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--admin-border-muted);
+  border-radius: var(--admin-radius-md);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.articleCheckItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.88rem;
+  color: var(--admin-text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--admin-border-muted);
+}
+
+.articleChecklist li:last-child .articleCheckItem {
+  border-bottom: none;
+}
+
+.articleCheckItem:hover {
+  background: rgba(255, 213, 0, 0.06);
+}
+
+.articleCheckItem input {
+  margin-top: 0.15rem;
+  accent-color: #ffd500;
+}
+
 .previewSummaryCard {
   padding: 0.85rem 1rem;
   border-radius: var(--admin-radius-md);

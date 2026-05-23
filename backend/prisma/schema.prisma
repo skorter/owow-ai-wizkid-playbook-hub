@@ -92,6 +92,7 @@ model Article {
   feedback           Feedback[]
   missingInfoReports MissingInfoReport[]
   onboardingSteps    OnboardingStep[]
+  onboardingStepLinks OnboardingStepArticle[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -162,13 +163,29 @@ model OnboardingStep {
   order    Int     @unique
   isActive Boolean @default(true)
 
-  // Optional link to a relevant playbook article
+  // Legacy primary link (first article); prefer stepArticles join rows
   articleId String?
   article   Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+
+  stepArticles OnboardingStepArticle[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([articleId])
   @@index([isActive])
+}
+
+model OnboardingStepArticle {
+  id               String @id @default(cuid())
+  onboardingStepId String
+  articleId        String
+  order            Int    @default(0)
+
+  onboardingStep OnboardingStep @relation(fields: [onboardingStepId], references: [id], onDelete: Cascade)
+  article        Article        @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([onboardingStepId, articleId])
+  @@index([onboardingStepId])
+  @@index([articleId])
 }

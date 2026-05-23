@@ -1,9 +1,3 @@
-/**
- * Local-only onboarding completion (per user in localStorage).
- * Key uses userId when available, otherwise email — not shared across accounts.
- * Replace with backend OnboardingProgress when a user progress API exists.
- */
-
 const STORAGE_PREFIX = "owow-onboarding-progress:";
 
 export type OnboardingProgressStore = {
