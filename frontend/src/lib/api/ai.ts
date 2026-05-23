@@ -28,14 +28,25 @@ export type AISearchResponse = {
   fallback: boolean;
 };
 
+export type AskPageAISource = {
+  id: string;
+  title: string;
+  slug: string;
+  summary?: string;
+  category?: string;
+};
+
 export type AskPageAIRequest = {
   question: string;
   articleId?: string;
   slug?: string;
+  pageContext?: string;
 };
 
 export type AskPageAIResponse = {
   answer: string;
+  source?: AskPageAISource;
+  confidence: number;
   provider: AIProvider;
   fallback: boolean;
 };

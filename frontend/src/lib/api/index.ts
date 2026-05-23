@@ -23,6 +23,7 @@ export {
   type AISearchResponse,
   type AskPageAIRequest,
   type AskPageAIResponse,
+  type AskPageAISource,
 } from "./ai";
 
 export { unwrapListData, unwrapEntityData } from "./unwrap";
