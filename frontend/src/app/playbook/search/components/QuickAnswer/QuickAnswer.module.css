@@ -37,6 +37,13 @@
   color: #fff;
 }
 
+.quickAnswer .header .meta {
+  grid-column: 2;
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .quickAnswer .header .answer {
   padding-bottom: 1rem;
   border-bottom: 1px solid #4a4a4a;
