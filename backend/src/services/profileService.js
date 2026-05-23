@@ -1,6 +1,13 @@
 const { prisma } = require("../config/prisma");
 
-const ACTIVITY_LIMIT = 8;
+const DEFAULT_ACTIVITY_LIMIT = 8;
+const MAX_ACTIVITY_LIMIT = 100;
+
+function parseActivityLimit(raw, fallback = DEFAULT_ACTIVITY_LIMIT) {
+  const n = Number.parseInt(String(raw ?? ""), 10);
+  if (!Number.isFinite(n) || n < 1) return fallback;
+  return Math.min(n, MAX_ACTIVITY_LIMIT);
+}
 
 const NO_RESULT_SNIPPETS = [
   "could not find this in the current playbook",
@@ -57,15 +64,17 @@ async function enrichArticleSlugs(items) {
   });
 }
 
-async function getProfileActivity(userId) {
+async function getProfileActivity(userId, limit = DEFAULT_ACTIVITY_LIMIT) {
   if (!userId) {
     return { items: [] };
   }
 
+  const take = parseActivityLimit(limit, DEFAULT_ACTIVITY_LIMIT);
+
   const rows = await prisma.searchLog.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
-    take: ACTIVITY_LIMIT,
+    take,
   });
 
   const items = await enrichArticleSlugs(rows.map(mapActivityItem));
@@ -171,6 +180,7 @@ async function getProfileInsights(userId) {
 }
 
 module.exports = {
+  parseActivityLimit,
   getProfileActivity,
   getProfileInsights,
   buildAnswerPreview,

@@ -10,33 +10,28 @@ import {
 } from "@/lib/api/profile";
 import { getApiErrorMessage } from "@/lib/api";
 import PageStatus from "@/components/ui/PageStatus";
+import ProfileActivityList from "@/components/playbook/ProfileActivityList";
 
-function formatTimeAgo(iso: string): string {
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "Recently";
-  const seconds = Math.floor((Date.now() - then) / 1000);
-  if (seconds < 60) return "Just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
+const PROFILE_PREVIEW_LIMIT = 5;
+const PROFILE_FETCH_LIMIT = 6;
 
 export default function RecentActivity() {
   const [items, setItems] = useState<ProfileActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [hasMore, setHasMore] = useState(false);
 
   const load = async () => {
     setLoading(true);
     setError("");
     try {
-      const data = await fetchProfileActivity();
-      setItems(data.items ?? []);
+      const data = await fetchProfileActivity(PROFILE_FETCH_LIMIT);
+      const list = data.items ?? [];
+      setHasMore(list.length > PROFILE_PREVIEW_LIMIT);
+      setItems(list.slice(0, PROFILE_PREVIEW_LIMIT));
     } catch (err) {
       setItems([]);
+      setHasMore(false);
       setError(getApiErrorMessage(err, "Could not load activity."));
     } finally {
       setLoading(false);
@@ -50,12 +45,15 @@ export default function RecentActivity() {
       setLoading(true);
       setError("");
       try {
-        const data = await fetchProfileActivity();
+        const data = await fetchProfileActivity(PROFILE_FETCH_LIMIT);
         if (cancelled) return;
-        setItems(data.items ?? []);
+        const list = data.items ?? [];
+        setHasMore(list.length > PROFILE_PREVIEW_LIMIT);
+        setItems(list.slice(0, PROFILE_PREVIEW_LIMIT));
       } catch (err) {
         if (cancelled) return;
         setItems([]);
+        setHasMore(false);
         setError(getApiErrorMessage(err, "Could not load activity."));
       } finally {
         if (!cancelled) setLoading(false);
@@ -71,8 +69,15 @@ export default function RecentActivity() {
   return (
     <section className={styles.recentActivity}>
       <div className={styles.header}>
-        <History className={styles.icon} />
-        <h2 className={styles.title}>Recent Activity</h2>
+        <div className={styles.headerTitle}>
+          <History className={styles.icon} />
+          <h2 className={styles.title}>Recent Activity</h2>
+        </div>
+        {hasMore && !loading && !error ? (
+          <Link href="/playbook/profile/activity" className={styles.viewMore}>
+            View more
+          </Link>
+        ) : null}
       </div>
 
       {loading ? (
@@ -91,35 +96,7 @@ export default function RecentActivity() {
       ) : null}
 
       {!loading && !error && items.length > 0 ? (
-        <ul className={styles.list}>
-          {items.map((item) => (
-            <li key={item.id} className={styles.item}>
-              <div className={styles.itemHeader}>
-                <span className={styles.badge}>{item.title}</span>
-                <span className={styles.time}>{formatTimeAgo(item.createdAt)}</span>
-              </div>
-              <p className={styles.question}>{item.question}</p>
-              {item.answerPreview ? (
-                <p className={styles.preview}>{item.answerPreview}</p>
-              ) : null}
-              <div className={styles.meta}>
-                {item.confidence != null && item.confidence > 0 ? (
-                  <span>{Math.round(item.confidence * 100)}% match</span>
-                ) : null}
-                {item.sourceCount > 0 ? (
-                  <span>
-                    {item.sourceCount} source{item.sourceCount === 1 ? "" : "s"}
-                  </span>
-                ) : null}
-                {item.articleSlug ? (
-                  <Link href={`/playbook/${item.articleSlug}`} className={styles.link}>
-                    {item.articleTitle ?? "View article"}
-                  </Link>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ul>
+        <ProfileActivityList items={items} />
       ) : null}
     </section>
   );

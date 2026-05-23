@@ -15,8 +15,12 @@ export type SavedArticlesResponse = {
   items: SavedArticleItem[];
 };
 
-export async function fetchSavedArticles(): Promise<SavedArticlesResponse> {
-  return apiGet<SavedArticlesResponse>(endpoints.savedArticles.list);
+export async function fetchSavedArticles(
+  limit?: number,
+): Promise<SavedArticlesResponse> {
+  return apiGet<SavedArticlesResponse>(endpoints.savedArticles.list, {
+    query: limit != null ? { limit } : undefined,
+  });
 }
 
 export async function saveArticle(articleId: string): Promise<{

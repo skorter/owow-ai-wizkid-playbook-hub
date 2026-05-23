@@ -30,7 +30,10 @@ async function aiSearch(req, res, next) {
 async function aiRecentSearches(req, res, next) {
   try {
     const userId = req.user?.id ?? null;
-    const result = await aiService.getRecentSearchesForUser(userId);
+    const result = await aiService.getRecentSearchesForUser(
+      userId,
+      req.query?.limit,
+    );
     return res.status(200).json(result);
   } catch (err) {
     next(err);

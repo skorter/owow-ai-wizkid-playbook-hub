@@ -3,7 +3,10 @@ const profileService = require("../services/profileService");
 async function getActivity(req, res, next) {
   try {
     const userId = req.user?.id ?? null;
-    const result = await profileService.getProfileActivity(userId);
+    const result = await profileService.getProfileActivity(
+      userId,
+      req.query?.limit,
+    );
     return res.status(200).json(result);
   } catch (err) {
     next(err);

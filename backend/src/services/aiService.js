@@ -847,10 +847,18 @@ function buildAnswerPreview(answer, maxLen = 140) {
   return `${text.slice(0, maxLen - 1).trim()}…`;
 }
 
+function parseRecentSearchLimit(raw, fallback = RECENT_SEARCHS_LIMIT) {
+  const n = Number.parseInt(String(raw ?? ""), 10);
+  if (!Number.isFinite(n) || n < 1) return fallback;
+  return Math.min(n, 20);
+}
+
 async function getRecentSearchesForUser(userId, limit = RECENT_SEARCHS_LIMIT) {
   if (!userId) {
     return { items: [] };
   }
+
+  const take = parseRecentSearchLimit(limit, RECENT_SEARCHS_LIMIT);
 
   const rows = await prisma.searchLog.findMany({
     where: {
@@ -858,7 +866,7 @@ async function getRecentSearchesForUser(userId, limit = RECENT_SEARCHS_LIMIT) {
       source: "PLAYBOOK_SEARCH",
     },
     orderBy: { createdAt: "desc" },
-    take: Math.min(limit, 20),
+    take,
   });
 
   const items = rows.map((row) => ({

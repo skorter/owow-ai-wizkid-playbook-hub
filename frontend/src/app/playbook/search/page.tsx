@@ -121,13 +121,11 @@ export default function SearchPage() {
 
       {!isSearching && (
         <div className={styles.bottom}>
-          {suggestedQuestionsOpen && <SuggestQuestions />}
+          {suggestedQuestionsOpen && (
+            <SuggestQuestions onSelectQuestion={setDraftQuery} />
+          )}
           {recentActivityOpen && (
-            <RecentActivity
-              onSelectQuestion={(q) => {
-                setDraftQuery(q);
-              }}
-            />
+            <RecentActivity onSelectQuestion={setDraftQuery} />
           )}
         </div>
       )}

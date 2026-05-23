@@ -99,20 +99,20 @@ Publish/archive/restore are done via **PUT** `status` field, not separate routes
 | AI | GET | `/api/ai/` | Public | Dev | Module ready message |
 | AI | POST | `/api/ai/search` | Optional | `/playbook/search` | Global playbook AI search (Phase 12) |
 | AI | POST | `/api/ai/ask-page` | Optional | `/playbook/[slug]` Ask panel | Single-article AI (Phase 13) |
-| AI | GET | `/api/ai/recent-searches` | Required | `/playbook/search` recent list | User's recent AI searches |
+| AI | GET | `/api/ai/recent-searches` | Required | `/playbook/search` recent list | User's recent AI searches; optional `?limit=4` |
 
 ## Profile (Phase 15)
 
 | Area | Method | Endpoint | Auth | Used by | Description |
 |------|--------|----------|------|---------|-------------|
-| Profile | GET | `/api/profile/activity` | Required | Profile Recent Activity | SearchLog activity for user |
+| Profile | GET | `/api/profile/activity` | Required | Profile Recent Activity | SearchLog activity; optional `?limit=5` or `50` |
 | Profile | GET | `/api/profile/insights` | Required | Profile AI Insights | Aggregated AI usage KPIs |
 
 ## Saved articles (Phase 15)
 
 | Area | Method | Endpoint | Auth | Used by | Description |
 |------|--------|----------|------|---------|-------------|
-| Saved | GET | `/api/saved-articles` | Required | Profile Saved Articles | Published bookmarks only |
+| Saved | GET | `/api/saved-articles` | Required | Profile Saved Articles | Published bookmarks; optional `?limit=5` or `50` |
 | Saved | POST | `/api/saved-articles/:articleId` | Required | Article detail Save button | Bookmark article |
 | Saved | DELETE | `/api/saved-articles/:articleId` | Required | Article detail / profile | Remove bookmark |
 

@@ -14,10 +14,21 @@ function mapSavedArticle(row) {
   };
 }
 
-async function listSavedArticles(userId) {
+const DEFAULT_SAVED_LIMIT = 50;
+const MAX_SAVED_LIMIT = 100;
+
+function parseSavedLimit(raw, fallback = DEFAULT_SAVED_LIMIT) {
+  const n = Number.parseInt(String(raw ?? ""), 10);
+  if (!Number.isFinite(n) || n < 1) return fallback;
+  return Math.min(n, MAX_SAVED_LIMIT);
+}
+
+async function listSavedArticles(userId, limit) {
   if (!userId) {
     return { items: [] };
   }
+
+  const take = parseSavedLimit(limit, DEFAULT_SAVED_LIMIT);
 
   const rows = await prisma.savedArticle.findMany({
     where: {
@@ -32,6 +43,7 @@ async function listSavedArticles(userId) {
       },
     },
     orderBy: { createdAt: "desc" },
+    take,
   });
 
   return { items: rows.map(mapSavedArticle) };
@@ -110,6 +122,7 @@ async function isArticleSavedByUser(userId, articleId) {
 }
 
 module.exports = {
+  parseSavedLimit,
   listSavedArticles,
   saveArticleForUser,
   removeSavedArticle,
