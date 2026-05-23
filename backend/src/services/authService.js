@@ -200,9 +200,44 @@ async function login({ email, password }) {
   };
 }
 
+async function updateMe(userId, body) {
+  const { fullName } = body || {};
+
+  if (fullName == null || typeof fullName !== "string" || !fullName.trim()) {
+    return {
+      ok: false,
+      status: 400,
+      body: { success: false, message: "Full name is required" },
+    };
+  }
+
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { fullName: fullName.trim() },
+      select: userPublicSelect,
+    });
+
+    return {
+      ok: true,
+      data: toPublicUser(user),
+    };
+  } catch (err) {
+    if (err && err.code === "P2025") {
+      return {
+        ok: false,
+        status: 404,
+        body: { success: false, message: "User not found" },
+      };
+    }
+    throw err;
+  }
+}
+
 module.exports = {
   register,
   login,
+  updateMe,
   toPublicUser,
   userPublicSelect,
 };

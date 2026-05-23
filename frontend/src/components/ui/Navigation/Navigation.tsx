@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import styles from "./Navigation.module.css";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -13,16 +13,14 @@ import {
   FileText,
 } from "lucide-react";
 
-export default function Navigation() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const pathname = usePathname();
+function readIsAdminFromStorage(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem("role") === "admin";
+}
 
-  useEffect(() => {
-    const role = localStorage.getItem("role");
-    if (role === "admin") {
-      setIsAdmin(true);
-    }
-  }, []);
+export default function Navigation() {
+  const [isAdmin] = useState(() => readIsAdminFromStorage());
+  const pathname = usePathname();
 
   return (
     <nav className={styles.navigation}>

@@ -1,20 +1,18 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import styles from "./Sidebar.module.css";
 import Header from "../Header/Header";
 import Navigation from "../Navigation/Navigation";
 import Documents from "../Documents/Documents";
 import Footer from "../Footer/Footer";
 
-export default function Sidebar() {
-  const [isAdmin, setIsAdmin] = useState(false);
+function readIsAdminFromStorage(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem("role") === "admin";
+}
 
-  useEffect(() => {
-    const role = localStorage.getItem("role");
-    if (role === "admin") {
-      setIsAdmin(true);
-    }
-  }, []);
+export default function Sidebar() {
+  const [isAdmin] = useState(() => readIsAdminFromStorage());
   return (
     <aside
       className={`${styles.sidebar} ${isAdmin ? styles.admin : styles.user}`}

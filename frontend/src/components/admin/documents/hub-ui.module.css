@@ -396,3 +396,59 @@
     transform: translateY(0);
   }
 }
+
+.importPanel {
+  padding: 1rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px dashed rgba(255, 213, 0, 0.35);
+  background: rgba(255, 213, 0, 0.04);
+}
+
+.importHelp {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--admin-text-secondary);
+}
+
+.importDrop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid var(--admin-border-muted);
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  text-align: center;
+}
+
+.importInput {
+  display: none;
+}
+
+.importDropLabel {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.importDropHint {
+  font-size: 0.78rem;
+  color: var(--admin-text-muted);
+}
+
+.importNote {
+  margin: 0.75rem 0 0;
+  font-size: 0.82rem;
+  color: var(--admin-accent-green, #22c55e);
+}
+
+.previewSummaryCard {
+  padding: 0.85rem 1rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid var(--admin-border-muted);
+  background: rgba(255, 255, 255, 0.03);
+  margin-bottom: 0.75rem;
+}

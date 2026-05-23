@@ -1,12 +1,6 @@
 "use client";
 import styles from "./Answer.module.css";
-import {
-  Sparkles,
-  ThumbsUp,
-  ThumbsDown,
-  ExternalLink,
-  ArrowRight,
-} from "lucide-react";
+import { Sparkles, ThumbsUp, ThumbsDown, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { answer, sourceDocuments } from "@/lib/data/answer";
 
@@ -63,7 +57,9 @@ export default function Answer({
         </ul>
       </div>
       <div className={styles.redirection}>
-        <h2 className={styles.label}>Can't find what you're looking for?</h2>
+        <h2 className={styles.label}>
+          Can&apos;t find what you&apos;re looking for?
+        </h2>
         <Link href="/playbook/search" className={styles.link}>
           AI Powered Search Engine →
         </Link>

@@ -941,7 +941,7 @@ export default function DocumentsPage() {
             New Category
           </AdminButton>
           <AdminButton variant="primary" icon={Plus} onClick={openCreateArticle}>
-            New Article
+            Add Document
           </AdminButton>
         </div>
       }
@@ -1254,7 +1254,7 @@ function ArticlesList({
   if (docs.length === 0) {
     const emptyMessage =
       variant === "draft"
-        ? "No draft articles yet. Create one with New Article."
+        ? "No draft articles yet. Create one with Add Document."
         : variant === "archived"
           ? "No archived articles."
           : "No articles match your filters.";

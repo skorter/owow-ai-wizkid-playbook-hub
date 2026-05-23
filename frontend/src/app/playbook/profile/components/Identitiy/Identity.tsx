@@ -13,35 +13,71 @@ import {
   getDisplayFullName,
   getDisplayInitials,
   getDisplayRole,
-  usePlaybookSession,
 } from "@/lib/hooks/usePlaybookSession";
+import type { SessionUser } from "@/types/auth";
+import { useMemo } from "react";
+import {
+  getOnboardingProgressKey,
+  getOnboardingProgressPercent,
+  readOnboardingProgress,
+} from "@/lib/onboardingProgress";
+import { fetchPlaybookOnboarding } from "@/lib/mappers/playbook";
+import { useEffect, useState } from "react";
 
 type IdentityProps = {
+  user: SessionUser | null;
   onEdit: () => void;
 };
 
-export default function Identity({ onEdit }: IdentityProps) {
-  const user = usePlaybookSession();
-  const image = null;
+export default function Identity({ user, onEdit }: IdentityProps) {
+  const displayUser = user;
+  const [onboardingPercent, setOnboardingPercent] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProgress() {
+      try {
+        const result = await fetchPlaybookOnboarding();
+        const slugs = result.steps.flatMap((s) =>
+          s.articles.map((a) => a.slug.trim().toLowerCase()),
+        );
+        const key = getOnboardingProgressKey(displayUser?.id, displayUser?.email);
+        const completed = readOnboardingProgress(key).completedArticleSlugs;
+        if (!cancelled) {
+          setOnboardingPercent(getOnboardingProgressPercent(completed, slugs));
+        }
+      } catch {
+        if (!cancelled) setOnboardingPercent(null);
+      }
+    }
+
+    void loadProgress();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [displayUser?.id, displayUser?.email]);
+
+  const onboardingLabel = useMemo(() => {
+    if (onboardingPercent === null) return "Not tracked yet";
+    return `${onboardingPercent}% (local)`;
+  }, [onboardingPercent]);
 
   return (
     <section className={styles.identity}>
       <div className={styles.avatar}>
-        {image ? (
-          <img className={styles.image} src={image} alt="User Avatar" />
-        ) : (
-          <span className={styles.initials}>{getDisplayInitials(user)}</span>
-        )}
+        <span className={styles.initials}>{getDisplayInitials(displayUser)}</span>
       </div>
 
       <div className={styles.information}>
-        <h1 className={styles.name}>{getDisplayFullName(user)}</h1>
+        <h1 className={styles.name}>{getDisplayFullName(displayUser)}</h1>
         <div className={styles.tags}>
-          <span className={styles.tag}>{getDisplayRole(user)}</span>
+          <span className={styles.tag}>{getDisplayRole(displayUser)}</span>
         </div>
       </div>
 
-      <button className={styles.editButton} onClick={onEdit}>
+      <button type="button" className={styles.editButton} onClick={onEdit}>
         <SquarePen className={styles.icon} /> Edit Profile
       </button>
 
@@ -62,7 +98,7 @@ export default function Identity({ onEdit }: IdentityProps) {
         <article className={styles.data}>
           <TrendingUp className={`${styles.icon} ${styles.trendingUpIcon}`} />
           <p className={styles.label}>Onboarding</p>
-          <p className={styles.value}>Not tracked yet</p>
+          <p className={styles.value}>{onboardingLabel}</p>
         </article>
         <article className={styles.data}>
           <Sparkles className={`${styles.icon} ${styles.sparklesIcon}`} />

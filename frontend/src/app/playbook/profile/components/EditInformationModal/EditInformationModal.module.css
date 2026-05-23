@@ -100,3 +100,21 @@
 .modal .content .actions .submitButton:hover {
   opacity: 0.9;
 }
+
+.hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #f87171;
+}
+
+.inputDisabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
