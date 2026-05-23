@@ -138,9 +138,20 @@ Import from `@/lib/api` or `@/lib/api/ai`.
 - Article page `/playbook/[slug]` — **Ask AI about this page** panel (published API articles only)
 - `SearchLog` entries use source `AI_CHAT` for ask-page questions
 
-## Phase 14+ (next)
+## Phase 14 (documentation & polish)
+
+- Integration guide, API mapping table, manual testing checklist
+- Shared API error helpers and loading/error UI patterns
+
+## Phase 15+ (next)
 
 - Embeddings / semantic ranking (optional)
 - Related questions from search context
 
 No pgvector or vector DB yet.
+
+## Related docs
+
+- [INTEGRATION.md](./INTEGRATION.md) — architecture, auth, AI behavior, security
+- [API_MAPPING.md](./API_MAPPING.md) — endpoint table
+- [TESTING_CHECKLIST.md](./TESTING_CHECKLIST.md) — manual QA

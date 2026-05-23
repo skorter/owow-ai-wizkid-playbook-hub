@@ -1,4 +1,11 @@
-import { apiDelete, apiGet, apiPost, apiPut, endpoints } from "@/lib/api";
+import {
+  apiDelete,
+  apiGet,
+  apiPost,
+  apiPut,
+  endpoints,
+  unwrapListData,
+} from "@/lib/api";
 import { ApiError } from "@/lib/api";
 
 export type FeedbackRating = "Helpful" | "Not helpful" | "Incorrect" | "Confusing";
@@ -20,19 +27,6 @@ const FEEDBACK_TYPE_LABELS: Record<string, string> = {
   ARTICLE: "Article",
   AI_RESPONSE: "AI response",
 };
-
-function unwrapListData<T>(body: unknown): T[] {
-  if (Array.isArray(body)) return body;
-  if (
-    body &&
-    typeof body === "object" &&
-    "data" in body &&
-    Array.isArray((body as { data: unknown }).data)
-  ) {
-    return (body as { data: T[] }).data;
-  }
-  return [];
-}
 
 export function formatFeedbackType(type: string): string {
   return FEEDBACK_TYPE_LABELS[type] ?? type.replace(/_/g, " ").toLowerCase();

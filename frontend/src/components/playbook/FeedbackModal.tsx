@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import styles from "./playbook-modal.module.css";
+import { getApiErrorMessage } from "@/lib/api";
 import {
   submitPlaybookFeedback,
   type FeedbackRating,
@@ -58,9 +59,7 @@ function FeedbackForm({
       }, 1400);
     } catch (err) {
       setStatus("error");
-      setErrorText(
-        err instanceof Error ? err.message : "Could not send feedback. Try again.",
-      );
+      setErrorText(getApiErrorMessage(err, "Could not send feedback. Try again."));
     } finally {
       setSubmitting(false);
     }

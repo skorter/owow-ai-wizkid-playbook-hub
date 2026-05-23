@@ -13,8 +13,7 @@ import DetailedAnswer from "./components/DetailedAnswer/DetailedAnswer";
 import FeedbackModal from "@/components/playbook/FeedbackModal";
 import MissingInfoModal from "@/components/playbook/MissingInfoModal";
 import PlaybookSupportActions from "@/components/playbook/PlaybookSupportActions";
-import { aiSearch, type AISearchResponse } from "@/lib/api/ai";
-import { ApiError } from "@/lib/api";
+import { aiSearch, getAISearchErrorMessage, type AISearchResponse } from "@/lib/api/ai";
 import { Loader2, RefreshCw } from "lucide-react";
 
 export default function SearchPage() {
@@ -57,11 +56,7 @@ export default function SearchPage() {
     } catch (err) {
       setResult(null);
       lastFetchedRef.current = null;
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "AI search is unavailable right now. Please try again.",
-      );
+      setError(getAISearchErrorMessage(err));
     } finally {
       setLoading(false);
     }
