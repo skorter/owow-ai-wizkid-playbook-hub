@@ -1,0 +1,32 @@
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-start;
+  padding: 0.55rem 1rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.backButton:hover {
+  border-color: rgba(255, 213, 0, 0.45);
+  color: #ffd500;
+  background: rgba(255, 213, 0, 0.08);
+  box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.12);
+}
+
+.backButton:focus-visible {
+  outline: 2px solid #ffd500;
+  outline-offset: 2px;
+}

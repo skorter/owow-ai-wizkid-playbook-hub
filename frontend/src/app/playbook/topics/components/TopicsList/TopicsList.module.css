@@ -93,3 +93,23 @@
   padding: 0.75rem 0 0 0;
   border-top: 1px solid #262626;
 }
+
+.showMoreBtn {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.showMoreBtn:hover {
+  border-color: rgba(255, 213, 0, 0.4);
+  color: #ffd500;
+}

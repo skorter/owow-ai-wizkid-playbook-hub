@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import Steps from "./components/Steps/Steps";
 import Progress from "./components/Progress/Progress";
@@ -10,31 +11,51 @@ import Greeting from "./components/Greeting/Greeting";
 import { fetchPlaybookOnboarding } from "@/lib/mappers/playbook";
 import type { OnboardingStep } from "@/types/onboarding";
 import {
+  clearOnboardingProgress,
   findFirstIncompleteStepIndex,
   getOnboardingProgressKey,
   getOnboardingProgressPercent,
   readOnboardingProgress,
-  writeOnboardingProgress,
 } from "@/lib/onboardingProgress";
-import { getStoredSessionUser } from "@/lib/auth/session";
+import {
+  getSessionSnapshot,
+  parseSessionUserSnapshot,
+  subscribeSession,
+} from "@/lib/auth/session";
 import { ApiError } from "@/lib/api";
 import { RefreshCw } from "lucide-react";
 
 type LoadState = "loading" | "error" | "ready";
 
 export default function OnboardingPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const completedSlug = searchParams.get("completed");
+
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [onboardingSteps, setOnboardingSteps] = useState<OnboardingStep[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
-  const progressKey = useMemo(() => {
-    const user = getStoredSessionUser();
-    return getOnboardingProgressKey(user?.id, user?.email);
-  }, []);
+  const [progressRevision, setProgressRevision] = useState(0);
 
-  const [completedArticles, setCompletedArticles] = useState<string[]>(() =>
-    readOnboardingProgress(progressKey).completedArticleSlugs,
+  const userSnapshot = useSyncExternalStore(
+    subscribeSession,
+    getSessionSnapshot,
+    () => null,
   );
+  const sessionUser = useMemo(
+    () => parseSessionUserSnapshot(userSnapshot),
+    [userSnapshot],
+  );
+  const progressKey = getOnboardingProgressKey(
+    sessionUser?.id,
+    sessionUser?.email,
+  );
+
+  const completedSlugs = useMemo(() => {
+    void progressRevision;
+    return readOnboardingProgress(progressKey).completedArticleSlugs;
+  }, [progressKey, progressRevision]);
 
   const allArticleSlugs = useMemo(
     () =>
@@ -45,14 +66,10 @@ export default function OnboardingPage() {
   );
 
   useEffect(() => {
-    const onFocus = () => {
-      setCompletedArticles(
-        readOnboardingProgress(progressKey).completedArticleSlugs,
-      );
-    };
+    const onFocus = () => setProgressRevision((v) => v + 1);
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
-  }, [progressKey]);
+  }, []);
 
   const loadOnboarding = async () => {
     setLoadState("loading");
@@ -61,14 +78,9 @@ export default function OnboardingPage() {
     try {
       const result = await fetchPlaybookOnboarding();
       setOnboardingSteps(result.steps);
-      const firstIncomplete = findFirstIncompleteStepIndex(
-        result.steps,
-        readOnboardingProgress(progressKey).completedArticleSlugs,
-      );
-      setCurrentStep(firstIncomplete);
-      setCompletedArticles(
-        readOnboardingProgress(progressKey).completedArticleSlugs,
-      );
+      const completed = readOnboardingProgress(progressKey).completedArticleSlugs;
+      setCurrentStep(findFirstIncompleteStepIndex(result.steps, completed));
+      setProgressRevision((v) => v + 1);
       setLoadState("ready");
     } catch (err) {
       setOnboardingSteps([]);
@@ -90,8 +102,8 @@ export default function OnboardingPage() {
         if (cancelled) return;
         setOnboardingSteps(result.steps);
         const completed = readOnboardingProgress(progressKey).completedArticleSlugs;
-        setCompletedArticles(completed);
         setCurrentStep(findFirstIncompleteStepIndex(result.steps, completed));
+        setProgressRevision((v) => v + 1);
         setLoadState("ready");
       } catch (err) {
         if (cancelled) return;
@@ -112,21 +124,13 @@ export default function OnboardingPage() {
     };
   }, [progressKey]);
 
-  const isStepCompleted = (stepIndex: number) =>
-    onboardingSteps[stepIndex]?.articles.every((article) =>
-      completedArticles.includes(article.slug.trim().toLowerCase()),
-    ) ?? false;
+  const progress = getOnboardingProgressPercent(completedSlugs, allArticleSlugs);
 
-  const allCurrentCompleted = isStepCompleted(currentStep);
-  const progress = getOnboardingProgressPercent(completedArticles, allArticleSlugs);
-
-  const toggleArticle = (slug: string) => {
-    const normalized = slug.trim().toLowerCase();
-    const next = completedArticles.includes(normalized)
-      ? completedArticles.filter((s) => s !== normalized)
-      : [...completedArticles, normalized];
-    writeOnboardingProgress(progressKey, next);
-    setCompletedArticles(next);
+  const handleResetProgress = () => {
+    clearOnboardingProgress(progressKey);
+    setProgressRevision((v) => v + 1);
+    setCurrentStep(0);
+    router.replace("/playbook/onboarding");
   };
 
   if (loadState === "loading") {
@@ -162,12 +166,21 @@ export default function OnboardingPage() {
     );
   }
 
-  const safeStepIndex = Math.min(currentStep, onboardingSteps.length - 1);
+  const safeStepIndex = completedSlug
+    ? findFirstIncompleteStepIndex(onboardingSteps, completedSlugs)
+    : Math.min(currentStep, onboardingSteps.length - 1);
   const activeStep = onboardingSteps[safeStepIndex];
   const CurrentIcon = activeStep.icon;
 
+  const isStepCompleted = (stepIndex: number) =>
+    onboardingSteps[stepIndex]?.articles.every((article) =>
+      completedSlugs.includes(article.slug.trim().toLowerCase()),
+    ) ?? false;
+
+  const allCurrentCompleted = isStepCompleted(safeStepIndex);
+
   const goToNextStep = () => {
-    const next = findFirstIncompleteStepIndex(onboardingSteps, completedArticles);
+    const next = findFirstIncompleteStepIndex(onboardingSteps, completedSlugs);
     if (next > safeStepIndex) {
       setCurrentStep(next);
       return;
@@ -189,10 +202,26 @@ export default function OnboardingPage() {
 
       <Progress progress={progress} />
 
-      <p className={styles.progressNote}>
-        Progress is saved locally in your browser per account until backend onboarding
-        tracking is added.
-      </p>
+      {completedSlug ? (
+        <p className={styles.successBanner} role="status">
+          Step completed. Your onboarding progress was updated.
+        </p>
+      ) : null}
+
+      <div className={styles.progressMeta}>
+        <p className={styles.progressNote}>
+          Progress is stored locally for this browser and account (
+          {sessionUser?.email ?? "signed in user"}). Use Reset progress to restart the
+          demo.
+        </p>
+        <button
+          type="button"
+          className={styles.resetProgressButton}
+          onClick={handleResetProgress}
+        >
+          Reset progress
+        </button>
+      </div>
 
       <section className={styles.content}>
         <div className={styles.card}>
@@ -204,7 +233,7 @@ export default function OnboardingPage() {
                 <p className={styles.subtitle}>{activeStep.description}</p>
                 <p className={styles.subtitle}>
                   {
-                    completedArticles.filter((slug) =>
+                    completedSlugs.filter((slug) =>
                       activeStep.articles.some(
                         (a) => a.slug.trim().toLowerCase() === slug,
                       ),
@@ -224,8 +253,7 @@ export default function OnboardingPage() {
             <ArticleList
               steps={onboardingSteps}
               currentStep={safeStepIndex}
-              completedArticles={completedArticles}
-              onToggle={toggleArticle}
+              completedArticles={completedSlugs}
             />
           )}
 

@@ -9,21 +9,6 @@
   padding-bottom: 3rem;
 }
 
-.back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.back:hover {
-  color: #ffd500;
-}
-
 .heroCard {
   padding: 1.75rem 2rem;
   background: linear-gradient(145deg, rgba(22, 22, 22, 0.98) 0%, rgba(12, 12, 12, 1) 100%);
@@ -109,6 +94,45 @@
 
 .contentCard .paragraph:last-child {
   margin-bottom: 0;
+}
+
+.paragraphGroup {
+  margin: 0 0 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.paragraphGroup .paragraph {
+  margin-bottom: 0;
+}
+
+.contentHeading1,
+.contentHeading2,
+.contentHeading3 {
+  margin: 1.5rem 0 0.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.contentHeading1 {
+  font-size: 1.35rem;
+  color: #ffd500;
+}
+
+.contentHeading2 {
+  font-size: 1.15rem;
+}
+
+.contentHeading3 {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.contentCard > :first-child {
+  margin-top: 0;
 }
 
 .lead {

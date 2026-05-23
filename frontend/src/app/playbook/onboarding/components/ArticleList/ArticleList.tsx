@@ -7,37 +7,39 @@ type ArticleListProps = {
   steps: OnboardingStep[];
   currentStep: number;
   completedArticles: string[];
-  onToggle: (slug: string) => void;
 };
 
 export default function ArticleList({
   steps,
   currentStep,
   completedArticles,
-  onToggle,
 }: ArticleListProps) {
   return (
     <ul className={styles.articles}>
-      {steps[currentStep].articles.map((article) => (
-        <li
-          key={article.slug}
-          className={`${styles.article} ${completedArticles.includes(article.slug) ? styles.completed : ""}`}
-        >
-          <Link
-            href={`/playbook/${article.slug}?from=onboarding`}
-            className={styles.link}
-            onClick={() => onToggle(article.slug)}
+      {steps[currentStep].articles.map((article) => {
+        const normalizedSlug = article.slug.trim().toLowerCase();
+        const isDone = completedArticles.includes(normalizedSlug);
+
+        return (
+          <li
+            key={article.slug}
+            className={`${styles.article} ${isDone ? styles.completed : ""}`}
           >
-            {completedArticles.includes(article.slug) ? (
-              <CheckCircle className={styles.icon} />
-            ) : (
-              <Circle className={styles.icon} />
-            )}
-            <span className={styles.label}>{article.label}</span>
-            <ArrowRight className={styles.icon} />
-          </Link>
-        </li>
-      ))}
+            <Link
+              href={`/playbook/${article.slug}?from=onboarding`}
+              className={styles.link}
+            >
+              {isDone ? (
+                <CheckCircle className={styles.icon} aria-hidden />
+              ) : (
+                <Circle className={styles.icon} aria-hidden />
+              )}
+              <span className={styles.label}>{article.label}</span>
+              <ArrowRight className={styles.icon} aria-hidden />
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }

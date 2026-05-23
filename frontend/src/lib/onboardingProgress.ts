@@ -1,3 +1,9 @@
+/**
+ * Local-only onboarding completion (per user in localStorage).
+ * Key uses userId when available, otherwise email — not shared across accounts.
+ * Replace with backend OnboardingProgress when a user progress API exists.
+ */
+
 const STORAGE_PREFIX = "owow-onboarding-progress:";
 
 export type OnboardingProgressStore = {
@@ -41,12 +47,18 @@ export function readOnboardingProgress(key: string): OnboardingProgressStore {
   );
 }
 
+function normalizeSlug(slug: string): string {
+  return slug.trim().toLowerCase();
+}
+
 export function writeOnboardingProgress(
   key: string,
   completedArticleSlugs: string[],
 ): OnboardingProgressStore {
   const store: OnboardingProgressStore = {
-    completedArticleSlugs: [...new Set(completedArticleSlugs)],
+    completedArticleSlugs: [
+      ...new Set(completedArticleSlugs.map(normalizeSlug)),
+    ],
     updatedAt: new Date().toISOString(),
   };
   if (typeof window !== "undefined") {
@@ -55,8 +67,14 @@ export function writeOnboardingProgress(
   return store;
 }
 
+/** Clears onboarding progress for one user key only (current account). */
+export function clearOnboardingProgress(key: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(key);
+}
+
 export function markArticleComplete(key: string, slug: string): OnboardingProgressStore {
-  const normalized = slug.trim().toLowerCase();
+  const normalized = normalizeSlug(slug);
   const current = readOnboardingProgress(key);
   if (current.completedArticleSlugs.includes(normalized)) {
     return current;
@@ -65,7 +83,7 @@ export function markArticleComplete(key: string, slug: string): OnboardingProgre
 }
 
 export function isArticleComplete(key: string, slug: string): boolean {
-  const normalized = slug.trim().toLowerCase();
+  const normalized = normalizeSlug(slug);
   return readOnboardingProgress(key).completedArticleSlugs.includes(normalized);
 }
 

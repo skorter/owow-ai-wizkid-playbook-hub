@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
@@ -17,7 +17,11 @@ import {
   isArticleComplete,
   markArticleComplete,
 } from "@/lib/onboardingProgress";
-import { getStoredSessionUser } from "@/lib/auth/session";
+import {
+  getSessionSnapshot,
+  parseSessionUserSnapshot,
+  subscribeSession,
+} from "@/lib/auth/session";
 import { ApiError } from "@/lib/api";
 import { CheckCircle, RefreshCw } from "lucide-react";
 
@@ -37,8 +41,17 @@ export default function SlugPage() {
   >([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [completionVersion, setCompletionVersion] = useState(0);
+  const [completing, setCompleting] = useState(false);
 
-  const sessionUser = getStoredSessionUser();
+  const userSnapshot = useSyncExternalStore(
+    subscribeSession,
+    getSessionSnapshot,
+    () => null,
+  );
+  const sessionUser = useMemo(
+    () => parseSessionUserSnapshot(userSnapshot),
+    [userSnapshot],
+  );
   const progressKey = getOnboardingProgressKey(
     sessionUser?.id,
     sessionUser?.email,
@@ -57,10 +70,24 @@ export default function SlugPage() {
   }, []);
 
   const handleMarkComplete = () => {
-    if (!slug) return;
+    if (!slug || completing || completed) return;
+
+    setCompleting(true);
     markArticleComplete(progressKey, slug);
+
+    if (from === "onboarding") {
+      router.push(`/playbook/onboarding?completed=${encodeURIComponent(slug)}`);
+      return;
+    }
+
     setCompletionVersion((v) => v + 1);
+    setCompleting(false);
   };
+
+  const backHref =
+    from === "onboarding" ? "/playbook/onboarding" : "/playbook/topics";
+  const backLabel =
+    from === "onboarding" ? "Back to Onboarding" : "Back to Topics";
 
   const loadArticle = async () => {
     if (!slug) {
@@ -191,17 +218,7 @@ export default function SlugPage() {
 
   return (
     <article className={styles.slugPage}>
-      {from === "topics" ? (
-        <Link href="/playbook/topics" className={styles.back}>
-          ← Back to Topics
-        </Link>
-      ) : from === "onboarding" ? (
-        <Link href="/playbook/onboarding" className={styles.back}>
-          ← Back to Onboarding
-        </Link>
-      ) : (
-        <BackButton />
-      )}
+      <BackButton href={backHref} label={backLabel} />
 
       <header className={styles.heroCard}>
         <div className={styles.metaRow}>
@@ -258,13 +275,15 @@ export default function SlugPage() {
             type="button"
             className={`${styles.completeButton} ${completed ? styles.completeButtonDone : ""}`}
             onClick={handleMarkComplete}
-            disabled={completed}
+            disabled={completed || completing}
           >
             {completed ? (
               <>
                 <CheckCircle size={18} aria-hidden style={{ verticalAlign: "middle", marginRight: 6 }} />
                 Completed
               </>
+            ) : completing ? (
+              "Saving…"
             ) : (
               "Mark as complete ✓"
             )}
