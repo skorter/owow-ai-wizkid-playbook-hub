@@ -36,6 +36,27 @@
   justify-self: unset;
 }
 
+.aiPending {
+  padding: 1.5rem;
+  background-color: #161616;
+  border: 1px solid #262626;
+  border-radius: 1rem;
+  color: #fff;
+}
+
+.aiPendingTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.aiPendingText {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.75);
+}
+
 .searchPage.searching .results {
   display: flex;
   flex-direction: column;

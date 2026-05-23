@@ -1,4 +1,5 @@
 import { apiDelete, apiGet, apiPost, apiPut, endpoints } from "@/lib/api";
+import { unwrapEntityData, unwrapListData } from "@/lib/api/unwrap";
 import type { OnboardingStep } from "@/data/adminMockData";
 
 export type ApiOnboardingStep = {
@@ -69,16 +70,18 @@ export function statusToIsActive(status: "Active" | "Inactive"): boolean {
 }
 
 export async function fetchAdminOnboardingSteps(): Promise<AdminOnboardingStep[]> {
-  const steps = await apiGet<ApiOnboardingStep[]>(endpoints.onboarding.list, {
+  const raw = await apiGet<unknown>(endpoints.onboarding.list, {
     query: { includeInactive: true },
   });
+  const steps = unwrapListData<ApiOnboardingStep>(raw);
   return steps.map(mapApiOnboardingStepToAdmin);
 }
 
 export async function createOnboardingStep(
   payload: OnboardingWritePayload,
 ): Promise<AdminOnboardingStep> {
-  const step = await apiPost<ApiOnboardingStep>(endpoints.onboarding.list, payload);
+  const raw = await apiPost<unknown>(endpoints.onboarding.list, payload);
+  const step = unwrapEntityData<ApiOnboardingStep>(raw);
   return mapApiOnboardingStepToAdmin(step);
 }
 
@@ -86,7 +89,8 @@ export async function updateOnboardingStep(
   id: string,
   payload: Partial<OnboardingWritePayload>,
 ): Promise<AdminOnboardingStep> {
-  const step = await apiPut<ApiOnboardingStep>(endpoints.onboarding.byId(id), payload);
+  const raw = await apiPut<unknown>(endpoints.onboarding.byId(id), payload);
+  const step = unwrapEntityData<ApiOnboardingStep>(raw);
   return mapApiOnboardingStepToAdmin(step);
 }
 

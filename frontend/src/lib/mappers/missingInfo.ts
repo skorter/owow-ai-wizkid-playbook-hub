@@ -1,4 +1,5 @@
 import { apiDelete, apiGet, apiPut, endpoints } from "@/lib/api";
+import { unwrapListData } from "@/lib/api/unwrap";
 import type { MissingInfoRequest, MissingRequestStatus } from "@/data/adminMockData";
 
 export type BackendMissingStatus = "OPEN" | "REVIEWED" | "RESOLVED";
@@ -29,19 +30,6 @@ const MISSING_TYPE_LABELS: Record<string, string> = {
   WRONG_INFO: "Wrong info",
   OTHER: "Other",
 };
-
-function unwrapListData<T>(body: unknown): T[] {
-  if (Array.isArray(body)) return body;
-  if (
-    body &&
-    typeof body === "object" &&
-    "data" in body &&
-    Array.isArray((body as { data: unknown }).data)
-  ) {
-    return (body as { data: T[] }).data;
-  }
-  return [];
-}
 
 function formatMissingType(type: string): string {
   return MISSING_TYPE_LABELS[type] ?? type.replace(/_/g, " ").toLowerCase();

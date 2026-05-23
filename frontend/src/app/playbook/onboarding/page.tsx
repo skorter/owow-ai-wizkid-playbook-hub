@@ -93,7 +93,7 @@ export default function OnboardingPage() {
   if (loadState === "loading") {
     return (
       <div className={styles.onboardingPage}>
-        <Greeting />
+        <Greeting stepCount={0} />
         <p className={styles.stateMessage}>Loading onboarding…</p>
       </div>
     );
@@ -102,7 +102,7 @@ export default function OnboardingPage() {
   if (loadState === "error") {
     return (
       <div className={styles.onboardingPage}>
-        <Greeting />
+        <Greeting stepCount={0} />
         <div className={styles.stateBlock}>
           <p className={styles.stateError}>{errorMessage}</p>
           <button type="button" className={styles.retryButton} onClick={loadOnboarding}>
@@ -117,7 +117,7 @@ export default function OnboardingPage() {
   if (onboardingSteps.length === 0) {
     return (
       <div className={styles.onboardingPage}>
-        <Greeting />
+        <Greeting stepCount={0} />
         <p className={styles.panelEmpty}>No onboarding steps are available yet.</p>
       </div>
     );
@@ -129,7 +129,7 @@ export default function OnboardingPage() {
 
   return (
     <div className={styles.onboardingPage}>
-      <Greeting />
+      <Greeting stepCount={onboardingSteps.length} />
       <Steps
         steps={onboardingSteps}
         currentStep={safeStepIndex}

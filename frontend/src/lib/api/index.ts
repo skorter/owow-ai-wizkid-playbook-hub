@@ -13,6 +13,8 @@ export {
 
 export { endpoints } from "./endpoints";
 
+export { unwrapListData, unwrapEntityData } from "./unwrap";
+
 export {
   ApiError,
   type ApiUser,
