@@ -13,6 +13,18 @@ export {
 
 export { endpoints } from "./endpoints";
 
+export {
+  getAIStatus,
+  aiSearch,
+  askPageAI,
+  type AIProvider,
+  type AIStatusResponse,
+  type AISource,
+  type AISearchResponse,
+  type AskPageAIRequest,
+  type AskPageAIResponse,
+} from "./ai";
+
 export { unwrapListData, unwrapEntityData } from "./unwrap";
 
 export {
