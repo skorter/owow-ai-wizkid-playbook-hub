@@ -4,11 +4,18 @@
   gap: 0.5rem;
 }
 
-.progressBar .progress {
+.progressBar .track {
   height: 6px;
-  background-color: #ffd500;
   border-radius: 1rem;
-  transition: width 0.3s ease;
+  background: #2a2a2a;
+  overflow: hidden;
+}
+
+.progressBar .progress {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd500 0%, #fbbf24 55%, #4ecdc4 100%);
+  border-radius: inherit;
+  transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .progressBar .label {

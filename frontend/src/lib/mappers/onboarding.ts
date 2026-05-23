@@ -7,6 +7,7 @@ export type ApiArticleSummary = {
   title: string;
   slug: string;
   summary: string | null;
+  status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
 };
 
 export type ApiOnboardingStep = {
@@ -36,6 +37,7 @@ export type AdminOnboardingStep = OnboardingStep & {
   articleId: string | null;
   articleIds: string[];
   linkedArticleCount: number;
+  unpublishedLinkedCount: number;
 };
 
 function formatTimeAgo(isoDate: string): string {
@@ -97,6 +99,7 @@ export function mapApiOnboardingStepToAdmin(step: ApiOnboardingStep): AdminOnboa
     articleId: step.articleId ?? articleIds[0] ?? null,
     articleIds,
     linkedArticleCount: articles.length,
+    unpublishedLinkedCount: articles.filter((a) => a.status !== "PUBLISHED").length,
   };
 }
 

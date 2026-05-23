@@ -635,13 +635,17 @@ export default function DocumentsPage() {
 
   const loadOnboarding = useCallback(async () => {
     try {
-      const [steps, publishedArticles] = await Promise.all([
+      const [steps, allArticles] = await Promise.all([
         fetchAdminOnboardingSteps(),
-        fetchAdminArticles({ status: "PUBLISHED" }),
+        fetchAdminArticles(),
       ]);
       setOnboarding(steps);
       setOnboardingArticleOptions(
-        publishedArticles.map((article) => ({ id: article.id, title: article.title })),
+        allArticles.map((article) => ({
+          id: article.id,
+          title: article.title,
+          status: article.status,
+        })),
       );
       setOnboardingLoadState("ready");
       setOnboardingError("");
@@ -669,14 +673,18 @@ export default function DocumentsPage() {
 
     async function loadOnboardingTab() {
       try {
-        const [steps, publishedArticles] = await Promise.all([
+        const [steps, allArticles] = await Promise.all([
           fetchAdminOnboardingSteps(),
-          fetchAdminArticles({ status: "PUBLISHED" }),
+          fetchAdminArticles(),
         ]);
         if (cancelled) return;
         setOnboarding(steps);
         setOnboardingArticleOptions(
-          publishedArticles.map((article) => ({ id: article.id, title: article.title })),
+          allArticles.map((article) => ({
+            id: article.id,
+            title: article.title,
+            status: article.status,
+          })),
         );
         setOnboardingLoadState("ready");
         setOnboardingError("");
@@ -1687,9 +1695,19 @@ function OnboardingList({
               {step.status}
             </AdminStatusBadge>
             <span className={styles.cellMuted}>
-              {step.linkedArticleCount > 0
-                ? `${step.linkedArticleCount} article${step.linkedArticleCount === 1 ? "" : "s"} · ${step.linkedArticle}`
-                : "—"}
+              {step.linkedArticleCount > 0 ? (
+                <>
+                  {step.linkedArticleCount} article{step.linkedArticleCount === 1 ? "" : "s"} ·{" "}
+                  {step.linkedArticle}
+                  {step.unpublishedLinkedCount > 0 ? (
+                    <span className={styles.unpublishedBadge}>
+                      {step.unpublishedLinkedCount} unpublished
+                    </span>
+                  ) : null}
+                </>
+              ) : (
+                "—"
+              )}
             </span>
             <span className={styles.cellMuted}>{step.updatedAt}</span>
             <div className={styles.rowActions}>

@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { PeakHourPoint } from "@/data/adminMockData";
 import { plotX, plotY, smoothAreaPath, smoothLinePath } from "./chartUtils";
 import styles from "./PeakHoursChart.module.css";
+import ChartEmptyPlaceholder from "./ChartEmptyPlaceholder";
+import { Clock } from "lucide-react";
 
 const WIDTH = 420;
 const HEIGHT = 168;
@@ -31,8 +33,19 @@ export default function PeakHoursChart({
   const BASELINE_Y = PADDING.top + PLOT_HEIGHT;
   const COUNT = data.length;
 
-  if (COUNT === 0) {
-    return <p className={styles.emptyState}>{emptyMessage}</p>;
+  const hasActivity = data.some((point) => point.value > 0);
+
+  if (COUNT === 0 || !hasActivity) {
+    return (
+      <ChartEmptyPlaceholder
+        icon={Clock}
+        title="Peak hours not available yet"
+        description={
+          emptyMessage ||
+          "Search activity by hour will appear after employees start using playbook search."
+        }
+      />
+    );
   }
 
   const linePoints = data.map((point, index) => ({

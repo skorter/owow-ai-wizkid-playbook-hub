@@ -86,6 +86,24 @@
   color: #86efac;
   font-size: 0.9rem;
   line-height: 1.45;
+  animation: bannerIn 0.35s ease;
+}
+
+.successBannerStepDone {
+  border-color: rgba(255, 213, 0, 0.45);
+  background: rgba(255, 213, 0, 0.1);
+  color: #fde68a;
+}
+
+@keyframes bannerIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .completionBanner {
@@ -134,7 +152,21 @@
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, #ffd500 0%, #4ecdc4 100%);
-  transition: width 0.25s ease;
+  transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.onboardingPage .content .card .navigation .nextButton,
+.onboardingPage .content .card .navigation .completeButton {
+  transition:
+    opacity 0.2s ease,
+    transform 0.18s ease,
+    box-shadow 0.2s ease;
+}
+
+.onboardingPage .content .card .navigation .nextButton:not(:disabled):hover,
+.onboardingPage .content .card .navigation .completeButton:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 213, 0, 0.22);
 }
 
 .onboardingPage {
@@ -161,6 +193,29 @@
   border: 1px solid #262626;
   border-radius: 1rem;
   padding: 2rem;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.onboardingPage .content .card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+.cardEnter {
+  animation: cardEnter 0.4s ease;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0.6;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .onboardingPage .content .card .header .information {

@@ -187,6 +187,29 @@
   text-decoration: underline;
 }
 
+.previewNotice {
+  padding: 1rem 1.15rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 213, 0, 0.28);
+  background: rgba(255, 213, 0, 0.06);
+}
+
+.previewTitle {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffd500;
+}
+
+.previewText {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.72);
+}
+
 .fallbackNote {
   margin: 0;
   font-size: 0.85rem;

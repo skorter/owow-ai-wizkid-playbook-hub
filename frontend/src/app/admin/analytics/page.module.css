@@ -49,6 +49,42 @@
   gap: 1rem;
 }
 
+.aiInsightCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 213, 0, 0.28);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 213, 0, 0.08) 0%,
+    rgba(22, 22, 22, 0.95) 60%
+  );
+}
+
+.aiInsightIcon {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: #ffd500;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.aiInsightTitle {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.aiInsightText {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.68);
+}
+
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

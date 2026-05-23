@@ -16,7 +16,15 @@ import {
   type AnalyticsViewModel,
 } from "@/lib/mappers/adminAnalytics";
 import { ApiError } from "@/lib/api";
-import { AlertTriangle, Lightbulb, RefreshCw } from "lucide-react";
+import {
+  AlertTriangle,
+  Lightbulb,
+  RefreshCw,
+  Sparkles,
+  MessageCircleQuestion,
+  BarChart3,
+} from "lucide-react";
+import PremiumEmptyState from "@/components/admin/PremiumEmptyState/PremiumEmptyState";
 import styles from "./page.module.css";
 
 type LoadState = "loading" | "error" | "ready";
@@ -133,6 +141,17 @@ export default function AnalyticsPage() {
           ))}
         </section>
 
+        <article className={styles.aiInsightCard}>
+          <Sparkles className={styles.aiInsightIcon} aria-hidden />
+          <div>
+            <h2 className={styles.aiInsightTitle}>AI insights coming soon</h2>
+            <p className={styles.aiInsightText}>
+              Phase 12 will add intelligent search analytics, answer quality scoring, and
+              content gap recommendations — without changing this dashboard layout.
+            </p>
+          </div>
+        </article>
+
         <AdminPanelCard
           title="Usage Trends (Last 7 Days)"
           className={styles.trendsPanel}
@@ -194,9 +213,13 @@ export default function AnalyticsPage() {
                 ))}
               </ul>
             ) : (
-              <p className={styles.panelEmpty}>
-                No unanswered searches in the log. Great coverage.
-              </p>
+              <PremiumEmptyState
+                compact
+                icon={MessageCircleQuestion}
+                title="No unanswered questions yet"
+                description="When employees search and the playbook cannot answer, those questions will appear here for HR review."
+                hint="Missing-info requests are tracked separately in Documents → Missing Requests."
+              />
             )}
             <AdminButton variant="primary" className={styles.fullWidthCta}>
               Create Content for These Topics
@@ -217,7 +240,11 @@ export default function AnalyticsPage() {
               </article>
             ))
           ) : (
-            <p className={styles.panelEmpty}>Performance metrics are not available yet.</p>
+            <PremiumEmptyState
+              icon={BarChart3}
+              title="Performance insights pending"
+              description="Success rate, response time, and engagement cards will populate once employees use search and published articles regularly."
+            />
           )}
         </section>
       </div>

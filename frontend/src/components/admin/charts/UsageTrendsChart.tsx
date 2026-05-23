@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { UsageTrendPoint } from "@/data/adminMockData";
 import { plotX, plotY, smoothAreaPath, smoothLinePath } from "./chartUtils";
 import styles from "./UsageTrendsChart.module.css";
+import ChartEmptyPlaceholder from "./ChartEmptyPlaceholder";
+import { LineChart } from "lucide-react";
 
 const WIDTH = 800;
 const HEIGHT = 220;
@@ -33,8 +35,21 @@ export default function UsageTrendsChart({
   const BASELINE_Y = PADDING.top + PLOT_HEIGHT;
   const COUNT = data.length;
 
-  if (COUNT === 0) {
-    return <p className={styles.emptyState}>{emptyMessage}</p>;
+  const hasActivity = data.some(
+    (point) => point.searches > 0 || point.activeUsers > 0,
+  );
+
+  if (COUNT === 0 || !hasActivity) {
+    return (
+      <ChartEmptyPlaceholder
+        icon={LineChart}
+        title="Usage trends will appear here"
+        description={
+          emptyMessage ||
+          "Employee searches and active users will be charted once the playbook becomes active."
+        }
+      />
+    );
   }
 
   function buildSeries(getValue: (i: number) => number) {
