@@ -1,0 +1,48 @@
+.featureCards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.featureCards .card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  background-color: #161616;
+  border: 1px solid #262626;
+  border-radius: 1rem;
+}
+
+.featureCards .card .icon {
+  width: 24px;
+  height: 24px;
+  color: #ffd500;
+}
+
+.featureCards .card:nth-child(1) .icon {
+  color: #ffd500;
+}
+
+.featureCards .card:nth-child(2) .icon {
+  color: #4ecdc4;
+}
+
+.featureCards .card:nth-child(3) .icon {
+  color: #00ff85;
+}
+
+.featureCards .card:nth-child(4) .icon {
+  color: #ff6b35;
+}
+
+.featureCards .card .title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.featureCards .card .description {
+  font-size: 0.85rem;
+  color: #888;
+}

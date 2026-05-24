@@ -1,27 +1,49 @@
-.form {
+.formContainer {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 2rem;
-  background-color: #141414;
-  border-radius: 1rem;
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+  gap: 1.5rem;
+  background-color: #16161670;
   border: 1px solid #262626;
+  border-radius: 1rem;
+  padding: 2rem;
 }
 
-.form .field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.form .field .label {
-  font-size: 0.9rem;
-  font-weight: 600;
+.formContainer .header .title {
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #fff;
 }
 
-.form .field .input {
+.formContainer .header .subtitle {
+  font-size: 0.9rem;
+  color: #888;
+  margin-top: 0.25rem;
+}
+
+.formContainer .form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.formContainer .form .fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formContainer .form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formContainer .form .field .label {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.formContainer .form .field .input {
   background-color: #1e1e1e;
   border: 1px solid #333;
   border-radius: 0.5rem;
@@ -29,54 +51,157 @@
   color: #fff;
   font-size: 0.95rem;
   outline: none;
+  transition: border-color 0.2s ease;
 }
 
-.form .field .input::placeholder {
-  color: #555;
-}
-
-.form .field .input:focus {
+.formContainer .form .field .input:focus {
   border-color: #ffd500;
 }
 
-.form .error {
+.formContainer .form .field .input::placeholder {
+  color: #555;
+}
+
+.formContainer .form .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  padding: 0 1rem;
+}
+
+.formContainer .form .row .remember {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #888;
+  cursor: pointer;
+}
+
+.formContainer .form .row .forgot {
+  color: #ffd500;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.formContainer .form .row .forgot:hover {
+  text-decoration: underline;
+}
+
+.formContainer .form .error {
   color: #ff4444;
   font-size: 0.85rem;
 }
 
-.form .loginButton {
+.formContainer .form .actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formContainer .form .actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.formContainer .form .actions .loginButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
   background-color: #ffd500;
   border: none;
-  border-radius: 0.5rem;
-  padding: 0.75rem;
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
   color: #0a0a0a;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: opacity 0.2s ease;
+  width: 100%;
 }
 
-.form .loginButton:hover {
+.formContainer .form .actions .loginButton:hover {
   opacity: 0.9;
 }
 
-.form .forgot {
+.formContainer .form .actions .loginButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.formContainer .form .actions .managementButton {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: none;
+  border: 2px solid #7c3aed;
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.formContainer .form .actions .managementButton:hover {
+  background-color: rgba(124, 58, 237, 0.1);
+}
+
+.formContainer .form .actions .onboardingButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: none;
+  border: 1px solid #494949;
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  color: #888;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.formContainer .form .actions .onboardingButton:hover {
+  border-color: #fff;
+  color: #fff;
+}
+
+.formContainer .form .actions .loginButton .icon,
+.formContainer .form .actions .managementButton .icon,
+.formContainer .form .actions .onboardingButton .icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.formContainer .form .actions .onboardingButton .icon {
+  color: #00ff85;
+}
+
+.formContainer .form .actions .managementButton .icon {
+  color: #7c3aed;
+}
+
+.formContainer .security {
+  display: flex;
+  align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.form .forgot .label {
+  font-size: 0.8rem;
   color: #888;
+  margin-top: 0.5rem;
 }
 
-.form .forgot .link {
-  color: #ffd500;
-  text-decoration: none;
-}
-
-.form .forgot:hover .link {
-  text-decoration: underline;
+.formContainer .security .checkIcon {
+  width: 16px;
+  height: 16px;
+  color: #00ff85;
+  flex-shrink: 0;
 }
