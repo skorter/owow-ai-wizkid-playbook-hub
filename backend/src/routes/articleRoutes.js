@@ -15,11 +15,9 @@ const { roleMiddleware } = require("../middleware/roleMiddleware");
 const router = express.Router();
 const hrAdminOnly = [authMiddleware, roleMiddleware("HR_ADMIN")];
 
-// Public reads — /slug/:slug must be before /:id
 router.get("/", getArticles);
 router.get("/slug/:slug", getArticleBySlugParam);
 
-// HR_ADMIN reads — register before /:id
 router.get("/admin/all", ...hrAdminOnly, getAdminArticles);
 router.get("/admin/:id", ...hrAdminOnly, getAdminArticle);
 

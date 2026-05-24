@@ -1,8 +1,5 @@
 import { ApiError } from "./types";
 
-/**
- * Maps API/network errors to user-facing copy for UI surfaces.
- */
 export function getApiErrorMessage(
   err: unknown,
   fallback = "Something went wrong. Please try again.",

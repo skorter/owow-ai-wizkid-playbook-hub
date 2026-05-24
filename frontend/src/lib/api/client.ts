@@ -1,12 +1,7 @@
 import { ApiError, type ApiRequestOptions, type ApiMutationOptions, type ApiResponse } from "./types";
 
-/** Default when `NEXT_PUBLIC_API_URL` is unset (local backend). */
 const DEFAULT_API_BASE_URL = "http://localhost:5001";
 
-/**
- * localStorage key for the JWT issued by `POST /api/auth/login`.
- * Phase 3 will set this on successful login.
- */
 export const AUTH_TOKEN_STORAGE_KEY = "authToken";
 
 export function getApiBaseUrl(): string {
@@ -68,9 +63,6 @@ function mergeHeaders(
   return headers;
 }
 
-/**
- * Parse response body as JSON when possible; return null for empty bodies.
- */
 export async function parseJsonSafe(response: Response): Promise<unknown> {
   const text = await response.text();
   if (!text.trim()) return null;
@@ -155,12 +147,10 @@ async function request<T>(
     return body.data;
   }
 
-  // Some routes may return a bare success payload without `data` (rare).
   if (body && typeof body === "object" && "success" in body && (body as { success: unknown }).success === true) {
     return body as T;
   }
 
-  // Health check and similar minimal JSON without envelope.
   return body as T;
 }
 
@@ -188,9 +178,6 @@ export async function apiDelete<T>(path: string, options?: ApiRequestOptions): P
   return request<T>("DELETE", path, options ?? {});
 }
 
-/**
- * Full envelope access when you need `message`, `count`, etc.
- */
 export async function apiGetEnvelope<T>(
   path: string,
   options?: ApiRequestOptions,
