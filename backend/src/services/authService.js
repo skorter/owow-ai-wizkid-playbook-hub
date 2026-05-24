@@ -143,6 +143,8 @@ async function register({ fullName, email, password, role }) {
   };
 }
 
+const VALID_LOGIN_MODES = ["employee", "management", "onboarding"];
+
 function loginInputsInvalid(email, password) {
   if (email == null || typeof email !== "string") return true;
   if (!email.trim()) return true;
@@ -151,7 +153,55 @@ function loginInputsInvalid(email, password) {
   return false;
 }
 
-async function login({ email, password }) {
+function wrongRoleResponse(message) {
+  return {
+    ok: false,
+    status: 403,
+    body: {
+      success: false,
+      message,
+      error: message,
+      code: "WRONG_ROLE",
+    },
+  };
+}
+
+function assertLoginModeForRole(loginMode, role) {
+  if (!loginMode || !VALID_LOGIN_MODES.includes(loginMode)) {
+    return null;
+  }
+
+  if (loginMode === "employee") {
+    if (role !== "EMPLOYEE") {
+      return wrongRoleResponse(
+        "This login is for existing employees only.",
+      );
+    }
+    return null;
+  }
+
+  if (loginMode === "management") {
+    if (role !== "HR_ADMIN") {
+      return wrongRoleResponse(
+        "Access restricted to management and HR.",
+      );
+    }
+    return null;
+  }
+
+  if (loginMode === "onboarding") {
+    if (role !== "NEW_EMPLOYEE") {
+      return wrongRoleResponse(
+        "This login is for new employees starting onboarding.",
+      );
+    }
+    return null;
+  }
+
+  return null;
+}
+
+async function login({ email, password, loginMode }) {
   const invalidBody = loginInputsInvalid(email, password);
 
   const trimmedEmail = invalidBody ? "" : email.trim();
@@ -188,6 +238,11 @@ async function login({ email, password }) {
     where: { id: user.id },
     select: userPublicSelect,
   });
+
+  const roleCheck = assertLoginModeForRole(loginMode, safe.role);
+  if (roleCheck) {
+    return roleCheck;
+  }
 
   const token = generateToken({ id: safe.id, role: safe.role });
 

@@ -4,9 +4,10 @@ import {
   CircleCheckBig,
   Shield,
   Users,
-  IdCardLanyard,
   ArrowRight,
 } from "lucide-react";
+
+export type LoginMode = "employee" | "management" | "onboarding";
 
 type FormProps = {
   email: string;
@@ -15,7 +16,11 @@ type FormProps = {
   setPassword: (password: string) => void;
   error: string;
   loading?: boolean;
-  handleLogin: () => void;
+  shake?: boolean;
+  onLogin: (
+    loginMode: LoginMode,
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => void;
 };
 
 export default function Form({
@@ -25,15 +30,26 @@ export default function Form({
   setPassword,
   error,
   loading = false,
-  handleLogin,
+  shake = false,
+  onLogin,
 }: FormProps) {
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!loading) handleLogin();
+  };
+
+  const handleModeClick = (
+    loginMode: LoginMode,
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    if (!loading) {
+      onLogin(loginMode, event);
+    }
   };
 
   return (
-    <section className={styles.formContainer}>
+    <section
+      className={`${styles.formContainer} ${shake ? styles.shake : ""}`}
+    >
       <div className={styles.header}>
         <h2 className={styles.title}>Welcome back</h2>
         <p className={styles.subtitle}>Sign in to access your workspace</p>
@@ -86,9 +102,10 @@ export default function Form({
 
         <div className={styles.actions}>
           <button
-            type="submit"
+            type="button"
             className={styles.loginButton}
             disabled={loading}
+            onClick={(e) => handleModeClick("employee", e)}
           >
             {loading ? (
               "Signing in…"
@@ -99,11 +116,21 @@ export default function Form({
               </>
             )}
           </button>
-          <button type="button" className={styles.managementButton}>
+          <button
+            type="button"
+            className={styles.managementButton}
+            disabled={loading}
+            onClick={(e) => handleModeClick("management", e)}
+          >
             <Shield className={styles.icon} />
             Continue as Management & HR
           </button>
-          <button type="button" className={styles.onboardingButton}>
+          <button
+            type="button"
+            className={styles.onboardingButton}
+            disabled={loading}
+            onClick={(e) => handleModeClick("onboarding", e)}
+          >
             <Users className={styles.icon} />
             New Employee? Start Onboarding
           </button>
