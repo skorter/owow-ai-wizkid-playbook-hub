@@ -1,0 +1,31 @@
+.assistant {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background-color: #161616;
+  border: 1px solid #262626;
+  border-radius: 1rem;
+  border: 1px solid #ffd50077;
+  box-shadow: inset 0 0 20px rgba(255, 213, 0, 0.08);
+}
+
+.assistant .sparklesIcon {
+  width: 20px;
+  height: 20px;
+  color: #ffd500;
+  flex-shrink: 0;
+}
+
+.assistant .title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.assistant .description {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 0.25rem;
+  line-height: 1.5;
+}
