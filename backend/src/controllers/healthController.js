@@ -10,7 +10,6 @@ function getHealth(req, res) {
 
 async function getDatabaseHealth(req, res, next) {
   try {
-    // Simple, safe connectivity check
     await prisma.$queryRaw`SELECT 1`;
 
     res.status(200).json({

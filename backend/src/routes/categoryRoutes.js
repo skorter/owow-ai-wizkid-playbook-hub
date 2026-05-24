@@ -11,10 +11,8 @@ const { roleMiddleware } = require("../middleware/roleMiddleware");
 
 const router = express.Router();
 
-// Public reads
 router.get("/", getCategories);
 
-// HR_ADMIN only — register before /:id to keep collection routes explicit
 router.post(
   "/",
   authMiddleware,

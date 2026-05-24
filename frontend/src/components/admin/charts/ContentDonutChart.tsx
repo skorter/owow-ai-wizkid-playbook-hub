@@ -1,5 +1,4 @@
 "use client";
-
 import { useMemo, useState } from "react";
 import type { ContentDistributionSegment } from "@/data/adminMockData";
 import styles from "./ContentDonutChart.module.css";

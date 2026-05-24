@@ -169,8 +169,6 @@ export const dashboardRecentArticles: DashboardRecentArticle[] = [
 
 export const missingInfoPendingCount = 3;
 
-// ——— Analytics page ———
-
 export type AnalyticsMetric = DashboardMetric;
 
 export type UsageTrendPoint = {
@@ -312,8 +310,6 @@ export const performanceCards: PerformanceCard[] = [
     accent: "purple",
   },
 ];
-
-// ——— Documents / Content Management hub ———
 
 export type DocumentStatus = "Published" | "Draft" | "Archived";
 
