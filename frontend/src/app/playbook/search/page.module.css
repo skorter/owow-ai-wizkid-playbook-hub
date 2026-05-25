@@ -69,13 +69,8 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  padding: 0 0 1rem 0;
+  padding: 0 0 4rem 0;
   width: 100%;
-}
-
-.scrollAnchor {
-  height: 0;
-  scroll-margin-bottom: 5.5rem;
 }
 
 .loadingState {
@@ -135,30 +130,4 @@
 
 .retryButton:hover {
   border-color: #ffd500;
-}
-
-.resultBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.resultBlock + .resultBlock {
-  padding-top: 2rem;
-  border-top: 1px solid #262626;
-}
-
-.followUpQuestion {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.followUpWrap {
-  width: 100%;
-  max-width: 780px;
-  align-self: center;
-  padding-top: 0.5rem;
-  padding-bottom: 2rem;
 }

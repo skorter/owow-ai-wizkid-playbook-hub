@@ -3,7 +3,6 @@
 import { useState } from "react";
 import styles from "./page.module.css";
 import Greeting from "./components/Greeting/Greeting";
-import SearchBar from "./components/SearchBar/SearchBar";
 import Information from "./components/Information/Information";
 import CTACards from "./components/CTACards/CTACards";
 import FeedbackModal from "@/components/playbook/FeedbackModal";
@@ -17,7 +16,6 @@ export default function DashboardPage() {
   return (
     <div className={styles.dashboardPage}>
       <Greeting />
-      <SearchBar />
       <div className={styles.supportRow}>
         <PlaybookSupportActions
           onFeedback={() => setFeedbackOpen(true)}
