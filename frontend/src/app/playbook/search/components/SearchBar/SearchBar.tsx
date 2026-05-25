@@ -11,6 +11,8 @@ type SearchBarProps = {
   onQueryChange?: (value: string) => void;
   onSearch: (query: string) => void;
   loading?: boolean;
+  placeholder?: string;
+  navigateOnSubmit?: boolean;
 };
 
 export default function SearchBar({
@@ -19,6 +21,8 @@ export default function SearchBar({
   onQueryChange,
   onSearch,
   loading = false,
+  placeholder = "How can I help you today?",
+  navigateOnSubmit = true,
 }: SearchBarProps) {
   const router = useRouter();
   const [internalQuery, setInternalQuery] = useState(() => initialQuery);
@@ -35,8 +39,9 @@ export default function SearchBar({
 
   const submit = (value: string) => {
     const trimmed = value.trim();
+    if (!trimmed) return;
     onSearch(trimmed);
-    if (trimmed) {
+    if (navigateOnSubmit) {
       router.replace(`/playbook/search?q=${encodeURIComponent(trimmed)}`);
     }
   };
@@ -51,13 +56,10 @@ export default function SearchBar({
       <Search className={styles.icon} />
       <input
         type="text"
-        placeholder="How can I help you today?"
+        placeholder={placeholder}
         className={styles.input}
         value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          onSearch(e.target.value);
-        }}
+        onChange={(e) => setQuery(e.target.value)}
       />
       <button type="button" className={styles.attachButton} aria-label="Attach file">
         <Paperclip className={styles.icon} />
