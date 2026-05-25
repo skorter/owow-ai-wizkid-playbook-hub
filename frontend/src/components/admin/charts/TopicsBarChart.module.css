@@ -1,0 +1,89 @@
+.wrap {
+  position: relative;
+  width: 100%;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gridLine {
+  stroke: #262626;
+  stroke-width: 1;
+}
+
+.axisLabel {
+  fill: #888888;
+  font-size: 11px;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.xLabel {
+  fill: #bcbcbc;
+  font-size: 11px;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.highlight {
+  fill: transparent;
+  transition: fill 0.15s ease;
+}
+
+.highlightVisible {
+  fill: rgba(255, 255, 255, 0.06);
+}
+
+.bar {
+  fill: #ffd500;
+  transition: filter 0.15s ease;
+  pointer-events: none;
+}
+
+.barHovered {
+  filter: brightness(1.08);
+}
+
+.hitArea {
+  cursor: pointer;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, calc(-100% - 10px));
+  min-width: 100px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background-color: #121212;
+  border: 1px solid #2e2e2e;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.tooltipTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.tooltipValue {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffd500;
+}
+
+.emptyState {
+  margin: 0;
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--admin-text-muted, #888);
+  font-family: var(--font-geist-sans), sans-serif;
+}

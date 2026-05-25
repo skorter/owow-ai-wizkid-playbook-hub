@@ -1,0 +1,68 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  overflow: hidden;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: rgba(255, 213, 0, 0.25);
+  box-shadow: 0 0 20px rgba(255, 213, 0, 0.06);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--admin-border-muted);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.badge {
+  flex-shrink: 0;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.action {
+  flex-shrink: 0;
+}
+
+.body {
+  padding: 1.25rem 1.5rem;
+}
+
+.bodyFlush {
+  padding: 0;
+}

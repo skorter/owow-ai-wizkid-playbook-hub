@@ -1,0 +1,35 @@
+.stats {
+  display: flex;
+  gap: 3rem;
+}
+
+.stats .stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stats .stat .value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffd500;
+  font-family: sans-serif;
+}
+
+.stats .stat:nth-child(1) .value {
+  color: #00ff85;
+}
+
+.stats .stat:nth-child(2) .value {
+  color: #4ecdc4;
+}
+
+.stats .stat:nth-child(3) .value {
+  color: #ffd500;
+}
+
+.stats .stat .label {
+  font-size: 0.85rem;
+  color: #888;
+  font-family: sans-serif;
+}

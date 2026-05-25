@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  HR_ADMIN
+  EMPLOYEE
+  NEW_EMPLOYEE
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SearchSource {
+  PLAYBOOK_SEARCH
+  AI_CHAT
+}
+
+enum FeedbackType {
+  GENERAL
+  ARTICLE
+  BUG
+  AI_RESPONSE
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  RESOLVED
+}
+
+enum MissingInfoType {
+  MISSING_ARTICLE
+  OUTDATED_INFO
+  WRONG_INFO
+  OUTDATED_INFORMATION
+  INCORRECT_INFORMATION
+  OTHER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  fullName     String?
+  passwordHash String? 
+  role         UserRole @default(EMPLOYEE)
+
+  articles           Article[]
+  feedback           Feedback[]
+  searchLogs         SearchLog[]
+  missingInfoReports MissingInfoReport[]
+  savedArticles      SavedArticle[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String
+  slug     String    @unique
+  articles Article[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name])
+}
+
+model Article {
+  id      String        @id @default(cuid())
+  title   String
+  slug    String        @unique
+  summary String?
+  content String
+  tags    String[]      @default([])
+  status  ArticleStatus @default(DRAFT)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  authorId String?
+  author   User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  feedback           Feedback[]
+  missingInfoReports MissingInfoReport[]
+  onboardingSteps    OnboardingStep[]
+  onboardingStepLinks OnboardingStepArticle[]
+  savedBy            SavedArticle[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SearchLog {
+  id       String       @id @default(cuid())
+  source   SearchSource @default(PLAYBOOK_SEARCH)
+  question String
+  answer   String?
+
+  confidence   Float?
+  fallback     Boolean?
+  sourceCount  Int?
+  articleId    String?
+  articleTitle String?
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([source])
+}
+
+model SavedArticle {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@index([articleId])
+}
+
+model Feedback {
+  id      String       @id @default(cuid())
+  type    FeedbackType @default(GENERAL)
+  message String
+
+  articleId String?
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model MissingInfoReport {
+  id          String          @id @default(cuid())
+  type        MissingInfoType @default(OTHER)
+  title       String?
+  description String
+
+  status    ReportStatus @default(OPEN)
+  articleId String?
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model OnboardingStep {
+  id       String  @id @default(cuid())
+  title    String
+  content  String
+  order    Int     @unique
+  isActive Boolean @default(true)
+
+  articleId String?
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+
+  stepArticles OnboardingStepArticle[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([isActive])
+}
+
+model OnboardingStepArticle {
+  id               String @id @default(cuid())
+  onboardingStepId String
+  articleId        String
+  order            Int    @default(0)
+
+  onboardingStep OnboardingStep @relation(fields: [onboardingStepId], references: [id], onDelete: Cascade)
+  article        Article        @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([onboardingStepId, articleId])
+  @@index([onboardingStepId])
+  @@index([articleId])
+}

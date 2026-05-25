@@ -1,0 +1,34 @@
+.profilePage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "identity identity"
+    "personalInformation onboardingProgress"
+    "recentActivity savedArticles"
+    "aiSettings aiSettings"
+    "aiInsights aiInsights";
+  gap: 2rem;
+  align-items: stretch;
+}
+
+.identity {
+  grid-area: identity;
+}
+.personalInformation {
+  grid-area: personalInformation;
+}
+.onboardingProgress {
+  grid-area: onboardingProgress;
+}
+.recentActivity {
+  grid-area: recentActivity;
+}
+.savedArticles {
+  grid-area: savedArticles;
+}
+.aiSettings {
+  grid-area: aiSettings;
+}
+.aiInsights {
+  grid-area: aiInsights;
+}

@@ -1,0 +1,57 @@
+.loginPage {
+  display: grid;
+  grid-template-columns: 1fr 0.5fr;
+  min-height: 100vh;
+  background-color: #0a0a0a;
+  padding: 5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.loginPage .leftPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding: 2rem 15rem;
+  z-index: 1;
+}
+
+.loginPage .rightPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding: 2rem 3rem;
+  z-index: 1;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orbYellow {
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 213, 0, 0.15);
+  top: 5%;
+  left: 5%;
+}
+
+.orbOrange {
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 107, 53, 0.15);
+  bottom: 25%;
+  left: 35%;
+}
+
+.orbBlue {
+  width: 350px;
+  height: 350px;
+  background: rgba(58, 213, 237, 0.4);
+  top: 60%;
+  right: 15%;
+}

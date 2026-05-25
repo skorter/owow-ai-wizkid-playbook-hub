@@ -1,0 +1,23 @@
+.dashboardPage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  color: #fff;
+}
+
+.supportRow {
+  margin-top: -0.5rem;
+}
+
+.dashboardPage .footer {
+  text-align: center;
+  color: #888;
+  font-size: 0.9rem;
+  margin-top: auto;
+}
+
+.dashboardPage.searching .footer {
+  display: none;
+}

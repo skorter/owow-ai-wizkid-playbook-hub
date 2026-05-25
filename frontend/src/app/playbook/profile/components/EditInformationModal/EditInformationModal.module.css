@@ -1,0 +1,120 @@
+.modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal .content {
+  background-color: #161616;
+  border: 1px solid #262626;
+  border-radius: 1rem;
+  padding: 2rem;
+  width: fit-content;
+  min-width: 400px;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.modal .content .header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.modal .content .title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.modal .content .subtitle {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.modal .content .editGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  row-gap: 1rem;
+  column-gap: 1.5rem;
+}
+
+.modal .content .editGrid .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.modal .content .editGrid .field .label {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.modal .content .editGrid .field .input {
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.modal .content .actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.modal .content .actions .cancelButton {
+  background: none;
+  border: 1px solid #333;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  color: #888;
+  cursor: pointer;
+}
+
+.modal .content .actions .cancelButton:hover {
+  border-color: #fff;
+  color: #fff;
+}
+
+.modal .content .actions .submitButton {
+  background-color: #ffd500;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  color: #0a0a0a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modal .content .actions .submitButton:hover {
+  opacity: 0.9;
+}
+
+.hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #f87171;
+}
+
+.inputDisabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}

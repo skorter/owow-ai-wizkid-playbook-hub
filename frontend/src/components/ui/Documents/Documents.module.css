@@ -1,0 +1,120 @@
+.documents {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  color: #fff;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.scrollArea {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.scrollArea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollArea::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+.status {
+  margin: 0;
+  padding: 0.5rem 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.4;
+}
+
+.category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.45rem 0.35rem;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: left;
+  border-radius: 0.4rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffd500;
+}
+
+.toggleLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevronIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.pages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.15rem 0 0.35rem 0.65rem;
+  margin-left: 0.35rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.link {
+  display: block;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.35;
+  padding: 0.35rem 0.4rem;
+  border-radius: 0.35rem;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.link:hover {
+  color: #ffd500;
+  background: rgba(255, 213, 0, 0.08);
+}
+
+.linkActive {
+  color: #111;
+  background: #ffd500;
+  font-weight: 600;
+}
+
+.linkActive:hover {
+  color: #111;
+  background: #ffd500;
+}

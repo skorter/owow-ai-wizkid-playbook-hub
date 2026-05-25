@@ -1,0 +1,375 @@
+.stateMessage {
+  margin: 0;
+  padding: 2rem 0;
+  font-size: 0.95rem;
+  color: var(--admin-text-muted);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.stateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.stateError {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--admin-accent-red, #ef4444);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.panelEmpty {
+  margin: 0;
+  padding: 1.5rem 0;
+  font-size: 0.9rem;
+  color: var(--admin-text-muted);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+/* Tighter layout scoped to analytics page via className on AdminPageContainer */
+.analyticsPage {
+  padding-top: 2.5rem;
+  padding-bottom: 2rem;
+}
+
+.analyticsPage > div > header {
+  margin-bottom: 1.25rem;
+}
+
+.analyticsPage > div > div:last-child {
+  gap: 0;
+}
+
+.pageStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.aiInsightCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 213, 0, 0.28);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 213, 0, 0.08) 0%,
+    rgba(22, 22, 22, 0.95) 60%
+  );
+}
+
+.aiInsightIcon {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: #ffd500;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.aiInsightTitle {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.aiInsightText {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.trendsPanel {
+  margin: 0;
+}
+
+.trendsChartBody {
+  padding: 0.35rem 0 0.5rem;
+  min-height: unset;
+  max-height: none;
+}
+
+.twoColGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.lowerPanel {
+  display: flex;
+  flex-direction: column;
+}
+
+.peakChartBody {
+  min-height: unset;
+  padding: 0.15rem 0 0.35rem;
+}
+
+.insightBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--admin-radius-md);
+  background-color: #121212;
+  border: 1px solid var(--admin-border-muted);
+}
+
+.insightIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--admin-yellow);
+  stroke-width: 2.25;
+  margin-top: 0.05rem;
+}
+
+.insightText {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--admin-text-secondary);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.insightText strong {
+  color: var(--admin-text);
+  font-weight: 600;
+}
+
+.attentionBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #f97316;
+  background-color: rgba(249, 115, 22, 0.14);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.warningList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+  flex: 1;
+}
+
+.warningCard {
+  padding: 0.75rem 0.85rem;
+  background-color: rgba(20, 14, 10, 0.85);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  border-radius: var(--admin-radius-md);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.warningCard:hover {
+  border-color: rgba(249, 115, 22, 0.6);
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.1);
+}
+
+.warningRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.warningContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.warningIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #f97316;
+  stroke-width: 2.25;
+  margin-top: 0.1rem;
+}
+
+.warningQuestion {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  line-height: 1.3;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.warningMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.failedAttempts {
+  font-size: 0.72rem;
+  color: #f97316;
+  font-weight: 600;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.fullWidthCta {
+  width: 100% !important;
+  display: flex !important;
+  margin-top: auto;
+}
+
+.performanceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.performanceCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.15rem;
+  background-color: #161616;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.performanceCard:hover {
+  transform: translateY(-1px);
+}
+
+.accentGreen {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.14) 0%, rgba(18, 18, 18, 0.95) 48%);
+  border-color: rgba(34, 197, 94, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(34, 197, 94, 0.2),
+    0 0 32px rgba(34, 197, 94, 0.1);
+}
+
+.accentGreen:hover {
+  border-color: rgba(34, 197, 94, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(34, 197, 94, 0.28),
+    0 0 40px rgba(34, 197, 94, 0.16);
+}
+
+.accentCyan {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.14) 0%, rgba(18, 18, 18, 0.95) 48%);
+  border-color: rgba(34, 211, 238, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(34, 211, 238, 0.2),
+    0 0 32px rgba(34, 211, 238, 0.1);
+}
+
+.accentCyan:hover {
+  border-color: rgba(34, 211, 238, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(34, 211, 238, 0.28),
+    0 0 40px rgba(34, 211, 238, 0.16);
+}
+
+.accentPurple {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.14) 0%, rgba(18, 18, 18, 0.95) 48%);
+  border-color: rgba(168, 85, 247, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(168, 85, 247, 0.2),
+    0 0 32px rgba(168, 85, 247, 0.1);
+}
+
+.accentPurple:hover {
+  border-color: rgba(168, 85, 247, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(168, 85, 247, 0.28),
+    0 0 40px rgba(168, 85, 247, 0.16);
+}
+
+.performanceTitle {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.performanceSubtitle {
+  font-size: 0.85rem;
+  color: var(--admin-text-secondary);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.performanceValue {
+  margin-top: 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  letter-spacing: -0.03em;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.accentGreen .performanceValue {
+  color: #22c55e;
+}
+
+.accentCyan .performanceValue {
+  color: #22d3ee;
+}
+
+.accentPurple .performanceValue {
+  color: #a855f7;
+}
+
+@media (max-width: 1200px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .performanceGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .twoColGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .analyticsPage {
+    padding-top: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
+}

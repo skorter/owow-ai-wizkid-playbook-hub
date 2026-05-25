@@ -1,0 +1,21 @@
+.layout {
+  display: grid;
+  grid-template-columns: 0.25fr 1fr;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #0a0a0a;
+  color: #fff;
+}
+
+.sidebar {
+  border-right: 1px solid #bebebe;
+  height: 100%;
+  overflow: hidden;
+}
+
+.content {
+  padding: 4rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}

@@ -1,0 +1,234 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  width: var(--admin-sidebar-width);
+  height: 100vh;
+  background-color: var(--admin-bg);
+  border-right: 1px solid var(--admin-border);
+  transition: transform 0.25s ease;
+}
+
+.sidebarInner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.brand {
+  flex-shrink: 0;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--admin-border-muted);
+}
+
+.brandTitle {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.25;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.brandAccent {
+  color: var(--admin-yellow);
+}
+
+.brandSubtitle {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  scrollbar-width: thin;
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  list-style: none;
+}
+
+.navItem {
+  border-radius: var(--admin-radius-sm);
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--admin-radius-sm);
+  text-decoration: none;
+  color: var(--admin-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: var(--font-geist-sans), sans-serif;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.navLink:hover:not(.navLinkActive) {
+  background-color: var(--admin-surface);
+}
+
+.navLinkActive {
+  background-color: var(--admin-yellow);
+  color: #0a0a0a;
+}
+
+.navIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  stroke-width: 2.25;
+}
+
+.navLinkActive .navIcon {
+  color: #0a0a0a;
+}
+
+.profile {
+  flex-shrink: 0;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--admin-border-muted);
+}
+
+.profileLink {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0.65rem;
+  row-gap: 0.15rem;
+  text-decoration: none;
+  color: var(--admin-text);
+}
+
+.profileLink:hover .profileName {
+  text-decoration: underline 2px var(--admin-yellow);
+}
+
+.profileIcon {
+  grid-row: span 2;
+  align-self: center;
+  width: 32px;
+  height: 32px;
+  stroke-width: 2.25;
+}
+
+.profileName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.profileRole {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 0.85rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  background: transparent;
+  color: var(--admin-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-geist-sans), sans-serif;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.logoutBtn:hover {
+  border-color: rgba(255, 213, 0, 0.35);
+  color: var(--admin-text);
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.main {
+  flex: 1;
+  margin-left: var(--admin-sidebar-width);
+  min-width: 0;
+  min-height: 100vh;
+}
+
+.mobileHeader {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--admin-border-muted);
+  background-color: var(--admin-bg);
+}
+
+.menuButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  cursor: pointer;
+}
+
+.menuButton:hover {
+  border-color: var(--admin-yellow);
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .overlayVisible {
+    display: block;
+  }
+
+  .main {
+    margin-left: 0;
+  }
+
+  .mobileHeader {
+    display: flex;
+  }
+}
