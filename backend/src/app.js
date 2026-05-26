@@ -17,8 +17,6 @@ const { notFound, errorMiddleware } = require("./middleware/errorMiddleware");
 function createApp() {
   const app = express();
 
-  app.use(express.json());
-
   const allowedOrigins = [
     process.env.FRONTEND_URL,
     process.env.CORS_ORIGIN,
@@ -32,13 +30,17 @@ function createApp() {
       origin(origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {
           callback(null, true);
-        } else {
-          callback(new Error("Not allowed by CORS"));
+          return;
         }
+        callback(null, false);
       },
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
       credentials: false,
     }),
   );
+
+  app.use(express.json());
 
   app.get("/", (req, res) => {
     res.json({
