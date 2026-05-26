@@ -7,7 +7,6 @@ import PersonalInformation from "./components/PersonalInformation/PersonalInform
 import OnboardingProgress from "./components/OnboardingProgress/OnboardingProgress";
 import RecentActivity from "./components/RecentActivity/RecentActivity";
 import SavedArticles from "./components/SavedArticles/SavedArticles";
-import AISettings from "./components/AISettings/AISettings";
 import AIInsights from "./components/AIInsights/AIInsights";
 import EditInformationModal from "./components/EditInformationModal/EditInformationModal";
 import { getStoredSessionUser } from "@/lib/auth/session";
@@ -36,9 +35,10 @@ export default function ProfilePage() {
       <div className={styles.savedArticles}>
         <SavedArticles />
       </div>
-      <div className={styles.aiSettings}>
+      {/* Temporarily hidden — restore AI Assistant Settings when ready for employee-facing controls */}
+      {/* <div className={styles.aiSettings}>
         <AISettings />
-      </div>
+      </div> */}
       <div className={styles.aiInsights}>
         <AIInsights />
       </div>

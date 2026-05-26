@@ -28,8 +28,10 @@ import FeedbackModal from "@/components/playbook/FeedbackModal";
 import MissingInfoModal from "@/components/playbook/MissingInfoModal";
 import PlaybookSupportActions from "@/components/playbook/PlaybookSupportActions";
 import ArticleUnavailable from "@/components/playbook/ArticleUnavailable";
-import AskPagePanel from "./components/AskPagePanel/AskPagePanel";
+// Inline Page Assistant replaced by floating WizKid Assistant widget — see AskPagePanel
+// import AskPagePanel from "./components/AskPagePanel/AskPagePanel";
 import ArticleBookmark from "./components/ArticleBookmark/ArticleBookmark";
+import { useWizKidArticle } from "@/components/playbook/WizKidAssistantWidget/WizKidArticleContext";
 
 type LoadState = "loading" | "error" | "ready" | "not-found" | "unavailable";
 
@@ -51,6 +53,8 @@ export default function SlugPage() {
   const [completing, setCompleting] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [missingInfoOpen, setMissingInfoOpen] = useState(false);
+  const { setArticle: registerWizKidArticle, clearArticle: clearWizKidArticle } =
+    useWizKidArticle();
 
   const userSnapshot = useSyncExternalStore(
     subscribeSession,
@@ -77,6 +81,26 @@ export default function SlugPage() {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);
+
+  useEffect(() => {
+    if (
+      loadState !== "ready" ||
+      !article?.id ||
+      article.fromFallback ||
+      from === "onboarding"
+    ) {
+      clearWizKidArticle();
+      return;
+    }
+
+    registerWizKidArticle({
+      articleId: article.id,
+      articleSlug: article.slug,
+      articleTitle: article.title,
+    });
+
+    return () => clearWizKidArticle();
+  }, [article, clearWizKidArticle, from, loadState, registerWizKidArticle]);
 
   const handleMarkComplete = () => {
     if (!slug || completing || completed) return;
@@ -314,13 +338,7 @@ export default function SlugPage() {
 
       <section className={styles.contentCard}>{renderArticleContent(article.content)}</section>
 
-      {article.id && !article.fromFallback ? (
-        <AskPagePanel
-          articleId={article.id}
-          slug={article.slug}
-          articleTitle={article.title}
-        />
-      ) : null}
+      {/* Page Assistant is handled by the floating WizKid Assistant widget */}
 
       {article.fromFallback ? (
         <section className={styles.previewNotice} role="note">

@@ -191,12 +191,20 @@ export default function DashboardPage() {
 
       <section className={styles.lowerGrid}>
         <AdminPanelCard
+          className={styles.lowerPanelCard}
           title="Missing Information Requests"
           badge={
             data.missingInfoPendingCount > 0 ? (
               <span className={styles.pendingBadge}>
                 {data.missingInfoPendingCount} pending
               </span>
+            ) : undefined
+          }
+          action={
+            data.hasMoreMissingInfo ? (
+              <Link href="/admin/missing-info" className={styles.viewMoreLink}>
+                View more
+              </Link>
             ) : undefined
           }
         >
@@ -217,6 +225,7 @@ export default function DashboardPage() {
         </AdminPanelCard>
 
         <AdminPanelCard
+          className={styles.lowerPanelCard}
           title="Recent Articles"
           action={
             <Link href="/admin/documents?action=create">

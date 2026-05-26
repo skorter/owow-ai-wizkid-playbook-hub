@@ -7,7 +7,6 @@ import Information from "./components/Information/Information";
 import CTACards from "./components/CTACards/CTACards";
 import FeedbackModal from "@/components/playbook/FeedbackModal";
 import MissingInfoModal from "@/components/playbook/MissingInfoModal";
-import PlaybookSupportActions from "@/components/playbook/PlaybookSupportActions";
 
 export default function DashboardPage() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -16,12 +15,13 @@ export default function DashboardPage() {
   return (
     <div className={styles.dashboardPage}>
       <Greeting />
-      <div className={styles.supportRow}>
+      {/* Temporarily hidden — restore PlaybookSupportActions when feedback/missing-info should show on dashboard again */}
+      {/* <div className={styles.supportRow}>
         <PlaybookSupportActions
           onFeedback={() => setFeedbackOpen(true)}
           onMissingInfo={() => setMissingInfoOpen(true)}
         />
-      </div>
+      </div> */}
       <Information />
       <CTACards />
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />

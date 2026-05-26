@@ -12,8 +12,8 @@ import { getApiErrorMessage } from "@/lib/api";
 import PageStatus from "@/components/ui/PageStatus";
 import ProfileActivityList from "@/components/playbook/ProfileActivityList";
 
-const PROFILE_PREVIEW_LIMIT = 5;
-const PROFILE_FETCH_LIMIT = 6;
+const PROFILE_PREVIEW_LIMIT = 3;
+const PROFILE_FETCH_LIMIT = 4;
 
 export default function RecentActivity() {
   const [items, setItems] = useState<ProfileActivityItem[]>([]);

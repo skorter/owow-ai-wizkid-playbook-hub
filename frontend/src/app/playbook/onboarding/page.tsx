@@ -176,7 +176,7 @@ export default function OnboardingPage() {
   if (loadState === "loading") {
     return (
       <div className={styles.onboardingPage}>
-        <Greeting stepCount={0} progressPercent={0} />
+        <Greeting />
         <p className={styles.stateMessage}>Loading onboarding…</p>
       </div>
     );
@@ -185,7 +185,7 @@ export default function OnboardingPage() {
   if (loadState === "error") {
     return (
       <div className={styles.onboardingPage}>
-        <Greeting stepCount={0} progressPercent={0} />
+        <Greeting />
         <div className={styles.stateBlock}>
           <p className={styles.stateError}>{errorMessage}</p>
           <button
@@ -204,7 +204,7 @@ export default function OnboardingPage() {
   if (onboardingSteps.length === 0) {
     return (
       <div className={styles.onboardingPage}>
-        <Greeting stepCount={0} progressPercent={0} />
+        <Greeting />
         <PremiumEmptyState
           icon={GraduationCap}
           title="Onboarding is being prepared"
@@ -225,10 +225,6 @@ export default function OnboardingPage() {
     completedSlugs.includes(article.slug.trim().toLowerCase()),
   ).length;
   const stepArticleTotal = activeStep.articles.length;
-  const stepProgressPercent =
-    stepArticleTotal === 0
-      ? 0
-      : Math.round((stepCompletedCount / stepArticleTotal) * 100);
 
   const isStepCompleted = (stepIndex: number) => {
     const step = onboardingSteps[stepIndex];
@@ -279,7 +275,7 @@ export default function OnboardingPage() {
 
   return (
     <div className={styles.onboardingPage}>
-      <Greeting stepCount={onboardingSteps.length} progressPercent={progress} />
+      <Greeting />
       <Steps
         steps={onboardingSteps}
         currentStep={safeStepIndex}
@@ -341,27 +337,16 @@ export default function OnboardingPage() {
                 <h2 className={styles.title}>{activeStep.label}</h2>
                 <p className={styles.subtitle}>{activeStep.description}</p>
                 {stepArticleTotal > 0 ? (
-                  <>
-                    <p className={styles.stepProgressLabel}>
+                  <div className={styles.stepProgressRow}>
+                    <span className={styles.stepProgressCompleted}>
                       {stepCompletedCount} of {stepArticleTotal} articles completed
-                      {readingEstimate > 0 && stepCompletedCount < stepArticleTotal
-                        ? ` · ~${readingEstimate} min reading left`
-                        : null}
-                    </p>
-                    <div
-                      className={styles.stepProgressTrack}
-                      role="progressbar"
-                      aria-valuenow={stepProgressPercent}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-label="Step article progress"
-                    >
-                      <div
-                        className={styles.stepProgressFill}
-                        style={{ width: `${stepProgressPercent}%` }}
-                      />
-                    </div>
-                  </>
+                    </span>
+                    {readingEstimate > 0 && stepCompletedCount < stepArticleTotal ? (
+                      <span className={styles.stepProgressReading}>
+                        ~{readingEstimate} min reading left
+                      </span>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
             </div>

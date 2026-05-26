@@ -68,6 +68,7 @@ export type DashboardViewModel = {
   contentDistribution: ContentDistributionSegment[];
   missingInfoItems: DashboardMissingInfoItem[];
   missingInfoPendingCount: number;
+  hasMoreMissingInfo: boolean;
   recentArticles: DashboardRecentArticle[];
 };
 
@@ -223,12 +224,11 @@ export function mapArticlesToDistribution(articles: ApiArticle[]): ContentDistri
 export function mapMissingInfoReports(
   analytics: MissingInfoAnalytics,
   limit = 3,
-): { items: DashboardMissingInfoItem[]; pendingCount: number } {
+): { items: DashboardMissingInfoItem[]; pendingCount: number; hasMore: boolean } {
   const pendingCount = analytics.openMissingInfoReports;
 
-  const items = analytics.recentMissingInfoReports
+  const mapped = analytics.recentMissingInfoReports
     .filter((r) => r.status === "OPEN" || r.status === "REVIEWED")
-    .slice(0, limit)
     .map((report) => {
       const { label, color } = missingTypeToCategory(report.type);
       return {
@@ -241,7 +241,11 @@ export function mapMissingInfoReports(
       };
     });
 
-  return { items, pendingCount };
+  return {
+    items: mapped.slice(0, limit),
+    pendingCount,
+    hasMore: mapped.length > limit,
+  };
 }
 
 export function mapRecentArticles(articles: ApiArticle[], limit = 3): DashboardRecentArticle[] {
@@ -277,7 +281,7 @@ export async function fetchDashboardData(): Promise<DashboardViewModel> {
     Array.isArray(popularQuestions) ? popularQuestions : [],
   );
 
-  const { items: missingInfoItems, pendingCount } = mapMissingInfoReports(missingInfo);
+  const { items: missingInfoItems, pendingCount, hasMore } = mapMissingInfoReports(missingInfo);
 
   return {
     metrics: mapOverviewToMetrics(overview),
@@ -289,6 +293,7 @@ export async function fetchDashboardData(): Promise<DashboardViewModel> {
     ),
     missingInfoItems,
     missingInfoPendingCount: pendingCount,
+    hasMoreMissingInfo: hasMore,
     recentArticles: mapRecentArticles(Array.isArray(articles) ? articles : []),
   };
 }
