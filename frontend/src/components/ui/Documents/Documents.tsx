@@ -22,7 +22,7 @@ export default function Documents() {
         const result = await fetchPlaybookTopics();
         if (cancelled) return;
         setCategories(result.categories);
-        setOpenItems(result.categories.slice(0, 2).map((c) => c.slug));
+        setOpenItems([]);
         setLoadState("ready");
       } catch {
         if (!cancelled) setLoadState("error");

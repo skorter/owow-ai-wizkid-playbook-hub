@@ -37,6 +37,9 @@ export default function SearchBar({
     } else {
       setInternalQuery(value);
     }
+    if (value === "") {
+      onSearch("");
+    }
   };
 
   const submit = (value: string) => {
@@ -66,7 +69,11 @@ export default function SearchBar({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
-      <button type="button" className={styles.attachButton} aria-label="Attach file">
+      <button
+        type="button"
+        className={styles.attachButton}
+        aria-label="Attach file"
+      >
         <Paperclip className={styles.icon} />
       </button>
       <button

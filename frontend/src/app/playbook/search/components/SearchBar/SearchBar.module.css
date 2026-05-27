@@ -55,7 +55,7 @@
 .searchBarCompact {
   padding: 0.65rem 1rem;
   border-radius: 0.75rem;
-  box-shadow: 0 0 12px 4px rgba(255, 180, 0, 0.1);
+  box-shadow: 0 0 12px 4px rgba(255, 180, 0, 0.2);
 }
 
 .searchBarCompact .input {

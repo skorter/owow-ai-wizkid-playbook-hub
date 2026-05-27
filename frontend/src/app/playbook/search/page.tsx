@@ -13,7 +13,11 @@ import DetailedAnswer from "./components/DetailedAnswer/DetailedAnswer";
 import FeedbackModal from "@/components/playbook/FeedbackModal";
 import MissingInfoModal from "@/components/playbook/MissingInfoModal";
 import PlaybookSupportActions from "@/components/playbook/PlaybookSupportActions";
-import { aiSearch, getAISearchErrorMessage, type AISearchResponse } from "@/lib/api/ai";
+import {
+  aiSearch,
+  getAISearchErrorMessage,
+  type AISearchResponse,
+} from "@/lib/api/ai";
 import { Loader2, RefreshCw } from "lucide-react";
 
 export default function SearchPage() {
@@ -107,7 +111,9 @@ export default function SearchPage() {
   };
 
   return (
-    <div className={`${styles.searchPage} ${isSearching ? styles.searching : ""}`}>
+    <div
+      className={`${styles.searchPage} ${isSearching ? styles.searching : ""}`}
+    >
       <section className={styles.hero}>
         {!isSearching && <Greeting />}
         {!isSearching ? (
@@ -126,7 +132,7 @@ export default function SearchPage() {
             setRecentOpen={setRecentActivityOpen}
           />
         )}
-        {!isSearching ? (
+        {/* {!isSearching ? (
           <div className={styles.supportRow}>
             <PlaybookSupportActions
               onFeedback={() => setFeedbackOpen(true)}
@@ -134,7 +140,7 @@ export default function SearchPage() {
               layout="stack"
             />
           </div>
-        ) : null}
+        ) : null} */}
       </section>
 
       {!isSearching && (
@@ -150,17 +156,15 @@ export default function SearchPage() {
 
       {isSearching ? (
         <section className={styles.results}>
-          <div className={styles.resultsSearchWrap}>
-            <SearchBar
-              key={queryFromUrl || "searching"}
-              initialQuery={queryFromUrl}
-              onSearch={handleHeroSearch}
-              loading={loading}
-              navigateOnSubmit={false}
-              variant="compact"
-              placeholder="Search the playbook…"
-            />
-          </div>
+          <SearchBar
+            key={queryFromUrl || "searching"}
+            initialQuery={queryFromUrl}
+            onSearch={handleHeroSearch}
+            loading={loading}
+            navigateOnSubmit={false}
+            variant="compact"
+            placeholder="Search the playbook…"
+          />
 
           {loading ? (
             <div className={styles.loadingState} role="status">
@@ -172,7 +176,11 @@ export default function SearchPage() {
           {error ? (
             <div className={styles.errorState}>
               <p>{error}</p>
-              <button type="button" className={styles.retryButton} onClick={handleRetry}>
+              <button
+                type="button"
+                className={styles.retryButton}
+                onClick={handleRetry}
+              >
                 <RefreshCw size={16} aria-hidden />
                 Try again
               </button>
@@ -216,7 +224,10 @@ export default function SearchPage() {
         </section>
       ) : null}
 
-      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+      <FeedbackModal
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+      />
       <MissingInfoModal
         open={missingInfoOpen}
         onClose={() => setMissingInfoOpen(false)}
