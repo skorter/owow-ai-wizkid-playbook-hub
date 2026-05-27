@@ -1,13 +1,24 @@
 import { ApiError, type ApiRequestOptions, type ApiMutationOptions, type ApiResponse } from "./types";
 
-const DEFAULT_API_BASE_URL = "http://localhost:5001";
+const LOCAL_API_BASE_URL = "http://localhost:5001";
 
 export const AUTH_TOKEN_STORAGE_KEY = "authToken";
 
 export function getApiBaseUrl(): string {
   const raw = process.env.NEXT_PUBLIC_API_URL?.trim();
-  const base = raw && raw.length > 0 ? raw : DEFAULT_API_BASE_URL;
-  return base.replace(/\/+$/, "");
+
+  if (raw && raw.length > 0) {
+    return raw.replace(/\/+$/, "");
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    const message =
+      "NEXT_PUBLIC_API_URL is not set. Add it in Vercel project settings and redeploy.";
+    console.error(`[OWOW Playbook] ${message}`);
+    throw new Error(message);
+  }
+
+  return LOCAL_API_BASE_URL.replace(/\/+$/, "");
 }
 
 export function getAuthToken(): string | null {
