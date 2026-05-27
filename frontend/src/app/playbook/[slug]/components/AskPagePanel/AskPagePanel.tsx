@@ -63,10 +63,10 @@ export default function AskPagePanel({
       (result.fallback && result.confidence === 0));
 
   return (
-    <section className={styles.panel} aria-label="Ask AI about this article">
+    <section className={styles.panel} aria-label="Page assistant">
       <div className={styles.header}>
         <Sparkles className={styles.icon} aria-hidden />
-        <h2 className={styles.title}>Ask AI about this page</h2>
+        <h2 className={styles.title}>Page Assistant</h2>
       </div>
       <p className={styles.hint}>
         Ask a question about {articleTitle}. Answers use only
@@ -96,7 +96,7 @@ export default function AskPagePanel({
                 Thinking…
               </>
             ) : (
-              "Ask"
+              "Ask Assistant"
             )}
           </button>
           {error ? (

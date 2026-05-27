@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import styles from "./Greeting.module.css";
+import { getTimeOfDayGreeting } from "@/lib/getTimeOfDayGreeting";
 import { getDisplayFirstName, usePlaybookSession } from "@/lib/hooks/usePlaybookSession";
 
 export default function Greeting() {
   const user = usePlaybookSession();
   const firstName = getDisplayFirstName(user);
+  const greeting = getTimeOfDayGreeting();
 
   return (
     <div className={styles.greeting}>
@@ -18,7 +20,7 @@ export default function Greeting() {
         className={styles.avatar}
       />
       <h1 className={styles.label}>
-        Good evening, <span className={styles.name}>{firstName}</span>
+        {greeting}, <span className={styles.name}>{firstName}</span>
       </h1>
     </div>
   );

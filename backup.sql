@@ -1,0 +1,871 @@
+--
+-- PostgreSQL database dump
+--
+
+\restrict hzr0N7fJ9UGLEkkJxfJYf5ruhDz9iE493phuMzZYFQ8SzLjI2P7yBARTafbkqM1
+
+-- Dumped from database version 18.3 (Homebrew)
+-- Dumped by pg_dump version 18.3 (Homebrew)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: ArticleStatus; Type: TYPE; Schema: public; Owner: iliya
+--
+
+CREATE TYPE public."ArticleStatus" AS ENUM (
+    'DRAFT',
+    'PUBLISHED',
+    'ARCHIVED'
+);
+
+
+ALTER TYPE public."ArticleStatus" OWNER TO iliya;
+
+--
+-- Name: FeedbackType; Type: TYPE; Schema: public; Owner: iliya
+--
+
+CREATE TYPE public."FeedbackType" AS ENUM (
+    'GENERAL',
+    'ARTICLE',
+    'BUG',
+    'AI_RESPONSE'
+);
+
+
+ALTER TYPE public."FeedbackType" OWNER TO iliya;
+
+--
+-- Name: MissingInfoType; Type: TYPE; Schema: public; Owner: iliya
+--
+
+CREATE TYPE public."MissingInfoType" AS ENUM (
+    'MISSING_ARTICLE',
+    'OUTDATED_INFO',
+    'WRONG_INFO',
+    'OTHER',
+    'OUTDATED_INFORMATION',
+    'INCORRECT_INFORMATION'
+);
+
+
+ALTER TYPE public."MissingInfoType" OWNER TO iliya;
+
+--
+-- Name: ReportStatus; Type: TYPE; Schema: public; Owner: iliya
+--
+
+CREATE TYPE public."ReportStatus" AS ENUM (
+    'OPEN',
+    'REVIEWED',
+    'RESOLVED'
+);
+
+
+ALTER TYPE public."ReportStatus" OWNER TO iliya;
+
+--
+-- Name: SearchSource; Type: TYPE; Schema: public; Owner: iliya
+--
+
+CREATE TYPE public."SearchSource" AS ENUM (
+    'PLAYBOOK_SEARCH',
+    'AI_CHAT'
+);
+
+
+ALTER TYPE public."SearchSource" OWNER TO iliya;
+
+--
+-- Name: UserRole; Type: TYPE; Schema: public; Owner: iliya
+--
+
+CREATE TYPE public."UserRole" AS ENUM (
+    'HR_ADMIN',
+    'EMPLOYEE',
+    'NEW_EMPLOYEE'
+);
+
+
+ALTER TYPE public."UserRole" OWNER TO iliya;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: Article; Type: TABLE; Schema: public; Owner: iliya
+--
+
+CREATE TABLE public."Article" (
+    id text NOT NULL,
+    title text NOT NULL,
+    slug text NOT NULL,
+    content text NOT NULL,
+    status public."ArticleStatus" DEFAULT 'DRAFT'::public."ArticleStatus" NOT NULL,
+    "categoryId" text NOT NULL,
+    "authorId" text,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL,
+    summary text,
+    tags text[] DEFAULT ARRAY[]::text[]
+);
+
+
+ALTER TABLE public."Article" OWNER TO iliya;
+
+--
+-- Name: Category; Type: TABLE; Schema: public; Owner: iliya
+--
+
+CREATE TABLE public."Category" (
+    id text NOT NULL,
+    name text NOT NULL,
+    slug text NOT NULL,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL
+);
+
+
+ALTER TABLE public."Category" OWNER TO iliya;
+
+--
+-- Name: Feedback; Type: TABLE; Schema: public; Owner: iliya
+--
+
+CREATE TABLE public."Feedback" (
+    id text NOT NULL,
+    type public."FeedbackType" DEFAULT 'GENERAL'::public."FeedbackType" NOT NULL,
+    message text NOT NULL,
+    "articleId" text,
+    "userId" text,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL
+);
+
+
+ALTER TABLE public."Feedback" OWNER TO iliya;
+
+--
+-- Name: MissingInfoReport; Type: TABLE; Schema: public; Owner: iliya
+--
+
+CREATE TABLE public."MissingInfoReport" (
+    id text NOT NULL,
+    type public."MissingInfoType" DEFAULT 'OTHER'::public."MissingInfoType" NOT NULL,
+    title text,
+    description text NOT NULL,
+    "articleId" text,
+    "userId" text,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    status public."ReportStatus" DEFAULT 'OPEN'::public."ReportStatus" NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL
+);
+
+
+ALTER TABLE public."MissingInfoReport" OWNER TO iliya;
+
+--
+-- Name: OnboardingStep; Type: TABLE; Schema: public; Owner: iliya
+--
+
+CREATE TABLE public."OnboardingStep" (
+    id text NOT NULL,
+    title text NOT NULL,
+    content text NOT NULL,
+    "order" integer NOT NULL,
+    "isActive" boolean DEFAULT true NOT NULL,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL,
+    "articleId" text
+);
+
+
+ALTER TABLE public."OnboardingStep" OWNER TO iliya;
+
+--
+-- Name: OnboardingStepArticle; Type: TABLE; Schema: public; Owner: iliya
+--
+
+CREATE TABLE public."OnboardingStepArticle" (
+    id text NOT NULL,
+    "onboardingStepId" text NOT NULL,
+    "articleId" text NOT NULL,
+    "order" integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE public."OnboardingStepArticle" OWNER TO iliya;
+
+--
+-- Name: SavedArticle; Type: TABLE; Schema: public; Owner: iliya
+--
+
+CREATE TABLE public."SavedArticle" (
+    id text NOT NULL,
+    "userId" text NOT NULL,
+    "articleId" text NOT NULL,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE public."SavedArticle" OWNER TO iliya;
+
+--
+-- Name: SearchLog; Type: TABLE; Schema: public; Owner: iliya
+--
+
+CREATE TABLE public."SearchLog" (
+    id text NOT NULL,
+    source public."SearchSource" DEFAULT 'PLAYBOOK_SEARCH'::public."SearchSource" NOT NULL,
+    question text NOT NULL,
+    answer text,
+    "userId" text,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    confidence double precision,
+    fallback boolean,
+    "sourceCount" integer,
+    "articleId" text,
+    "articleTitle" text
+);
+
+
+ALTER TABLE public."SearchLog" OWNER TO iliya;
+
+--
+-- Name: User; Type: TABLE; Schema: public; Owner: iliya
+--
+
+CREATE TABLE public."User" (
+    id text NOT NULL,
+    email text NOT NULL,
+    "fullName" text,
+    "passwordHash" text,
+    role public."UserRole" DEFAULT 'EMPLOYEE'::public."UserRole" NOT NULL,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp(3) without time zone NOT NULL
+);
+
+
+ALTER TABLE public."User" OWNER TO iliya;
+
+--
+-- Name: _prisma_migrations; Type: TABLE; Schema: public; Owner: iliya
+--
+
+CREATE TABLE public._prisma_migrations (
+    id character varying(36) NOT NULL,
+    checksum character varying(64) NOT NULL,
+    finished_at timestamp with time zone,
+    migration_name character varying(255) NOT NULL,
+    logs text,
+    rolled_back_at timestamp with time zone,
+    started_at timestamp with time zone DEFAULT now() NOT NULL,
+    applied_steps_count integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE public._prisma_migrations OWNER TO iliya;
+
+--
+-- Data for Name: Article; Type: TABLE DATA; Schema: public; Owner: iliya
+--
+
+COPY public."Article" (id, title, slug, content, status, "categoryId", "authorId", "createdAt", "updatedAt", summary, tags) FROM stdin;
+cmovwxbgz000gs7c2va57djx2	Holiday and Leave	holiday-and-leave	Request vacation and other leave according to OWOW HR guidelines. Submit requests in advance where possible so teams can plan coverage.	PUBLISHED	cmovwxbgr000as7c23n9qov0f	cmovwxbfu0000s7c282ap98kd	2026-05-07 20:02:19.86	2026-05-07 20:28:26.802	Basics on requesting leave and holidays at OWOW.	{leave,vacation,hr}
+cmpe6oplv000gs7ppv0h7y0o5	Mission, Vision & Promise	mission-vision-promise	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nMission, Vision & Promise helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Why OWOW exists and where we are heading\n• Mission and vision in plain language\n• Our promise to clients and colleagues\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgj0003s7c2v7a2a0zl	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.604	2026-05-20 18:34:27.767	Why OWOW exists and where we are heading	{owow,showcase}
+cmpe6oplx000ks7ppf3tv32gk	Work Culture	work-culture	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWork Culture helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• How we collaborate across teams\n• Feedback and psychological safety\n• Celebrating wins and learning from misses\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgj0003s7c2v7a2a0zl	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.606	2026-05-20 18:34:27.769	How we collaborate across teams	{owow,showcase}
+cmovwxbgt000es7c2tlluf7ws	Welcome to OWOW	welcome-to-owow	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWelcome to OWOW helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Your starting point for culture, tools, and HR basics.\n• Overview of the playbook\n• Who to contact for help\n• How content is organized\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgj0003s7c2v7a2a0zl	cmovwxbfu0000s7c282ap98kd	2026-05-07 20:02:19.853	2026-05-20 18:34:27.765	Your starting point for culture, tools, and HR basics.	{owow,showcase}
+cmovwxbh2000ms7c2tpaorpsk	Core Values	core-values	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nCore Values helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Trust, craftsmanship, and collaboration\n• How values show up in daily work\n• Examples of value-led decisions\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgj0003s7c2v7a2a0zl	cmovwxbfu0000s7c282ap98kd	2026-05-07 20:02:19.862	2026-05-20 18:34:27.768	Trust, craftsmanship, and collaboration	{owow,showcase}
+cmovwxbh4000qs7c2neiof0p0	Salary Structure	salary-structure	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nSalary Structure helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Bands and review cycles (high level)\n• Transparency principles\n• Private conversations with HR\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgn0005s7c2mdipqmiy	cmovwxbfu0000s7c282ap98kd	2026-05-07 20:02:19.864	2026-05-20 18:34:27.779	Bands and review cycles (high level)	{growth,showcase}
+cmovwxbh0000is7c2lj490kk6	Sickness and Absence	sickness-and-absence	If you cannot work due to illness, notify your manager and HR as soon as you can. Follow internal reporting procedures for sick leave.	PUBLISHED	cmovwxbgq0009s7c2me3otksz	cmovwxbfu0000s7c282ap98kd	2026-05-07 20:02:19.861	2026-05-07 20:28:26.803	What to do when you are unwell or need to report absence.	{sickness,absence,hr}
+cmovwxbh1000ks7c232rvty28	Simplicate	simplicate	Simplicate supports our project and client workflows. Use it for registering hours, updating project status, and keeping CRM records accurate.	PUBLISHED	cmovwxbgo0007s7c27etz7lfg	cmovwxbgg0001s7c2ixp6z2jf	2026-05-07 20:02:19.862	2026-05-07 20:28:26.804	How we use Simplicate for time, projects, and CRM.	{tools,simplicate,crm}
+cmovwxbh3000os7c29k0u7y6m	Remote Work Policy	remote-work-policy	OWOW supports flexible collaboration. Coordinate availability with your team, keep communication predictable, and use agreed tools for transparency.	PUBLISHED	cmovwxbgo0006s7c2lcbqzmi7	cmovwxbfu0000s7c282ap98kd	2026-05-07 20:02:19.863	2026-05-07 20:28:26.805	Expectations and guidelines for hybrid and remote collaboration.	{remote,policy,hybrid}
+cmovwxbh4000ss7c2c87rcx92	Tools and Workflows	tools-and-workflows	Beyond Simplicate we use Slack, Confluence/playbook hubs, Git, and other stack-specific tools per team. Prefer documented workflows when they exist.	PUBLISHED	cmovwxbgo0007s7c27etz7lfg	cmovwxbgg0001s7c2ixp6z2jf	2026-05-07 20:02:19.865	2026-05-07 20:28:26.807	Key tools we use daily and how workflows fit together.	{tools,workflow,productivity}
+cmox9f4ry0003s7knhxamhxe2	Vacation Approval Process	vacation-approval-process	Employees must request vacation through the internal HR system. Approval is handled by HR or the responsible manager.	PUBLISHED	cmovwxbgr000as7c23n9qov0f	cmovwxbfu0000s7c282ap98kd	2026-05-08 18:39:52.559	2026-05-08 18:39:52.559	Explains how vacation requests are approved.	{}
+cmpcs6xm00001s740jgzt8xkj	Test	test	aooiandoinasoidn	PUBLISHED	cmovwxbgq0009s7c2me3otksz	cmovwxbfu0000s7c282ap98kd	2026-05-19 15:21:55.367	2026-05-19 15:22:15.098	asnaklncknan	{}
+cmpe6opm0000os7ppxqasm7ql	Team Structure	team-structure	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nTeam Structure helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Studios, leads, and cross-functional partners\n• Escalation paths for blockers\n• How projects map to teams\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgj0003s7c2v7a2a0zl	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.609	2026-05-20 18:34:27.77	Studios, leads, and cross-functional partners	{owow,showcase}
+cmpe6opm1000qs7ppol0jec3o	Roles	roles	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nRoles helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Common role families at OWOW\n• Expectations by seniority\n• Growth conversations with your lead\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgj0003s7c2v7a2a0zl	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.609	2026-05-20 18:34:27.771	Common role families at OWOW	{owow,showcase}
+cmpe6opm2000ss7pp4mpyiudw	Our Office	our-office	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nOur Office helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Office access and visitor policy\n• Desk booking and hybrid norms\n• Facilities and safety contacts\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgj0003s7c2v7a2a0zl	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.61	2026-05-20 18:34:27.772	Office access and visitor policy	{owow,showcase}
+cmpe6opm2000us7ppi6jru56b	Definitions	definitions	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nDefinitions helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Glossary of OWOW terms and acronyms\n• Client vs internal terminology\n• Where to suggest new definitions\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgj0003s7c2v7a2a0zl	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.611	2026-05-20 18:34:27.772	Glossary of OWOW terms and acronyms	{owow,showcase}
+cmpe6opm3000ws7pp12pr2cqv	Simplicate Login Guide	simplicate-login-guide	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nSimplicate Login Guide helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Access Simplicate with your OWOW account\n• Register hours and project codes\n• CRM hygiene expectations\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgm0004s7c2yfgdhrh0	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.612	2026-05-20 18:34:27.773	Access Simplicate with your OWOW account	{practical,showcase}
+cmpe6opm4000ys7pp4cxmh1wr	Sickness Reporting	sickness-reporting	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nSickness Reporting helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Notify your manager before 09:30\n• Log absence in Simplicate\n• Return-to-work check-in\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgm0004s7c2yfgdhrh0	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.612	2026-05-20 18:34:27.773	Notify your manager before 09:30	{practical,showcase}
+cmpe6opm40010s7ppn5utlzkp	Absence Policy	absence-policy	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nAbsence Policy helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Planned vs unplanned absence\n• Coverage handover expectations\n• HR documentation when required\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgm0004s7c2yfgdhrh0	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.613	2026-05-20 18:34:27.774	Planned vs unplanned absence	{practical,showcase}
+cmpe6opm50012s7pp7gmbqlb6	Holiday Calendar	holiday-calendar	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nHoliday Calendar helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• National holidays and company closures\n• Team calendar visibility\n• Planning around peak client periods\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgm0004s7c2yfgdhrh0	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.613	2026-05-20 18:34:27.775	National holidays and company closures	{practical,showcase}
+cmpe6opm50014s7pp1whp0ln6	Leave Request Process	leave-request-process	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nLeave Request Process helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Submit requests in advance\n• Approval workflow with your lead\n• Balance checks and carry-over basics\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgm0004s7c2yfgdhrh0	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.614	2026-05-20 18:34:27.775	Submit requests in advance	{practical,showcase}
+cmpe6opm70018s7ppuslkwlmm	Reimbursements	reimbursements	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nReimbursements helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Approval and payout timeline\n• Currency and VAT notes\n• Questions to finance@ alias\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgm0004s7c2yfgdhrh0	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.615	2026-05-20 18:34:27.776	Approval and payout timeline	{practical,showcase}
+cmpe6opm7001as7pp4ufpa5ad	Pension Scheme	pension-scheme	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nPension Scheme helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Enrollment overview\n• Employee vs employer contribution (high level)\n• Where to read full pension docs\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgm0004s7c2yfgdhrh0	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.616	2026-05-20 18:34:27.777	Enrollment overview	{practical,showcase}
+cmpe6opm8001cs7ppdhlmsrwy	Parenthood	parenthood	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nParenthood helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Parental leave types\n• Notice periods and planning\n• Return-to-work support\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgm0004s7c2yfgdhrh0	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.616	2026-05-20 18:34:27.777	Parental leave types	{practical,showcase}
+cmpe6opm8001es7ppb4dzjbvq	Role Description	role-description	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nRole Description helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Scope and responsibilities\n• Success metrics for your role\n• Alignment with studio goals\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgn0005s7c2mdipqmiy	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.617	2026-05-20 18:34:27.778	Scope and responsibilities	{growth,showcase}
+cmpe6opma001is7pp52awhnhl	Personal Growth	personal-growth	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nPersonal Growth helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Learning budget and time\n• Mentorship and coaching\n• Career path conversations\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgn0005s7c2mdipqmiy	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.618	2026-05-20 18:34:27.78	Learning budget and time	{growth,showcase}
+cmpe6opma001ks7ppar8pw7tp	Dealing with Clients	dealing-with-clients	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nDealing with Clients helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Professional communication standards\n• Escalation when scope shifts\n• Recording decisions in writing\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgn0005s7c2mdipqmiy	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.619	2026-05-20 18:34:27.78	Professional communication standards	{growth,showcase}
+cmpe6opmb001ms7pp71ivcclu	OWOW Online Library	owow-online-library	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nOWOW Online Library helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Curated books and courses\n• How to request new titles\n• Sharing learnings with the studio\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgn0005s7c2mdipqmiy	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.619	2026-05-20 18:34:27.781	Curated books and courses	{growth,showcase}
+cmpe6opmc001os7ppmeydorn8	Performance Review Process	performance-review-process	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nPerformance Review Process helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Review cadence and participants\n• Self-assessment tips\n• Goal setting for the next period\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgn0005s7c2mdipqmiy	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.62	2026-05-20 18:34:27.781	Review cadence and participants	{growth,showcase}
+cmpe6opmc001qs7pprue3q5y5	Inclusion	inclusion	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nInclusion helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Inclusive collaboration norms\n• Accessible meetings and documents\n• Reporting concerns safely\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgo0006s7c2lcbqzmi7	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.621	2026-05-20 18:34:27.782	Inclusive collaboration norms	{policy,showcase}
+cmpe6opmd001ss7ppb5ag2kkk	Non-Discrimination	non-discrimination	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nNon-Discrimination helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Protected characteristics (summary)\n• Zero tolerance for discrimination\n• How HR investigates reports\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgo0006s7c2lcbqzmi7	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.621	2026-05-20 18:34:27.782	Protected characteristics (summary)	{policy,showcase}
+cmpe6opme001us7pp861jq6wo	Equal Treatment	equal-treatment	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nEqual Treatment helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Fair processes for opportunities\n• Consistent interview practices\n• Transparency in decisions\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgo0006s7c2lcbqzmi7	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.622	2026-05-20 18:34:27.782	Fair processes for opportunities	{policy,showcase}
+cmpe6opme001ws7pp4p0x09jb	Anti-Harassment Reporting	anti-harassment-reporting	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nAnti-Harassment Reporting helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• What counts as harassment\n• Confidential reporting channels\n• Support during investigations\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgo0006s7c2lcbqzmi7	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.623	2026-05-20 18:34:27.783	What counts as harassment	{policy,showcase}
+cmpe6opmf001ys7ppn5zs24h6	Wellbeing in the Workplace	wellbeing-in-the-workplace	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWellbeing in the Workplace helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Workload sustainability\n• Access to support resources\n• Manager check-in guidance\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgo0006s7c2lcbqzmi7	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.623	2026-05-20 18:34:27.783	Workload sustainability	{policy,showcase}
+cmpe6opmf0020s7pp10x3xao8	Complaint Process	complaint-process	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nComplaint Process helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Formal vs informal complaints\n• Timelines and documentation\n• Outcomes and follow-up\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgo0006s7c2lcbqzmi7	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.624	2026-05-20 18:34:27.784	Formal vs informal complaints	{policy,showcase}
+cmpe6opmg0022s7ppchaqli1n	Conflict Mediation	conflict-mediation	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nConflict Mediation helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• When to request mediation\n• Neutral facilitator role\n• Agreements and monitoring\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgo0006s7c2lcbqzmi7	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.624	2026-05-20 18:34:27.784	When to request mediation	{policy,showcase}
+cmpe6opmg0024s7ppp0xg750z	Confidential Advisor	confidential-advisor	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nConfidential Advisor helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Independent support contact\n• What is shared with HR\n• Emergency escalation paths\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgo0006s7c2lcbqzmi7	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.625	2026-05-20 18:34:27.785	Independent support contact	{policy,showcase}
+cmpe6opmh0026s7ppy8r25fnh	Disciplinary Policy	disciplinary-policy	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nDisciplinary Policy helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Stages of disciplinary process\n• Documentation expectations\n• Right to be heard\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	DRAFT	cmovwxbgo0006s7c2lcbqzmi7	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.625	2026-05-26 08:25:24.497	Stages of disciplinary process	{policy,showcase}
+cmpe6opmh0028s7pp5j9829jh	Exit Process	exit-process	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nExit Process helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Resignation notice periods\n• Handover checklist\n• Equipment return and access revocation\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgo0006s7c2lcbqzmi7	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.626	2026-05-20 18:34:27.786	Resignation notice periods	{policy,showcase}
+cmpe9ugue0001s7ljgztd95ui	Backend Endpoint Documentation — OWOW WizKid Helper	backend-endpoint-documentation-owow-wizkid-helper	Backend Endpoint Documentation — OWOW WizKid Helper Project Overview The OWOW WizKid Helper backend was designed using REST API architecture. The backend supports: authentication onboarding article management analytics AI functionality feedback systems missing information reports Authentication Controller Repository Authentication Controller Implemented Features login endpoint register endpoint JWT token generation role-based authentication Purpose Backend Endpoint Documentation — OWOW WizKid Helper 1\n\nThe authentication system secures platform access and separates employee and HR permissions. Category Controller Repository Category Controller Features create category retrieve categories update category delete category Purpose Categories organize knowledge structure and improve content discoverability. Article Controller Repository Article Controller Features CRUD operations for articles article retrieval article management Purpose Articles form the core company knowledge base inside the platform. Backend Endpoint Documentation — OWOW WizKid Helper 2\n\nOnboarding Controller Repository Onboarding Controller Features onboarding step retrieval onboarding progress tracking onboarding management Purpose Supports structured onboarding for new employees. Analytics Controller Repository Analytics Controller Features search analytics trending topics unanswered questions usage tracking Purpose Allows HR to identify missing knowledge and improve documentation. Feedback Controller Repository Backend Endpoint Documentation — OWOW WizKid Helper 3\n\nFeedback Controller Features feedback submission feedback management Purpose Allows users to report helpfulness and platform quality issues. Missing Information Controller Repository Missing Information Controller Features missing information reports unresolved topic tracking Purpose Directly addresses stakeholder concerns about missing knowledge inside the existing system. AI Controller Repository AI Controller Planned Features AI summarization AI-generated answers knowledge search Backend Endpoint Documentation — OWOW WizKid Helper 4\n\nsource acknowledgement Purpose The AI system is intended to improve information accessibility and employee onboarding. Reflection This backend implementation improved my understanding of: REST APIs scalable backend architecture CRUD systems authentication SaaS backend organization I also learned how important analytics and feedback systems are in knowledge platforms. Conclusion The backend architecture demonstrates: scalable API structure organized controllers authentication systems analytics implementation onboarding systems SaaS backend principles Backend Endpoint Documentation — OWOW WizKid Helper 5	DRAFT	cmpd9gxpt0000s76ok8np9qtv	cmovwxbfu0000s7c282ap98kd	2026-05-20 16:23:53.03	2026-05-20 16:23:53.03	Backend Endpoint Documentation — OWOW WizKid Helper Project Overview The OWOW WizKid Helper backend was designed using REST API architecture. The backend supports: authentication onboarding article ma…	{}
+cmpe6oply000ms7pphw3g8hrb	Way of Working	way-of-working	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWay of Working helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Agile-inspired delivery without jargon overload\n• Documentation and async communication\n• Meetings, focus time, and client work\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgj0003s7c2v7a2a0zl	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.606	2026-05-20 18:34:27.769	Agile-inspired delivery without jargon overload	{owow,showcase}
+cmpe6opm60016s7ppemvu0wok	Expenses	expenses	Showcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nExpenses helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Eligible business expenses\n• Receipt requirements\n• Submission deadlines\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	PUBLISHED	cmovwxbgm0004s7c2yfgdhrh0	cmovwxbfu0000s7c282ap98kd	2026-05-20 14:55:25.614	2026-05-20 18:34:27.776	Eligible business expenses	{practical,showcase}
+\.
+
+
+--
+-- Data for Name: Category; Type: TABLE DATA; Schema: public; Owner: iliya
+--
+
+COPY public."Category" (id, name, slug, "createdAt", "updatedAt") FROM stdin;
+cmpd9gxpt0000s76ok8np9qtv	Test	test	2026-05-19 23:25:35.537	2026-05-19 23:25:35.537
+cmovwxbgj0003s7c2v7a2a0zl	OWOW General	owow-general	2026-05-07 20:02:19.844	2026-05-20 18:34:27.76
+cmovwxbgm0004s7c2yfgdhrh0	Practical Information	practical-information	2026-05-07 20:02:19.847	2026-05-20 18:34:27.761
+cmovwxbgn0005s7c2mdipqmiy	Growth and Development	growth-and-development	2026-05-07 20:02:19.848	2026-05-20 18:34:27.761
+cmovwxbgo0006s7c2lcbqzmi7	Policy and Conduct	policy-and-conduct	2026-05-07 20:02:19.848	2026-05-20 18:34:27.762
+cmovwxbgo0007s7c27etz7lfg	Tools	tools	2026-05-07 20:02:19.849	2026-05-20 18:34:27.762
+cmovwxbgp0008s7c2gcam6j2o	Company Culture	company-culture	2026-05-07 20:02:19.85	2026-05-20 18:34:27.763
+cmovwxbgq0009s7c2me3otksz	HR	hr	2026-05-07 20:02:19.851	2026-05-20 18:34:27.763
+cmovwxbgr000as7c23n9qov0f	Benefits	benefits	2026-05-07 20:02:19.851	2026-05-20 18:34:27.764
+cmovwxbgr000bs7c2f6w0gn3r	Communication	communication	2026-05-07 20:02:19.852	2026-05-20 18:34:27.764
+cmovwxbgs000cs7c2kpryzkci	Onboarding	onboarding	2026-05-07 20:02:19.852	2026-05-20 18:34:27.764
+\.
+
+
+--
+-- Data for Name: Feedback; Type: TABLE DATA; Schema: public; Owner: iliya
+--
+
+COPY public."Feedback" (id, type, message, "articleId", "userId", "createdAt", "updatedAt") FROM stdin;
+\.
+
+
+--
+-- Data for Name: MissingInfoReport; Type: TABLE DATA; Schema: public; Owner: iliya
+--
+
+COPY public."MissingInfoReport" (id, type, title, description, "articleId", "userId", "createdAt", status, "updatedAt") FROM stdin;
+cmpeofiee000js7ejg0e7aydc	MISSING_ARTICLE	What is OWOW	I want to get infomartion about what is OWOW with what they help and etc\n\n---\nSource: Employee dashboard	\N	cmovwxbgg0001s7c2ixp6z2jf	2026-05-20 23:12:09.447	OPEN	2026-05-20 23:12:09.447
+cmpmwl1j90005s7z7li1zhf1c	MISSING_ARTICLE	how good can i be	how good i need to be to become a manager\n\n---\nSource: Search: how good can i be	\N	cmovwxbgg0001s7c2ixp6z2jf	2026-05-26 17:22:33.862	OPEN	2026-05-26 17:22:33.862
+cmpmwlkzy0009s7z7gd9y8tca	MISSING_ARTICLE	are the dragons real	where i can find more info about a dragon\n\n---\nSource: Search: are the dragons real	\N	cmovwxbgg0001s7c2ixp6z2jf	2026-05-26 17:22:59.086	OPEN	2026-05-26 17:22:59.086
+\.
+
+
+--
+-- Data for Name: OnboardingStep; Type: TABLE DATA; Schema: public; Owner: iliya
+--
+
+COPY public."OnboardingStep" (id, title, content, "order", "isActive", "createdAt", "updatedAt", "articleId") FROM stdin;
+cmovwxbh9000ws7c2j5c1ak7q	Welcome to OWOW	Read the welcome articles and bookmark the playbook hub.	1	t	2026-05-07 20:02:19.869	2026-05-20 18:34:27.786	cmovwxbgt000es7c2tlluf7ws
+cmovwxbh9000ys7c2oefy8z0b	Set up your tools	Complete Simplicate access and review the online library.	2	t	2026-05-07 20:02:19.87	2026-05-20 18:34:27.793	cmpe6opm3000ws7pp12pr2cqv
+cmovwxbha0010s7c2j7vpb41b	Learn company culture	Review core values, work culture, and our way of working.	3	t	2026-05-07 20:02:19.87	2026-05-20 18:34:27.794	cmovwxbh2000ms7c2tpaorpsk
+cmovwxbha0012s7c2o7a2rmwm	Understand policies	Read key HR policies in Policy & Conduct.	4	t	2026-05-07 20:02:19.871	2026-05-20 18:34:27.796	cmpe6opm4000ys7pp4cxmh1wr
+cmpe6opml002is7ppsj3k176i	Meet your team	Schedule intros with your lead and review team structure.	5	t	2026-05-20 14:55:25.629	2026-05-20 18:34:27.798	cmpe6opm0000os7ppxqasm7ql
+cmpe7z9tx0001s723wn5gxu8j	test	test	6	t	2026-05-20 15:31:37.989	2026-05-26 08:24:39.093	\N
+\.
+
+
+--
+-- Data for Name: OnboardingStepArticle; Type: TABLE DATA; Schema: public; Owner: iliya
+--
+
+COPY public."OnboardingStepArticle" (id, "onboardingStepId", "articleId", "order") FROM stdin;
+cmpeeie6l002bs7m3k6us06a0	cmovwxbh9000ws7c2j5c1ak7q	cmovwxbgt000es7c2tlluf7ws	0
+cmpeeie6l002cs7m3oo1beqrr	cmovwxbh9000ws7c2j5c1ak7q	cmpe6oplv000gs7ppv0h7y0o5	1
+cmpeeie6p002fs7m38ua8j1be	cmovwxbh9000ys7c2oefy8z0b	cmpe6opm3000ws7pp12pr2cqv	0
+cmpeeie6p002gs7m3wo1qkoql	cmovwxbh9000ys7c2oefy8z0b	cmpe6opmb001ms7pp71ivcclu	1
+cmpeeie6r002js7m3m9x832ps	cmovwxbha0010s7c2j7vpb41b	cmovwxbh2000ms7c2tpaorpsk	0
+cmpeeie6r002ks7m3dojluoer	cmovwxbha0010s7c2j7vpb41b	cmpe6oplx000ks7ppf3tv32gk	1
+cmpeeie6r002ls7m37peqdnut	cmovwxbha0010s7c2j7vpb41b	cmpe6oply000ms7pphw3g8hrb	2
+cmpeeie6t002os7m3fxm9bhwn	cmovwxbha0012s7c2o7a2rmwm	cmpe6opm4000ys7pp4cxmh1wr	0
+cmpeeie6t002ps7m3yu53dw6w	cmovwxbha0012s7c2o7a2rmwm	cmpe6opm50014s7pp1whp0ln6	1
+cmpeeie6t002qs7m3b22krjbr	cmovwxbha0012s7c2o7a2rmwm	cmpe6opme001ws7pp4p0x09jb	2
+cmpeeie6t002rs7m3ceo7pxue	cmovwxbha0012s7c2o7a2rmwm	cmpe6opme001us7pp861jq6wo	3
+cmpeeie6u002us7m35japqro8	cmpe6opml002is7ppsj3k176i	cmpe6opm0000os7ppxqasm7ql	0
+cmpeeie6u002vs7m3mui23quq	cmpe6opml002is7ppsj3k176i	cmpe6opm1000qs7ppol0jec3o	1
+cmpeeie6u002ws7m348rixhea	cmpe6opml002is7ppsj3k176i	cmpe6opm2000ss7pp4mpyiudw	2
+\.
+
+
+--
+-- Data for Name: SavedArticle; Type: TABLE DATA; Schema: public; Owner: iliya
+--
+
+COPY public."SavedArticle" (id, "userId", "articleId", "createdAt") FROM stdin;
+cmpepgv970003s7urv5aeanym	cmovwxbgg0001s7c2ixp6z2jf	cmpe6opme001ws7pp4p0x09jb	2026-05-20 23:41:12.38
+cmpeqf61w0003s7n3ttgxayu2	cmovwxbgg0001s7c2ixp6z2jf	cmpe6opma001is7pp52awhnhl	2026-05-21 00:07:52.677
+\.
+
+
+--
+-- Data for Name: SearchLog; Type: TABLE DATA; Schema: public; Owner: iliya
+--
+
+COPY public."SearchLog" (id, source, question, answer, "userId", "createdAt", confidence, fallback, "sourceCount", "articleId", "articleTitle") FROM stdin;
+cmpen52j40001s7jyq8g4if0f	PLAYBOOK_SEARCH	How does onboarding work?	Based on the OWOW Playbook articles that match "How does onboarding work?", here is what we found:\n\n1. Wellbeing in the Workplace (Policy and Conduct)\nWorkload sustainability\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWellbeing in the Workplace helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Workload sustainability\n• Access to support resources\n• Manager check-in guidance\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n2. Work Culture (OWOW General)\nHow we collaborate across teams\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWork Culture helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• How we collaborate across teams\n• Feedback and psychological safety\n• Celebrating wins and learning from misses\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n3. Way of Working (OWOW General)\nAgile-inspired delivery without jargon overload\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWay of Working helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Agile-inspired delivery without jargon overload\n• Documentation and async communication\n• Meetings, focus time, and client work\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n4. Tools and Workflows (Tools)\nKey tools we use daily and how workflows fit together.\n\nBeyond Simplicate we use Slack, Confluence/playbook hubs, Git, and other stack-specific tools per team. Prefer documented workflows when they exist.\n\n5. Remote Work Policy (Policy and Conduct)\nExpectations and guidelines for hybrid and remote collaboration.\n\nOWOW supports flexible collaboration. Coordinate availability with your team, keep communication predictable, and use agreed tools for transparency.	\N	2026-05-20 22:36:02.704	\N	\N	\N	\N	\N
+cmpen52qo0001s7mxqbp9d4kv	PLAYBOOK_SEARCH	onboarding welcome	Based on the OWOW Playbook articles that match "onboarding welcome", here is what we found:\n\n1. Welcome to OWOW (OWOW General)\nYour starting point for culture, tools, and HR basics.\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWelcome to OWOW helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Your starting point for culture, tools, and HR basics.\n• Overview of the playbook\n• Who to contact for help\n• How content is organized\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.	\N	2026-05-20 22:36:02.976	\N	\N	\N	\N	\N
+cmpenbvg90003s7jy0kocobnl	PLAYBOOK_SEARCH	How does onboarding work?	Based on the OWOW Playbook articles that match "How does onboarding work?", here is what we found:\n\n1. Wellbeing in the Workplace (Policy and Conduct)\nWorkload sustainability\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWellbeing in the Workplace helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Workload sustainability\n• Access to support resources\n• Manager check-in guidance\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n2. Work Culture (OWOW General)\nHow we collaborate across teams\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWork Culture helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• How we collaborate across teams\n• Feedback and psychological safety\n• Celebrating wins and learning from misses\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n3. Way of Working (OWOW General)\nAgile-inspired delivery without jargon overload\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWay of Working helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Agile-inspired delivery without jargon overload\n• Documentation and async communication\n• Meetings, focus time, and client work\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n4. Tools and Workflows (Tools)\nKey tools we use daily and how workflows fit together.\n\nBeyond Simplicate we use Slack, Confluence/playbook hubs, Git, and other stack-specific tools per team. Prefer documented workflows when they exist.\n\n5. Remote Work Policy (Policy and Conduct)\nExpectations and guidelines for hybrid and remote collaboration.\n\nOWOW supports flexible collaboration. Coordinate availability with your team, keep communication predictable, and use agreed tools for transparency.	\N	2026-05-20 22:41:20.122	\N	\N	\N	\N	\N
+cmpence0v0005s7jy2o093p1h	PLAYBOOK_SEARCH	Does OWOW have a dragon feeding policy?	Based on the OWOW Playbook articles that match "Does OWOW have a dragon feeding policy?", here is what we found:\n\n1. Disciplinary Policy (Policy and Conduct)\nStages of disciplinary process\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nDisciplinary Policy helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Stages of disciplinary process\n• Documentation expectations\n• Right to be heard\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n2. OWOW Online Library (Growth and Development)\nCurated books and courses\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nOWOW Online Library helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Curated books and courses\n• How to request new titles\n• Sharing learnings with the studio\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n3. Absence Policy (Practical Information)\nPlanned vs unplanned absence\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nAbsence Policy helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Planned vs unplanned absence\n• Coverage handover expectations\n• HR documentation when required\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n4. Welcome to OWOW (OWOW General)\nYour starting point for culture, tools, and HR basics.\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWelcome to OWOW helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Your starting point for culture, tools, and HR basics.\n• Overview of the playbook\n• Who to contact for help\n• How content is organized\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n5. Remote Work Policy (Policy and Conduct)\nExpectations and guidelines for hybrid and remote collaboration.\n\nOWOW supports flexible collaboration. Coordinate availability with your team, keep communication predictable, and use agreed tools for transparency.	\N	2026-05-20 22:41:44.191	\N	\N	\N	\N	\N
+cmpencytg0007s7jyc90mwcot	PLAYBOOK_SEARCH	Does OWOW have a dragon feeding policy?	Based on the OWOW Playbook articles that match "Does OWOW have a dragon feeding policy?", here is what we found:\n\n1. Disciplinary Policy (Policy and Conduct)\nStages of disciplinary process\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nDisciplinary Policy helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Stages of disciplinary process\n• Documentation expectations\n• Right to be heard\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n2. OWOW Online Library (Growth and Development)\nCurated books and courses\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nOWOW Online Library helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Curated books and courses\n• How to request new titles\n• Sharing learnings with the studio\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n3. Absence Policy (Practical Information)\nPlanned vs unplanned absence\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nAbsence Policy helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Planned vs unplanned absence\n• Coverage handover expectations\n• HR documentation when required\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n4. Welcome to OWOW (OWOW General)\nYour starting point for culture, tools, and HR basics.\n\nShowcase demo content for the OWOW Playbook Hub. This is illustrative guidance only and is not official company policy.\n\nWelcome to OWOW helps new and existing colleagues find practical answers in one place. Use this article as a starting point and ask HR if anything is unclear.\n\n• Your starting point for culture, tools, and HR basics.\n• Overview of the playbook\n• Who to contact for help\n• How content is organized\n\nIf details change, HR will update the playbook. Always confirm time-sensitive topics (leave, expenses, contracts) with your manager or HR.\n\n5. Remote Work Policy (Policy and Conduct)\nExpectations and guidelines for hybrid and remote collaboration.\n\nOWOW supports flexible collaboration. Coordinate availability with your team, keep communication predictable, and use agreed tools for transparency.	\N	2026-05-20 22:42:11.14	\N	\N	\N	\N	\N
+cmpenl9wj0001s7b9l39brtkd	PLAYBOOK_SEARCH	Does OWOW have a dragon feeding policy?	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	\N	2026-05-20 22:48:38.755	\N	\N	\N	\N	\N
+cmpenlkhl0003s7b9occbwbvx	PLAYBOOK_SEARCH	What is the remote work policy?	Based on the closest playbook articles, the most relevant information is in Remote Work Policy. Expectations and guidelines for hybrid and remote collaboration. Open the source below for full details.	\N	2026-05-20 22:48:52.474	\N	\N	\N	\N	\N
+cmpenln3r0005s7b9n1zwzkkm	PLAYBOOK_SEARCH	How do I report absence?	Based on the closest playbook articles, the most relevant information is in Sickness and Absence. What to do when you are unwell or need to report absence. Open the source below for full details.	\N	2026-05-20 22:48:55.863	\N	\N	\N	\N	\N
+cmpenlnfg0007s7b9nd7wpo9q	PLAYBOOK_SEARCH	How does onboarding work?	Based on the closest playbook articles, the most relevant information is in Wellbeing in the Workplace. Workload sustainability Open the source below for full details.	\N	2026-05-20 22:48:56.284	\N	\N	\N	\N	\N
+cmpenlsdw0009s7b90ictzai1	PLAYBOOK_SEARCH	Can I park my spaceship on the roof?	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	\N	2026-05-20 22:49:02.708	\N	\N	\N	\N	\N
+cmpenlsen000bs7b9mbos0ws3	PLAYBOOK_SEARCH	Does OWOW have a policy?	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	\N	2026-05-20 22:49:02.735	\N	\N	\N	\N	\N
+cmpenlwj0000ds7b9026uaf7i	PLAYBOOK_SEARCH	How does onboarding work?	Based on the closest playbook articles, the most relevant information is in Wellbeing in the Workplace. Workload sustainability Open the source below for full details.	\N	2026-05-20 22:49:08.076	\N	\N	\N	\N	\N
+cmpenoovz0001s7qynwmx63t7	PLAYBOOK_SEARCH	Does OWOW have a dragon feeding policy?	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	\N	2026-05-20 22:51:18.143	\N	\N	\N	\N	\N
+cmpenp9tl0003s7qybnsgcusz	PLAYBOOK_SEARCH	What is the remote work policy?	Based on the closest playbook articles, the most relevant information is in Remote Work Policy. Expectations and guidelines for hybrid and remote collaboration. Open the source below for full details.	\N	2026-05-20 22:51:45.273	\N	\N	\N	\N	\N
+cmpenstla0005s7qyuv4zjv1p	PLAYBOOK_SEARCH	What is the remote work policy?	Based on the closest playbook articles, the most relevant information is in Remote Work Policy. Expectations and guidelines for hybrid and remote collaboration. Open the source below for full details.	\N	2026-05-20 22:54:30.862	\N	\N	\N	\N	\N
+cmpenwiyx0001s7hhlma1qtiy	AI_CHAT	What should I remember from this policy?	Based on this article, the key point is: Expectations and guidelines for hybrid and remote collaboration. Open the article content above for full details.	\N	2026-05-20 22:57:23.721	\N	\N	\N	\N	\N
+cmpenwj9n0003s7hhp2d7mhof	AI_CHAT	Summarize this article	Based on this article, the key point is: Expectations and guidelines for hybrid and remote collaboration. Open the article content above for full details.	\N	2026-05-20 22:57:24.107	\N	\N	\N	\N	\N
+cmpenwj9t0005s7hhbi9ljfx3	AI_CHAT	Can I feed dragons while working remotely?	I could not find enough information about this in the current article.	\N	2026-05-20 22:57:24.113	\N	\N	\N	\N	\N
+cmpenwkdc0001s7ejovrhef8w	AI_CHAT	Can I feed dragons while working remotely?	I could not find enough information about this in the current article.	\N	2026-05-20 22:57:25.536	\N	\N	\N	\N	\N
+cmpenwknd0003s7ejiifq5ey2	AI_CHAT	What should I remember from this policy?	Based on this article, the key point is: Expectations and guidelines for hybrid and remote collaboration. Open the article content above for full details.	\N	2026-05-20 22:57:25.898	\N	\N	\N	\N	\N
+cmpenwknz0005s7ejqwjlmtiz	PLAYBOOK_SEARCH	Does OWOW have a dragon feeding policy?	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	\N	2026-05-20 22:57:25.919	\N	\N	\N	\N	\N
+cmpeo3t960007s7ejbnt42h4m	PLAYBOOK_SEARCH	Exit Process	Based on the closest playbook articles, the most relevant information is in Exit Process. Resignation notice periods Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-20 23:03:03.643	\N	\N	\N	\N	\N
+cmpeo4g5s0009s7ejrzzrh3z9	PLAYBOOK_SEARCH	how can i grow in the company	Based on the closest playbook articles, the most relevant information is in Personal Growth. Learning budget and time Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-20 23:03:33.329	\N	\N	\N	\N	\N
+cmpeobmzg000bs7ejmctye7z6	PLAYBOOK_SEARCH	what is owow	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-20 23:09:08.764	\N	\N	\N	\N	\N
+cmpeoc480000ds7ejr8sy7ido	PLAYBOOK_SEARCH	im new here	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-20 23:09:31.104	\N	\N	\N	\N	\N
+cmpeoccxn000fs7ejscscnwzi	PLAYBOOK_SEARCH	Exit Process	Based on the closest playbook articles, the most relevant information is in Exit Process. Resignation notice periods Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-20 23:09:42.396	\N	\N	\N	\N	\N
+cmpeocl8g000hs7ejk59nzmst	AI_CHAT	summarize it	Based on this article, the key point is: Resignation notice periods Open the article content above for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-20 23:09:53.152	\N	\N	\N	\N	\N
+cmpeoz10h000ls7ejkxlvrd72	PLAYBOOK_SEARCH	Does OWOW have a dragon feeding policy?	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	\N	2026-05-20 23:27:20.033	\N	\N	\N	\N	\N
+cmpeoz110000ns7ej806d8cf6	AI_CHAT	Can I feed dragons while working remotely?	I could not find enough information about this in the current article.	\N	2026-05-20 23:27:20.052	\N	\N	\N	\N	\N
+cmpepgq280001s7urxuw99u8j	PLAYBOOK_SEARCH	Anti-Harassment Reporting	Based on the closest playbook articles, the most relevant information is in Anti-Harassment Reporting. What counts as harassment Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-20 23:41:05.647	1	t	2	\N	\N
+cmpephfvm0005s7ur8c2qllju	PLAYBOOK_SEARCH	Disciplinary Policy	Based on the closest playbook articles, the most relevant information is in Disciplinary Policy. Stages of disciplinary process Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-20 23:41:39.106	1	t	1	\N	\N
+cmpeqegy40001s7n38s8pd53f	PLAYBOOK_SEARCH	how can i grow	Based on the closest playbook articles, the most relevant information is in Personal Growth. Learning budget and time Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-21 00:07:20.139	1	t	5	\N	\N
+cmpeqri0f0001s7hxmhgb8u21	AI_CHAT	summarize me the document	Based on this article, the key point is: Your starting point for culture, tools, and HR basics. Open the article content above for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-21 00:17:28.046	0.65	t	1	cmovwxbgt000es7c2tlluf7ws	Welcome to OWOW
+cmpeqsbre0003s7hxzeonj7l7	PLAYBOOK_SEARCH	Disciplinary Policy	Based on the closest playbook articles, the most relevant information is in Disciplinary Policy. Stages of disciplinary process Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-21 00:18:06.603	1	t	1	\N	\N
+cmpfizbk30001s710qypb710q	PLAYBOOK_SEARCH	how can i get time off	Based on the closest playbook articles, the most relevant information is in Our Office. Office access and visitor policy Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-21 13:27:22.179	0.73	t	5	\N	\N
+cmpfj0fkp0003s710wdo9vdda	PLAYBOOK_SEARCH	Backend integration	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-21 13:28:14.042	0	t	0	\N	\N
+cmpjuc2xt0001s7a1aixep1bw	PLAYBOOK_SEARCH	Exit Process	Based on the closest playbook articles, the most relevant information is in Exit Process. Resignation notice periods Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-24 13:56:18.014	0.93	t	1	\N	\N
+cmpl7i48g0001s79yubx94bs6	PLAYBOOK_SEARCH	how can i get a rise	Based on the closest playbook articles, the most relevant information is in Personal Growth. Learning budget and time Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 12:52:40.815	0.3	t	2	\N	\N
+cmpl7k61q0003s79ydaoqr7ik	PLAYBOOK_SEARCH	growth	Based on the closest playbook articles, the most relevant information is in Personal Growth. Learning budget and time Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 12:54:16.478	1	t	5	\N	\N
+cmpl7laq40005s79yh6o19clo	PLAYBOOK_SEARCH	how can i grow in the company	Based on the closest playbook articles, the most relevant information is in Personal Growth. Learning budget and time Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 12:55:09.197	0.76	t	5	\N	\N
+cmplbgt1a0007s79ya3fpvh1q	PLAYBOOK_SEARCH	how can i get promoted	Based on the closest playbook articles, the most relevant information is in Personal Growth. Learning budget and time Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 14:43:38.11	0.3	t	2	\N	\N
+cmplbh8g20009s79ypyf1gfjd	PLAYBOOK_SEARCH	what is the salay here	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 14:43:58.083	0	t	0	\N	\N
+cmplbhru3000bs79yp3x78fal	PLAYBOOK_SEARCH	what abput hliday leave	Based on the closest playbook articles, the most relevant information is in Holiday and Leave. Basics on requesting leave and holidays at OWOW. Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 14:44:23.212	0.65	t	3	\N	\N
+cmplbnwsk000ds79y3bnoy2l1	PLAYBOOK_SEARCH	how i need to deal with clients	Based on the closest playbook articles, the most relevant information is in Dealing with Clients. Professional communication standards Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 14:49:09.573	0.86	t	2	\N	\N
+cmplbo8wc000fs79y4gjr07a5	PLAYBOOK_SEARCH	how i can take a sick leave	Based on the closest playbook articles, the most relevant information is in Holiday and Leave. Basics on requesting leave and holidays at OWOW. Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 14:49:25.26	0.65	t	5	\N	\N
+cmplbolnt000hs79yokema9kl	PLAYBOOK_SEARCH	how can i get sick leave	Based on the closest playbook articles, the most relevant information is in Holiday and Leave. Basics on requesting leave and holidays at OWOW. Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 14:49:41.801	0.65	t	5	\N	\N
+cmplbpffr000js79y8eowhzul	PLAYBOOK_SEARCH	how can i get a sick leave	Based on the closest playbook articles, the most relevant information is in Holiday and Leave. Basics on requesting leave and holidays at OWOW. Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 14:50:20.392	0.65	t	5	\N	\N
+cmplbpuw6000ls79y7oavm1fy	PLAYBOOK_SEARCH	how can i deal with clients	Based on the closest playbook articles, the most relevant information is in Dealing with Clients. Professional communication standards Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 14:50:40.423	0.86	t	1	\N	\N
+cmplc77xy000ns79ybektqxp1	PLAYBOOK_SEARCH	Disciplinary Policy	Based on the closest playbook articles, the most relevant information is in Disciplinary Policy. Stages of disciplinary process Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 15:04:10.486	1	t	1	\N	\N
+cmplc79mq000ps79ykskrz6x4	PLAYBOOK_SEARCH	how can i deal with clients	Based on the closest playbook articles, the most relevant information is in Dealing with Clients. Professional communication standards Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 15:04:12.675	0.86	t	1	\N	\N
+cmpld6mvm000rs79y9evvwdaj	PLAYBOOK_SEARCH	asd	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 15:31:42.802	0	t	0	\N	\N
+cmple9ftj0001s7oc5ht4mh7x	PLAYBOOK_SEARCH	how can i go on vacation	Based on the closest playbook articles, the most relevant information is in Vacation Approval Process. Explains how vacation requests are approved. Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 16:01:53.24	1	t	2	\N	\N
+cmple9w6k0003s7ocg0mrdl0v	PLAYBOOK_SEARCH	How do I request holiday leave?	Based on the closest playbook articles, the most relevant information is in Leave Request Process. Submit requests in advance Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 16:02:14.444	1	t	5	\N	\N
+cmplea8hz0005s7oc1ho9rtp7	PLAYBOOK_SEARCH	how can i get a new salary	Based on the closest playbook articles, the most relevant information is in Salary Structure. Bands and review cycles (high level) Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 16:02:30.407	0.51	t	3	\N	\N
+cmplebjap0007s7ocvfyruit0	PLAYBOOK_SEARCH	how can i get a new salary	Based on the closest playbook articles, the most relevant information is in Salary Structure. Bands and review cycles (high level) Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 16:03:31.057	0.51	t	3	\N	\N
+cmplebthl0009s7ocjhseay7m	PLAYBOOK_SEARCH	Where can I find tools and workflows?	Based on the closest playbook articles, the most relevant information is in Tools and Workflows. Key tools we use daily and how workflows fit together. Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 16:03:44.265	1	t	3	\N	\N
+cmplebzuc000bs7ockx6xhe4u	PLAYBOOK_SEARCH	thank u	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-25 16:03:52.501	0	t	0	\N	\N
+cmpmcdcel0003s744l3uvdtss	PLAYBOOK_SEARCH	How can I grow in the company?	Based on the closest playbook articles, the most relevant information is in Personal Growth. Learning budget and time Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-26 07:56:42.382	0.76	t	5	\N	\N
+cmpmcdkgi0005s744cdtgysuw	PLAYBOOK_SEARCH	how can i get a sick leave	Based on the closest playbook articles, the most relevant information is in Holiday and Leave. Basics on requesting leave and holidays at OWOW. Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-26 07:56:52.818	0.65	t	5	\N	\N
+cmpmcer6i0007s7442wpc3hwv	PLAYBOOK_SEARCH	how can i grow	Based on the closest playbook articles, the most relevant information is in Personal Growth. Learning budget and time Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-26 07:57:48.186	1	t	5	\N	\N
+cmpmcfalx0009s744im6elcft	AI_CHAT	summarize it	Based on this article, the key point is: Learning budget and time Open the article content above for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-26 07:58:13.366	0.65	t	1	cmpe6opma001is7pp52awhnhl	Personal Growth
+cmpmd41wv000bs744lmhbqyth	PLAYBOOK_SEARCH	how can i grow in the company	Based on the closest playbook articles, the most relevant information is in Personal Growth. Learning budget and time Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-26 08:17:28.495	0.76	t	5	\N	\N
+cmpmd4jri000ds7446vsr7iii	PLAYBOOK_SEARCH	how can i get a sick leave	Based on the closest playbook articles, the most relevant information is in Holiday and Leave. Basics on requesting leave and holidays at OWOW. Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-26 08:17:51.63	0.65	t	5	\N	\N
+cmpmwj76q0001s7z7f8u83l6t	PLAYBOOK_SEARCH	how can i get a reisa	Based on the closest playbook articles, the most relevant information is in Personal Growth. Learning budget and time Open the source below for full details.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-26 17:21:07.871	0.3	t	2	\N	\N
+cmpmwknap0003s7z704fg9ytm	PLAYBOOK_SEARCH	how good can i be	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-26 17:22:15.409	0	t	0	\N	\N
+cmpmwlbr10007s7z7gjazb5hc	PLAYBOOK_SEARCH	are the dragons real	I could not find this in the current playbook yet. You can submit a missing information request so HR can add it.	cmovwxbgg0001s7c2ixp6z2jf	2026-05-26 17:22:47.101	0	t	0	\N	\N
+\.
+
+
+--
+-- Data for Name: User; Type: TABLE DATA; Schema: public; Owner: iliya
+--
+
+COPY public."User" (id, email, "fullName", "passwordHash", role, "createdAt", "updatedAt") FROM stdin;
+cmox88bme0000s7kny09swqkk	test.employee@owow.com	Test Employee	$2b$10$cBh.0VdgN.UfEz25f96fIOt6BvZuR4vliYrRSE6Pm639yhwH4bZla	EMPLOYEE	2026-05-08 18:06:35.222	2026-05-08 18:06:35.222
+cmovwxbfu0000s7c282ap98kd	hr.admin@owow.example	HR Admin	$2b$10$7JS7v8pcUalqdJ5yZn1Cke5cHYi.3CiZwGUUMowS8mitVXmLD7xUK	HR_ADMIN	2026-05-07 20:02:19.818	2026-05-20 18:34:27.748
+cmovwxbgi0002s7c2s436wg3t	new.employee@owow.example	New Employee User	$2b$10$7JS7v8pcUalqdJ5yZn1Cke5cHYi.3CiZwGUUMowS8mitVXmLD7xUK	NEW_EMPLOYEE	2026-05-07 20:02:19.843	2026-05-20 18:34:27.759
+cmovwxbgg0001s7c2ixp6z2jf	employee@owow.example	Ivan Ivanov	$2b$10$7JS7v8pcUalqdJ5yZn1Cke5cHYi.3CiZwGUUMowS8mitVXmLD7xUK	EMPLOYEE	2026-05-07 20:02:19.84	2026-05-21 00:19:23.453
+\.
+
+
+--
+-- Data for Name: _prisma_migrations; Type: TABLE DATA; Schema: public; Owner: iliya
+--
+
+COPY public._prisma_migrations (id, checksum, finished_at, migration_name, logs, rolled_back_at, started_at, applied_steps_count) FROM stdin;
+6d1ee673-0267-4bdf-aa87-2d5f76cb6668	89a1a0f68739dff5fb801564d7c0729773a82da71e1cb99dc44409ea97643395	2026-05-07 18:21:24.59521+02	20260507162124_init	\N	\N	2026-05-07 18:21:24.586588+02	1
+dcc9f5ec-627e-44b4-98f1-8a33d7d68305	ee941a1b578f0d4a6ecfd57ccc75c49777140eedf4bd7222ca26ce31fd756118	2026-05-07 18:48:38.828518+02	20260507164838_add_mvp_schema	\N	\N	2026-05-07 18:48:38.796572+02	1
+c9a5f897-0564-4953-a0da-07d2129028b5	476c490e0d9b815b433f0bd1d9ac8af4fe0db2eb1677abaddc5edf7dc7f2cf1b	2026-05-08 01:07:11.67874+02	20260507230711_add_feedback_missing_info_reports	\N	\N	2026-05-08 01:07:11.675906+02	1
+0989d595-7f68-432b-9f09-35657f0ae97a	bd405db1ab34c2f0d30ae422a2e3fa8800f0c5eee57dab6bf6cffe9b078a511b	2026-05-08 19:25:34.449094+02	20260508172534_add_onboarding_crud_support	\N	\N	2026-05-08 19:25:34.44712+02	1
+35d4b0f2-89ab-4922-ba62-df0f5e15ff9b	ee001de842edaaff732d8938a4cd6aa04d78c76f7056f051a342fda2bbf4370b	2026-05-20 20:34:18.064025+02	20260519120000_onboarding_step_articles	\N	\N	2026-05-20 20:34:18.036739+02	1
+c7ae57ca-738b-49b5-9bdf-2e4aa42f4d31	5e3e9ce0a832fc6e9e3108b40a1ad5ffd82c792b92b7301ce5fd197199a6b97c	2026-05-21 01:37:30.701711+02	20260521120000_searchlog_metadata_saved_articles	\N	\N	2026-05-21 01:37:30.603467+02	1
+\.
+
+
+--
+-- Name: Article Article_pkey; Type: CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."Article"
+    ADD CONSTRAINT "Article_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: Category Category_pkey; Type: CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."Category"
+    ADD CONSTRAINT "Category_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: Feedback Feedback_pkey; Type: CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."Feedback"
+    ADD CONSTRAINT "Feedback_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: MissingInfoReport MissingInfoReport_pkey; Type: CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."MissingInfoReport"
+    ADD CONSTRAINT "MissingInfoReport_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: OnboardingStepArticle OnboardingStepArticle_pkey; Type: CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."OnboardingStepArticle"
+    ADD CONSTRAINT "OnboardingStepArticle_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: OnboardingStep OnboardingStep_pkey; Type: CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."OnboardingStep"
+    ADD CONSTRAINT "OnboardingStep_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: SavedArticle SavedArticle_pkey; Type: CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."SavedArticle"
+    ADD CONSTRAINT "SavedArticle_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: SearchLog SearchLog_pkey; Type: CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."SearchLog"
+    ADD CONSTRAINT "SearchLog_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: User User_pkey; Type: CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."User"
+    ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: _prisma_migrations _prisma_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public._prisma_migrations
+    ADD CONSTRAINT _prisma_migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: Article_slug_key; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE UNIQUE INDEX "Article_slug_key" ON public."Article" USING btree (slug);
+
+
+--
+-- Name: Category_name_key; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE UNIQUE INDEX "Category_name_key" ON public."Category" USING btree (name);
+
+
+--
+-- Name: Category_slug_key; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE UNIQUE INDEX "Category_slug_key" ON public."Category" USING btree (slug);
+
+
+--
+-- Name: Feedback_articleId_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "Feedback_articleId_idx" ON public."Feedback" USING btree ("articleId");
+
+
+--
+-- Name: Feedback_createdAt_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "Feedback_createdAt_idx" ON public."Feedback" USING btree ("createdAt");
+
+
+--
+-- Name: Feedback_type_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "Feedback_type_idx" ON public."Feedback" USING btree (type);
+
+
+--
+-- Name: Feedback_userId_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "Feedback_userId_idx" ON public."Feedback" USING btree ("userId");
+
+
+--
+-- Name: MissingInfoReport_articleId_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "MissingInfoReport_articleId_idx" ON public."MissingInfoReport" USING btree ("articleId");
+
+
+--
+-- Name: MissingInfoReport_createdAt_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "MissingInfoReport_createdAt_idx" ON public."MissingInfoReport" USING btree ("createdAt");
+
+
+--
+-- Name: MissingInfoReport_status_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "MissingInfoReport_status_idx" ON public."MissingInfoReport" USING btree (status);
+
+
+--
+-- Name: MissingInfoReport_type_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "MissingInfoReport_type_idx" ON public."MissingInfoReport" USING btree (type);
+
+
+--
+-- Name: MissingInfoReport_userId_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "MissingInfoReport_userId_idx" ON public."MissingInfoReport" USING btree ("userId");
+
+
+--
+-- Name: OnboardingStepArticle_articleId_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "OnboardingStepArticle_articleId_idx" ON public."OnboardingStepArticle" USING btree ("articleId");
+
+
+--
+-- Name: OnboardingStepArticle_onboardingStepId_articleId_key; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE UNIQUE INDEX "OnboardingStepArticle_onboardingStepId_articleId_key" ON public."OnboardingStepArticle" USING btree ("onboardingStepId", "articleId");
+
+
+--
+-- Name: OnboardingStepArticle_onboardingStepId_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "OnboardingStepArticle_onboardingStepId_idx" ON public."OnboardingStepArticle" USING btree ("onboardingStepId");
+
+
+--
+-- Name: OnboardingStep_articleId_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "OnboardingStep_articleId_idx" ON public."OnboardingStep" USING btree ("articleId");
+
+
+--
+-- Name: OnboardingStep_isActive_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "OnboardingStep_isActive_idx" ON public."OnboardingStep" USING btree ("isActive");
+
+
+--
+-- Name: OnboardingStep_order_key; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE UNIQUE INDEX "OnboardingStep_order_key" ON public."OnboardingStep" USING btree ("order");
+
+
+--
+-- Name: SavedArticle_articleId_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "SavedArticle_articleId_idx" ON public."SavedArticle" USING btree ("articleId");
+
+
+--
+-- Name: SavedArticle_userId_articleId_key; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE UNIQUE INDEX "SavedArticle_userId_articleId_key" ON public."SavedArticle" USING btree ("userId", "articleId");
+
+
+--
+-- Name: SavedArticle_userId_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "SavedArticle_userId_idx" ON public."SavedArticle" USING btree ("userId");
+
+
+--
+-- Name: SearchLog_createdAt_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "SearchLog_createdAt_idx" ON public."SearchLog" USING btree ("createdAt");
+
+
+--
+-- Name: SearchLog_source_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "SearchLog_source_idx" ON public."SearchLog" USING btree (source);
+
+
+--
+-- Name: SearchLog_userId_idx; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE INDEX "SearchLog_userId_idx" ON public."SearchLog" USING btree ("userId");
+
+
+--
+-- Name: User_email_key; Type: INDEX; Schema: public; Owner: iliya
+--
+
+CREATE UNIQUE INDEX "User_email_key" ON public."User" USING btree (email);
+
+
+--
+-- Name: Article Article_authorId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."Article"
+    ADD CONSTRAINT "Article_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: Article Article_categoryId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."Article"
+    ADD CONSTRAINT "Article_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES public."Category"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: Feedback Feedback_articleId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."Feedback"
+    ADD CONSTRAINT "Feedback_articleId_fkey" FOREIGN KEY ("articleId") REFERENCES public."Article"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: Feedback Feedback_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."Feedback"
+    ADD CONSTRAINT "Feedback_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: MissingInfoReport MissingInfoReport_articleId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."MissingInfoReport"
+    ADD CONSTRAINT "MissingInfoReport_articleId_fkey" FOREIGN KEY ("articleId") REFERENCES public."Article"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: MissingInfoReport MissingInfoReport_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."MissingInfoReport"
+    ADD CONSTRAINT "MissingInfoReport_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: OnboardingStepArticle OnboardingStepArticle_articleId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."OnboardingStepArticle"
+    ADD CONSTRAINT "OnboardingStepArticle_articleId_fkey" FOREIGN KEY ("articleId") REFERENCES public."Article"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: OnboardingStepArticle OnboardingStepArticle_onboardingStepId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."OnboardingStepArticle"
+    ADD CONSTRAINT "OnboardingStepArticle_onboardingStepId_fkey" FOREIGN KEY ("onboardingStepId") REFERENCES public."OnboardingStep"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: OnboardingStep OnboardingStep_articleId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."OnboardingStep"
+    ADD CONSTRAINT "OnboardingStep_articleId_fkey" FOREIGN KEY ("articleId") REFERENCES public."Article"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: SavedArticle SavedArticle_articleId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."SavedArticle"
+    ADD CONSTRAINT "SavedArticle_articleId_fkey" FOREIGN KEY ("articleId") REFERENCES public."Article"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: SavedArticle SavedArticle_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."SavedArticle"
+    ADD CONSTRAINT "SavedArticle_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: SearchLog SearchLog_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: iliya
+--
+
+ALTER TABLE ONLY public."SearchLog"
+    ADD CONSTRAINT "SearchLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict hzr0N7fJ9UGLEkkJxfJYf5ruhDz9iE493phuMzZYFQ8SzLjI2P7yBARTafbkqM1
+

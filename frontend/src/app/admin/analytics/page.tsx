@@ -29,6 +29,8 @@ import styles from "./page.module.css";
 
 type LoadState = "loading" | "error" | "ready";
 
+const UNANSWERED_VISIBLE_LIMIT = 5;
+
 const accentClass: Record<PerformanceCard["accent"], string> = {
   green: styles.accentGreen,
   cyan: styles.accentCyan,
@@ -121,6 +123,7 @@ export default function AnalyticsPage() {
   }
 
   const hasUnanswered = data.unanswered.length > 0;
+  const hasMoreUnanswered = data.unanswered.length > UNANSWERED_VISIBLE_LIMIT;
 
   return (
     <AdminPageContainer
@@ -192,7 +195,9 @@ export default function AnalyticsPage() {
             }
           >
             {hasUnanswered ? (
-              <ul className={styles.warningList}>
+              <ul
+                className={`${styles.warningList} ${hasMoreUnanswered ? styles.warningListScroll : ""}`}
+              >
                 {data.unanswered.map((item) => (
                   <li key={item.id} className={styles.warningCard}>
                     <div className={styles.warningRow}>
