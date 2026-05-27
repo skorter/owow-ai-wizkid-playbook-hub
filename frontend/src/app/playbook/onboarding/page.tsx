@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import Steps from "./components/Steps/Steps";
@@ -74,7 +80,8 @@ export default function OnboardingPage() {
   }, [progressKey, progressRevision]);
 
   const progress = useMemo(
-    () => getPublishedOnboardingProgressPercent(onboardingSteps, completedSlugs),
+    () =>
+      getPublishedOnboardingProgressPercent(onboardingSteps, completedSlugs),
     [onboardingSteps, completedSlugs],
   );
 
@@ -85,7 +92,11 @@ export default function OnboardingPage() {
   }, []);
 
   useEffect(() => {
-    if (!completedSlug || loadState !== "ready" || onboardingSteps.length === 0) {
+    if (
+      !completedSlug ||
+      loadState !== "ready" ||
+      onboardingSteps.length === 0
+    ) {
       return;
     }
     if (handledCompletedRef.current === completedSlug) {
@@ -93,7 +104,10 @@ export default function OnboardingPage() {
     }
     handledCompletedRef.current = completedSlug;
 
-    const stepFromArticle = findStepIndexForSlug(onboardingSteps, completedSlug);
+    const stepFromArticle = findStepIndexForSlug(
+      onboardingSteps,
+      completedSlug,
+    );
     const stepFromUrl = parseStepParam(stepParam, onboardingSteps.length);
     const active = stepFromUrl ?? stepFromArticle;
     const normalized = completedSlug.trim().toLowerCase();
@@ -115,7 +129,8 @@ export default function OnboardingPage() {
     try {
       const result = await fetchPlaybookOnboarding();
       setOnboardingSteps(result.steps);
-      const completed = readOnboardingProgress(progressKey).completedArticleSlugs;
+      const completed =
+        readOnboardingProgress(progressKey).completedArticleSlugs;
       setCurrentStep(findFirstIncompleteStepIndex(result.steps, completed));
       setProgressRevision((v) => v + 1);
       setLoadState("ready");
@@ -138,7 +153,8 @@ export default function OnboardingPage() {
         const result = await fetchPlaybookOnboarding();
         if (cancelled) return;
         setOnboardingSteps(result.steps);
-        const completed = readOnboardingProgress(progressKey).completedArticleSlugs;
+        const completed =
+          readOnboardingProgress(progressKey).completedArticleSlugs;
         const stepFromUrl = parseStepParam(stepParam, result.steps.length);
         setCurrentStep(
           stepFromUrl ?? findFirstIncompleteStepIndex(result.steps, completed),
@@ -176,7 +192,7 @@ export default function OnboardingPage() {
   if (loadState === "loading") {
     return (
       <div className={styles.onboardingPage}>
-        <Greeting stepCount={0} progressPercent={0} />
+        <Greeting />
         <p className={styles.stateMessage}>Loading onboarding…</p>
       </div>
     );
@@ -185,7 +201,7 @@ export default function OnboardingPage() {
   if (loadState === "error") {
     return (
       <div className={styles.onboardingPage}>
-        <Greeting stepCount={0} progressPercent={0} />
+        <Greeting />
         <div className={styles.stateBlock}>
           <p className={styles.stateError}>{errorMessage}</p>
           <button
@@ -204,7 +220,7 @@ export default function OnboardingPage() {
   if (onboardingSteps.length === 0) {
     return (
       <div className={styles.onboardingPage}>
-        <Greeting stepCount={0} progressPercent={0} />
+        <Greeting />
         <PremiumEmptyState
           icon={GraduationCap}
           title="Onboarding is being prepared"
@@ -225,10 +241,6 @@ export default function OnboardingPage() {
     completedSlugs.includes(article.slug.trim().toLowerCase()),
   ).length;
   const stepArticleTotal = activeStep.articles.length;
-  const stepProgressPercent =
-    stepArticleTotal === 0
-      ? 0
-      : Math.round((stepCompletedCount / stepArticleTotal) * 100);
 
   const isStepCompleted = (stepIndex: number) => {
     const step = onboardingSteps[stepIndex];
@@ -279,7 +291,7 @@ export default function OnboardingPage() {
 
   return (
     <div className={styles.onboardingPage}>
-      <Greeting stepCount={onboardingSteps.length} progressPercent={progress} />
+      <Greeting />
       <Steps
         steps={onboardingSteps}
         currentStep={safeStepIndex}
@@ -319,8 +331,8 @@ export default function OnboardingPage() {
       <div className={styles.progressMeta}>
         <p className={styles.progressNote}>
           Progress is stored locally for this browser and account (
-          {sessionUser?.email ?? "signed in user"}). Use Reset progress to restart the
-          demo.
+          {sessionUser?.email ?? "signed in user"}). Use Reset progress to
+          restart the demo.
         </p>
         <button
           type="button"
@@ -336,48 +348,38 @@ export default function OnboardingPage() {
           <div className={styles.header}>
             <div className={styles.information}>
               {CurrentIcon && <CurrentIcon className={styles.icon} />}
-              <div className={styles.stepMeta}>
-                <p className={styles.stepEyebrow}>Step {activeStep.id}</p>
-                <h2 className={styles.title}>{activeStep.label}</h2>
-                <p className={styles.subtitle}>{activeStep.description}</p>
-                {stepArticleTotal > 0 ? (
-                  <>
-                    <p className={styles.stepProgressLabel}>
-                      {stepCompletedCount} of {stepArticleTotal} articles completed
-                      {readingEstimate > 0 && stepCompletedCount < stepArticleTotal
-                        ? ` · ~${readingEstimate} min reading left`
-                        : null}
-                    </p>
-                    <div
-                      className={styles.stepProgressTrack}
-                      role="progressbar"
-                      aria-valuenow={stepProgressPercent}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-label="Step article progress"
-                    >
-                      <div
-                        className={styles.stepProgressFill}
-                        style={{ width: `${stepProgressPercent}%` }}
-                      />
-                    </div>
-                  </>
+              <p className={styles.stepEyebrow}>Step {activeStep.id}</p>
+              <h2 className={styles.title}>{activeStep.label}</h2>
+              {/* <p className={styles.subtitle}>{activeStep.description}</p> */}
+            </div>
+            {stepArticleTotal > 0 ? (
+              <div className={styles.stepProgressRow}>
+                <span className={styles.stepProgressCompleted}>
+                  {stepCompletedCount} of {stepArticleTotal} articles completed
+                </span>
+                {readingEstimate > 0 &&
+                stepCompletedCount < stepArticleTotal ? (
+                  <span className={styles.stepProgressReading}>
+                    ~{readingEstimate} min reading left
+                  </span>
                 ) : null}
               </div>
-            </div>
+            ) : null}
           </div>
 
           {activeStep.articles.length === 0 ? (
             <p className={styles.panelEmpty}>
-              No linked articles for this step yet. You can continue when HR adds
-              content.
+              No linked articles for this step yet. You can continue when HR
+              adds content.
             </p>
           ) : (
             <ArticleList
               steps={onboardingSteps}
               currentStep={safeStepIndex}
               completedArticles={completedSlugs}
-              highlightIncomplete={Boolean(celebrationSlug && hasRemainingInStep)}
+              highlightIncomplete={Boolean(
+                celebrationSlug && hasRemainingInStep,
+              )}
               nextRecommendedSlug={nextRecommendedSlug}
             />
           )}
@@ -397,28 +399,18 @@ export default function OnboardingPage() {
               </button>
             )}
 
-            {hasRemainingInStep ? (
-              <button
-                type="button"
-                className={styles.nextButton}
-                onClick={handleContinueStep}
-              >
-                Continue this step
-              </button>
-            ) : null}
-
-            {!hasRemainingInStep && safeStepIndex < onboardingSteps.length - 1 ? (
+            {safeStepIndex < onboardingSteps.length - 1 ? (
               <button
                 type="button"
                 className={styles.nextButton}
                 onClick={goToNextStep}
                 disabled={!allCurrentCompleted}
               >
-                {allCurrentCompleted ? "Continue to next step →" : "Complete articles to continue"}
+                {allCurrentCompleted
+                  ? "Continue to next step →"
+                  : "Complete articles to continue"}
               </button>
-            ) : null}
-
-            {!hasRemainingInStep && safeStepIndex >= onboardingSteps.length - 1 ? (
+            ) : (
               <button
                 type="button"
                 className={styles.completeButton}
@@ -428,7 +420,7 @@ export default function OnboardingPage() {
                   ? "Onboarding complete ✓"
                   : "Complete remaining steps"}
               </button>
-            ) : null}
+            )}
           </div>
         </div>
 

@@ -44,17 +44,28 @@
   display: flex;
   flex-direction: column;
   border-radius: 1rem;
-  border: 1px solid #262626;
+  border: 1px solid rgba(255, 214, 0, 0.55);
   background: #121212;
   box-shadow:
     0 12px 40px rgba(0, 0, 0, 0.55),
-    0 0 24px rgba(255, 213, 0, 0.08);
+    0 0 28px rgba(255, 213, 0, 0.18),
+    0 0 48px rgba(255, 213, 0, 0.08);
   overflow: hidden;
 }
 
 .panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
   padding: 1rem 1.15rem 0.85rem;
   border-bottom: 1px solid #262626;
+  align-items: center;
+}
+
+.panelHeaderText {
+  flex: 1;
+  min-width: 0;
 }
 
 .panelTitle {
@@ -68,6 +79,39 @@
   margin: 0.25rem 0 0;
   font-size: 0.82rem;
   color: #888;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-top: 0.05rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.45rem;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.closeIcon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 0.15s ease;
+}
+
+.closeButton:hover .closeIcon {
+  color: #ffd500;
 }
 
 .messages {

@@ -1,27 +1,15 @@
-.documentsPage {
-  padding-top: 2.5rem;
-  padding-bottom: 2rem;
-}
-
-.documentsPage > div > header {
-  margin-bottom: 1.25rem;
-}
-
-.documentsPage > div > div:last-child {
-  gap: 0;
-}
-
 .headerActions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.65rem;
+  gap: 1rem;
 }
 
 .pageStack {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  flex: 1;
 }
 
 .metricsGrid {
@@ -154,7 +142,6 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 
 /* —— Content health —— */
 .healthCard {
@@ -349,8 +336,10 @@
 .mainGrid {
   display: grid;
   grid-template-columns: 1fr 300px;
-  gap: 1.25rem;
+  gap: 1rem;
   align-items: start;
+  flex: 1;
+  min-height: 0;
 }
 
 .contentPanel {
@@ -361,6 +350,10 @@
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 .contentPanel:hover {
@@ -401,7 +394,9 @@
 .table {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.5rem;
+  flex: 1;
+  overflow: hidden;
 }
 
 .tableHead {
@@ -423,7 +418,13 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.5rem;
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.tableBody::-webkit-scrollbar {
+  width: 8px;
 }
 
 .tableRow {
@@ -613,7 +614,11 @@
   flex-direction: column;
   gap: 0.85rem;
   padding: 1.15rem;
-  background: linear-gradient(165deg, rgba(22, 22, 22, 0.95) 0%, rgba(14, 14, 14, 0.98) 100%);
+  background: linear-gradient(
+    165deg,
+    rgba(22, 22, 22, 0.95) 0%,
+    rgba(14, 14, 14, 0.98) 100%
+  );
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-lg);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);

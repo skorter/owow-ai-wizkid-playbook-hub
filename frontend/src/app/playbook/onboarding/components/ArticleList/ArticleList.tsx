@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import styles from "./ArticleList.module.css";
-import { CheckCircle, Circle, ArrowRight, Sparkles } from "lucide-react";
+import { CheckCircle, Circle, ArrowRight, Pin } from "lucide-react";
 import type { OnboardingStep } from "@/types/onboarding";
 import Link from "next/link";
 import { normalizeArticleSlug } from "@/lib/onboarding/employeeOnboarding";
@@ -54,7 +54,7 @@ export default function ArticleList({
           >
             {isRecommended ? (
               <p className={styles.recommendedLabel}>
-                <Sparkles size={14} aria-hidden />
+                <Pin size={14} aria-hidden />
                 Next recommended article
               </p>
             ) : null}

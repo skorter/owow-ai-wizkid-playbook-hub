@@ -30,21 +30,31 @@ export default function QuickAnswer({
         <h2 className={styles.title}>Quick Answer</h2>
         <p className={styles.answer}>{answer}</p>
         {confidence != null && confidence > 0 ? (
-          <p className={styles.meta}>
-            Match confidence: {Math.round(confidence * 100)}%
-            {fallback ? " · summary mode" : provider === "openai" ? " · AI" : ""}
-          </p>
+          <div className={styles.meta}>
+            <span>Match confidence: {Math.round(confidence * 100)}%</span>
+            <span>
+              {fallback ? "Summary mode" : provider === "openai" ? "AI" : ""}
+            </span>
+          </div>
         ) : null}
       </div>
       <div className={styles.feedback}>
         <p className={styles.label}>Was this answer helpful?</p>
         <div className={styles.actions}>
-          <button type="button" className={styles.yesButton} onClick={onThumbsUp}>
+          <button
+            type="button"
+            className={styles.yesButton}
+            onClick={onThumbsUp}
+          >
             <ThumbsUp
               className={`${styles.icon} ${thumbsUp ? styles.active : ""}`}
             />
           </button>
-          <button type="button" className={styles.noButton} onClick={onThumbsDown}>
+          <button
+            type="button"
+            className={styles.noButton}
+            onClick={onThumbsDown}
+          >
             <ThumbsDown
               className={`${styles.icon} ${thumbsDown ? styles.active : ""}`}
             />

@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
@@ -28,8 +34,10 @@ import FeedbackModal from "@/components/playbook/FeedbackModal";
 import MissingInfoModal from "@/components/playbook/MissingInfoModal";
 import PlaybookSupportActions from "@/components/playbook/PlaybookSupportActions";
 import ArticleUnavailable from "@/components/playbook/ArticleUnavailable";
-import AskPagePanel from "./components/AskPagePanel/AskPagePanel";
+// Inline Page Assistant replaced by floating WizKid Assistant widget — see AskPagePanel
+// import AskPagePanel from "./components/AskPagePanel/AskPagePanel";
 import ArticleBookmark from "./components/ArticleBookmark/ArticleBookmark";
+import { useWizKidArticle } from "@/components/playbook/WizKidAssistantWidget/WizKidArticleContext";
 
 type LoadState = "loading" | "error" | "ready" | "not-found" | "unavailable";
 
@@ -51,6 +59,10 @@ export default function SlugPage() {
   const [completing, setCompleting] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [missingInfoOpen, setMissingInfoOpen] = useState(false);
+  const {
+    setArticle: registerWizKidArticle,
+    clearArticle: clearWizKidArticle,
+  } = useWizKidArticle();
 
   const userSnapshot = useSyncExternalStore(
     subscribeSession,
@@ -77,6 +89,26 @@ export default function SlugPage() {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);
+
+  useEffect(() => {
+    if (
+      loadState !== "ready" ||
+      !article?.id ||
+      article.fromFallback ||
+      from === "onboarding"
+    ) {
+      clearWizKidArticle();
+      return;
+    }
+
+    registerWizKidArticle({
+      articleId: article.id,
+      articleSlug: article.slug,
+      articleTitle: article.title,
+    });
+
+    return () => clearWizKidArticle();
+  }, [article, clearWizKidArticle, from, loadState, registerWizKidArticle]);
 
   const handleMarkComplete = () => {
     if (!slug || completing || completed) return;
@@ -234,7 +266,11 @@ export default function SlugPage() {
       <div className={styles.slugPage}>
         <div className={styles.stateBlock}>
           <p className={styles.stateError}>{errorMessage}</p>
-          <button type="button" className={styles.retryButton} onClick={() => void loadArticle()}>
+          <button
+            type="button"
+            className={styles.retryButton}
+            onClick={() => void loadArticle()}
+          >
             <RefreshCw size={16} aria-hidden />
             Retry
           </button>
@@ -249,8 +285,12 @@ export default function SlugPage() {
         <ArticleUnavailable
           backHref={backHref}
           backLabel={backLabel}
-          secondaryHref={from === "onboarding" ? undefined : "/playbook/onboarding"}
-          secondaryLabel={from === "onboarding" ? undefined : "Back to Onboarding"}
+          secondaryHref={
+            from === "onboarding" ? undefined : "/playbook/onboarding"
+          }
+          secondaryLabel={
+            from === "onboarding" ? undefined : "Back to Onboarding"
+          }
         />
       </div>
     );
@@ -264,7 +304,8 @@ export default function SlugPage() {
     );
   }
 
-  const showOnboardingCta = from === "onboarding" && staticSubpages.length === 0;
+  const showOnboardingCta =
+    from === "onboarding" && staticSubpages.length === 0;
 
   return (
     <article className={styles.slugPage}>
@@ -312,23 +353,49 @@ export default function SlugPage() {
         </section>
       ) : null}
 
-      <section className={styles.contentCard}>{renderArticleContent(article.content)}</section>
+      <section className={styles.contentCard}>
+        {renderArticleContent(article.content)}
+      </section>
 
-      {article.id && !article.fromFallback ? (
-        <AskPagePanel
-          articleId={article.id}
-          slug={article.slug}
-          articleTitle={article.title}
-        />
-      ) : null}
+      {/* Page Assistant is handled by the floating WizKid Assistant widget */}
 
       {article.fromFallback ? (
         <section className={styles.previewNotice} role="note">
           <p className={styles.previewTitle}>Preview content</p>
           <p className={styles.previewText}>
-            This topic uses local preview copy until HR publishes the full article in
-            the admin hub.
+            This topic uses local preview copy until HR publishes the full
+            article in the admin hub.
           </p>
+        </section>
+      ) : null}
+
+      {showOnboardingCta ? (
+        <section className={styles.completeCard}>
+          <h2 className={styles.completeTitle}>
+            {completed ? "Article completed ✓" : "Did you read this article?"}
+          </h2>
+          <p className={styles.completeText}>
+            {completed
+              ? "Your progress has been saved."
+              : "Mark it as complete to advance your onboarding progress."}
+          </p>
+          <button
+            type="button"
+            className={`${styles.completeButton} ${completed ? styles.completeButtonDone : ""}`}
+            onClick={handleMarkComplete}
+            disabled={completed || completing}
+          >
+            {completed ? (
+              <>
+                <CheckCircle size={18} aria-hidden />
+                Completed
+              </>
+            ) : completing ? (
+              "Saving…"
+            ) : (
+              "Mark as complete ✓"
+            )}
+          </button>
         </section>
       ) : null}
 
@@ -355,32 +422,6 @@ export default function SlugPage() {
         sourceHint={`Article: ${article.title}`}
         defaultTitle={`Missing info: ${article.title}`}
       />
-
-      {showOnboardingCta ? (
-        <section className={styles.completeCard}>
-          <p className={styles.completeText}>
-            Mark this reading complete to advance your onboarding progress. Completion is
-            stored locally in your browser until server-side tracking is added.
-          </p>
-          <button
-            type="button"
-            className={`${styles.completeButton} ${completed ? styles.completeButtonDone : ""}`}
-            onClick={handleMarkComplete}
-            disabled={completed || completing}
-          >
-            {completed ? (
-              <>
-                <CheckCircle size={18} aria-hidden style={{ verticalAlign: "middle", marginRight: 6 }} />
-                Completed
-              </>
-            ) : completing ? (
-              "Saving…"
-            ) : (
-              "Mark as complete ✓"
-            )}
-          </button>
-        </section>
-      ) : null}
     </article>
   );
 }

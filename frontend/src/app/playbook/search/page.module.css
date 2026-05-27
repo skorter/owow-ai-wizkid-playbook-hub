@@ -8,8 +8,7 @@
 
 .searchPage .hero {
   grid-row: 2;
-  width: 100%;
-  max-width: 780px;
+  width: 50%;
   justify-self: center;
   display: flex;
   flex-direction: column;
@@ -19,25 +18,18 @@
 
 .searchPage .bottom {
   grid-row: 3;
+  align-self: start;
   justify-self: center;
+  width: 50%;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  width: 100%;
-  max-width: 780px;
   gap: 2rem;
-  padding-bottom: 2rem;
 }
 
 .searchPage.searching {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-}
-
-.searchPage.searching .hero {
-  width: 100%;
-  justify-self: unset;
 }
 
 .aiPending {
@@ -71,6 +63,12 @@
   gap: 2rem;
   padding: 0 0 4rem 0;
   width: 100%;
+  align-self: center;
+}
+
+.searchPage.searching .hero {
+  width: 100%;
+  justify-self: unset;
 }
 
 .loadingState {
