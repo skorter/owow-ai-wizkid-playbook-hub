@@ -7,7 +7,9 @@ export interface TransitionOverlayProps {
   type: "employee" | "management" | "onboarding";
   originX: number;
   originY: number;
-  onComplete: () => void;
+  phase: "in" | "out";
+  onInComplete: () => void;
+  onOutComplete: () => void;
 }
 
 type Particle = {
@@ -15,6 +17,9 @@ type Particle = {
   distance: number;
   spin: number;
 };
+
+const SETTLE_MS = 100;
+const EMPLOYEE_COVER = "#f5c842";
 
 function setupCanvas(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d");
@@ -27,6 +32,11 @@ function setupCanvas(canvas: HTMLCanvasElement) {
   canvas.height = Math.floor(H * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   return { ctx, W, H };
+}
+
+function paintSolid(ctx: CanvasRenderingContext2D, W: number, H: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, W, H);
 }
 
 function drawRingWithTicks(
@@ -63,88 +73,161 @@ function drawRingWithTicks(
   ctx.restore();
 }
 
-function runEmployeeAnimation(
+const EMPLOYEE_SETTLE_MS = 180;
+const EMPLOYEE_COLS = 8;
+const EMPLOYEE_ROWS = 6;
+
+type EmployeeBlockState = "waiting" | "dropping" | "settled" | "leaving";
+
+type EmployeeBlock = {
+  col: number;
+  row: number;
+  state: EmployeeBlockState;
+  y: number;
+  targetY: number;
+  triggerFrame: number;
+  velocity: number;
+  fallVelocity: number;
+  shade: number;
+};
+
+function createEmployeeBlocks(W: number, H: number, phase: "in" | "out"): EmployeeBlock[] {
+  const blockH = H / EMPLOYEE_ROWS;
+  const blocks: EmployeeBlock[] = [];
+
+  for (let col = 0; col < EMPLOYEE_COLS; col++) {
+    for (let row = 0; row < EMPLOYEE_ROWS; row++) {
+      const targetY = row * blockH;
+      const shade = Math.random() * 0.12 - 0.06;
+      const triggerFrame =
+        phase === "in"
+          ? col * 6 + (EMPLOYEE_ROWS - 1 - row) * 10
+          : col * 4 + row * 7;
+
+      blocks.push({
+        col,
+        row,
+        state: phase === "in" ? "waiting" : "leaving",
+        y: phase === "in" ? targetY - blockH * 1.4 : targetY,
+        targetY,
+        triggerFrame,
+        velocity: 0,
+        fallVelocity: 0,
+        shade,
+      });
+    }
+  }
+
+  return blocks;
+}
+
+function employeeBlockFillStyle(shade: number): string {
+  const g = 200 + shade * 40;
+  const b = 66 + shade * 30;
+  return `rgba(245, ${Math.round(g)}, ${Math.round(b)}, 1)`;
+}
+
+function drawEmployeeBlocks(
+  ctx: CanvasRenderingContext2D,
+  blocks: EmployeeBlock[],
+  blockW: number,
+  blockH: number,
+) {
+  const drawW = blockW - 1;
+  const drawH = blockH - 1;
+
+  for (const block of blocks) {
+    if (block.state === "waiting") continue;
+
+    const x = block.col * blockW;
+    const y =
+      block.state === "settled"
+        ? block.targetY
+        : block.y;
+
+    ctx.fillStyle = employeeBlockFillStyle(block.shade);
+    ctx.fillRect(x, y, drawW, drawH);
+
+    if (
+      block.state === "settled" ||
+      block.state === "dropping" ||
+      (block.state === "leaving" && block.y <= block.targetY + 1)
+    ) {
+      ctx.strokeStyle = "rgba(255, 240, 160, 0.5)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + drawW, y);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(180, 130, 10, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, y + drawH);
+      ctx.lineTo(x + drawW, y + drawH);
+      ctx.stroke();
+    }
+  }
+}
+
+function runEmployeeIn(
   ctx: CanvasRenderingContext2D,
   W: number,
   H: number,
-  _originX: number,
-  _originY: number,
-  onComplete: () => void,
+  onInComplete: () => void,
 ): () => void {
-  const STRIP_COUNT = 10;
-  const stripWidth = W / STRIP_COUNT;
-  const coverThreshold = H + stripWidth;
-
-  const strips = Array.from({ length: STRIP_COUNT }, (_, i) => ({
-    offset: -H - stripWidth,
-    speed: 4.5 + i * 0.5,
-    delay: i * 6,
-  }));
+  const blockW = W / EMPLOYEE_COLS;
+  const blockH = H / EMPLOYEE_ROWS;
+  const blocks = createEmployeeBlocks(W, H, "in");
 
   let frameId = 0;
   let frame = 0;
-  let completeCalled = false;
-  let finishScheduled = false;
+  let hasCompleted = false;
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   const tick = () => {
+    ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = "#080808";
     ctx.fillRect(0, 0, W, H);
-
     frame++;
 
-    for (let i = 0; i < STRIP_COUNT; i++) {
-      const strip = strips[i];
-      if (frame >= strip.delay) {
-        strip.offset += strip.speed;
+    for (const block of blocks) {
+      if (block.state === "waiting" && frame >= block.triggerFrame) {
+        block.state = "dropping";
+        block.y = block.targetY - blockH * 1.4;
+        block.velocity = 0;
       }
 
-      const x = i * stripWidth;
-      const angle = stripWidth * 0.4;
-      const { offset } = strip;
+      if (block.state === "dropping") {
+        const distance = block.targetY - block.y;
+        block.velocity = block.velocity * 0.72 + distance * 0.28;
+        block.y += block.velocity;
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(x, 0, stripWidth, H);
-      ctx.clip();
-
-      ctx.fillStyle = "#f5c842";
-      ctx.beginPath();
-      ctx.moveTo(x - angle, -H + offset - stripWidth);
-      ctx.lineTo(x + stripWidth, -H + offset - stripWidth);
-      ctx.lineTo(x + stripWidth + angle, offset);
-      ctx.lineTo(x, offset);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.strokeStyle = "rgba(255, 240, 150, 0.6)";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(x + stripWidth, -H + offset - stripWidth);
-      ctx.lineTo(x + stripWidth + angle, offset);
-      ctx.stroke();
-
-      ctx.restore();
+        if (Math.abs(block.y - block.targetY) < 0.5 && Math.abs(block.velocity) < 0.5) {
+          block.y = block.targetY;
+          block.state = "settled";
+          block.velocity = 0;
+        }
+      }
     }
 
-    const allCovered = strips.every((s) => s.offset >= coverThreshold);
+    drawEmployeeBlocks(ctx, blocks, blockW, blockH);
 
-    if (allCovered && !finishScheduled) {
-      finishScheduled = true;
-      ctx.fillStyle = "#f5c842";
-      ctx.fillRect(0, 0, W, H);
+    const allSettled = blocks.every((b) => b.state === "settled");
+
+    if (allSettled && !hasCompleted) {
+      hasCompleted = true;
+      paintSolid(ctx, W, H, EMPLOYEE_COVER);
       timeoutId = setTimeout(() => {
-        if (!completeCalled) {
-          completeCalled = true;
-          onComplete();
-        }
-      }, 150);
+        onInComplete();
+      }, EMPLOYEE_SETTLE_MS);
       return;
     }
 
     frameId = requestAnimationFrame(tick);
   };
 
+  ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = "#080808";
   ctx.fillRect(0, 0, W, H);
   frameId = requestAnimationFrame(tick);
@@ -154,15 +237,64 @@ function runEmployeeAnimation(
     if (timeoutId !== null) {
       clearTimeout(timeoutId);
     }
-    ctx.clearRect(0, 0, W, H);
   };
 }
 
-function runManagementAnimation(
+function runEmployeeOut(
   ctx: CanvasRenderingContext2D,
   W: number,
   H: number,
-  onComplete: () => void,
+  onOutComplete: () => void,
+): () => void {
+  const blockW = W / EMPLOYEE_COLS;
+  const blockH = H / EMPLOYEE_ROWS;
+  const blocks = createEmployeeBlocks(W, H, "out");
+
+  let frameId = 0;
+  let frame = 0;
+  let hasCompleted = false;
+
+  const tick = () => {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#080808";
+    ctx.fillRect(0, 0, W, H);
+    frame++;
+
+    for (const block of blocks) {
+      if (frame >= block.triggerFrame) {
+        block.fallVelocity += 1.1;
+        block.y += block.fallVelocity;
+      } else {
+        block.y = block.targetY;
+      }
+    }
+
+    drawEmployeeBlocks(ctx, blocks, blockW, blockH);
+
+    const allGone = blocks.every((b) => b.y > H);
+
+    if (allGone && !hasCompleted) {
+      hasCompleted = true;
+      onOutComplete();
+      return;
+    }
+
+    frameId = requestAnimationFrame(tick);
+  };
+
+  paintSolid(ctx, W, H, EMPLOYEE_COVER);
+  frameId = requestAnimationFrame(tick);
+
+  return () => {
+    cancelAnimationFrame(frameId);
+  };
+}
+
+function runManagementIn(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  H: number,
+  onInComplete: () => void,
 ): () => void {
   const cx = W / 2;
   const cy = H / 2;
@@ -171,6 +303,7 @@ function runManagementAnimation(
   const r2 = minDim * 0.26;
   const r3 = minDim * 0.14;
   const coverRadius = Math.hypot(W, H) / 2 + 10;
+  const coverColor = "#534AB7";
 
   let frame = 0;
   let rot1 = 0;
@@ -179,6 +312,9 @@ function runManagementAnimation(
   let irisRadius = 0;
   let irisActive = false;
   let frameId = 0;
+  let finishScheduled = false;
+  let hasNavigated = false;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   const tick = () => {
     ctx.fillStyle = "#0a0812";
@@ -203,14 +339,21 @@ function runManagementAnimation(
       drawRingWithTicks(ctx, cx, cy, r2, 3, "#534AB7", 8, rot2);
       drawRingWithTicks(ctx, cx, cy, r3, 2.5, "#AFA9EC", 6, rot3);
 
-      ctx.fillStyle = "#534AB7";
+      ctx.fillStyle = coverColor;
       ctx.beginPath();
       ctx.arc(cx, cy, irisRadius, 0, Math.PI * 2);
       ctx.fill();
       irisRadius += minDim * 0.025;
 
-      if (irisRadius >= coverRadius) {
-        onComplete();
+      if (irisRadius >= coverRadius && !finishScheduled) {
+        finishScheduled = true;
+        paintSolid(ctx, W, H, coverColor);
+        timeoutId = setTimeout(() => {
+          if (!hasNavigated) {
+            hasNavigated = true;
+            onInComplete();
+          }
+        }, SETTLE_MS);
         return;
       }
     }
@@ -220,19 +363,74 @@ function runManagementAnimation(
   };
 
   frameId = requestAnimationFrame(tick);
-  return () => cancelAnimationFrame(frameId);
+  return () => {
+    cancelAnimationFrame(frameId);
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+  };
 }
 
-function runOnboardingAnimation(
+function runManagementOut(
   ctx: CanvasRenderingContext2D,
   W: number,
   H: number,
-  onComplete: () => void,
+  onOutComplete: () => void,
+): () => void {
+  const cx = W / 2;
+  const cy = H / 2;
+  const coverRadius = Math.hypot(W, H) / 2 + 10;
+  const coverColor = "#534AB7";
+  const shrinkPerFrame = coverRadius / 42;
+
+  let irisRadius = coverRadius;
+  let frameId = 0;
+  let finishScheduled = false;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  const tick = () => {
+    paintSolid(ctx, W, H, coverColor);
+
+    ctx.fillStyle = coverColor;
+    ctx.beginPath();
+    ctx.arc(cx, cy, irisRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    irisRadius -= shrinkPerFrame;
+
+    if (irisRadius <= 0 && !finishScheduled) {
+      finishScheduled = true;
+      timeoutId = setTimeout(() => {
+        onOutComplete();
+      }, 50);
+      return;
+    }
+
+    frameId = requestAnimationFrame(tick);
+  };
+
+  paintSolid(ctx, W, H, coverColor);
+  frameId = requestAnimationFrame(tick);
+
+  return () => {
+    cancelAnimationFrame(frameId);
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+  };
+}
+
+function runOnboardingIn(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  H: number,
+  onInComplete: () => void,
 ): () => void {
   const cx = W / 2;
   const cy = H / 2;
   const minDim = Math.min(W, H);
   const coverRadius = Math.hypot(W, H) / 2 + 10;
+  const coverColor = "rgba(4, 52, 44, 0.97)";
 
   const rings = Array.from({ length: 9 }, (_, i) => ({
     radius: 0,
@@ -253,6 +451,9 @@ function runOnboardingAnimation(
   let fillRadius = 0;
   let fillActive = false;
   let frameId = 0;
+  let finishScheduled = false;
+  let hasNavigated = false;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   const tick = () => {
     ctx.clearRect(0, 0, W, H);
@@ -289,13 +490,20 @@ function runOnboardingAnimation(
 
     if (fillActive) {
       fillRadius += minDim * 0.025;
-      ctx.fillStyle = "rgba(4, 52, 44, 0.97)";
+      ctx.fillStyle = coverColor;
       ctx.beginPath();
       ctx.arc(cx, cy, fillRadius, 0, Math.PI * 2);
       ctx.fill();
 
-      if (fillRadius >= coverRadius) {
-        onComplete();
+      if (fillRadius >= coverRadius && !finishScheduled) {
+        finishScheduled = true;
+        paintSolid(ctx, W, H, coverColor);
+        timeoutId = setTimeout(() => {
+          if (!hasNavigated) {
+            hasNavigated = true;
+            onInComplete();
+          }
+        }, SETTLE_MS);
         return;
       }
     }
@@ -305,21 +513,82 @@ function runOnboardingAnimation(
   };
 
   frameId = requestAnimationFrame(tick);
-  return () => cancelAnimationFrame(frameId);
+  return () => {
+    cancelAnimationFrame(frameId);
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+  };
+}
+
+function runOnboardingOut(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  H: number,
+  onOutComplete: () => void,
+): () => void {
+  const cx = W / 2;
+  const cy = H / 2;
+  const coverRadius = Math.hypot(W, H) / 2 + 10;
+  const coverColor = "rgba(4, 52, 44, 0.97)";
+  const shrinkPerFrame = coverRadius / 42;
+
+  let fillRadius = coverRadius;
+  let frameId = 0;
+  let finishScheduled = false;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  const tick = () => {
+    paintSolid(ctx, W, H, coverColor);
+
+    ctx.fillStyle = coverColor;
+    ctx.beginPath();
+    ctx.arc(cx, cy, fillRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    fillRadius -= shrinkPerFrame;
+
+    if (fillRadius <= 0 && !finishScheduled) {
+      finishScheduled = true;
+      timeoutId = setTimeout(() => {
+        onOutComplete();
+      }, 50);
+      return;
+    }
+
+    frameId = requestAnimationFrame(tick);
+  };
+
+  paintSolid(ctx, W, H, coverColor);
+  frameId = requestAnimationFrame(tick);
+
+  return () => {
+    cancelAnimationFrame(frameId);
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+  };
 }
 
 export default function TransitionOverlay({
   type,
   originX,
   originY,
-  onComplete,
+  phase,
+  onInComplete,
+  onOutComplete,
 }: TransitionOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const onCompleteRef = useRef(onComplete);
+  const onInCompleteRef = useRef(onInComplete);
+  const onOutCompleteRef = useRef(onOutComplete);
 
   useEffect(() => {
-    onCompleteRef.current = onComplete;
-  }, [onComplete]);
+    onInCompleteRef.current = onInComplete;
+  }, [onInComplete]);
+
+  useEffect(() => {
+    onOutCompleteRef.current = onOutComplete;
+  }, [onOutComplete]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -329,20 +598,36 @@ export default function TransitionOverlay({
     if (!setup) return;
 
     const { ctx, W, H } = setup;
-    const complete = () => onCompleteRef.current();
+    const completeIn = () => onInCompleteRef.current();
+    const completeOut = () => onOutCompleteRef.current();
 
     let cleanup: (() => void) | undefined;
 
-    if (type === "employee") {
-      cleanup = runEmployeeAnimation(ctx, W, H, originX, originY, complete);
+    if (phase === "in") {
+      if (type === "employee") {
+        cleanup = runEmployeeIn(ctx, W, H, completeIn);
+      } else if (type === "management") {
+        cleanup = runManagementIn(ctx, W, H, completeIn);
+      } else {
+        cleanup = runOnboardingIn(ctx, W, H, completeIn);
+      }
+    } else if (type === "employee") {
+      cleanup = runEmployeeOut(ctx, W, H, completeOut);
     } else if (type === "management") {
-      cleanup = runManagementAnimation(ctx, W, H, complete);
+      cleanup = runManagementOut(ctx, W, H, completeOut);
     } else {
-      cleanup = runOnboardingAnimation(ctx, W, H, complete);
+      cleanup = runOnboardingOut(ctx, W, H, completeOut);
     }
 
     const onResize = () => {
       setupCanvas(canvas);
+      if (phase === "out" && type === "employee") {
+        paintSolid(ctx, W, H, EMPLOYEE_COVER);
+      } else if (phase === "out" && type === "management") {
+        paintSolid(ctx, W, H, "#534AB7");
+      } else if (phase === "out" && type === "onboarding") {
+        paintSolid(ctx, W, H, "rgba(4, 52, 44, 0.97)");
+      }
     };
     window.addEventListener("resize", onResize);
 
@@ -350,7 +635,7 @@ export default function TransitionOverlay({
       cleanup?.();
       window.removeEventListener("resize", onResize);
     };
-  }, [type, originX, originY]);
+  }, [type, originX, originY, phase]);
 
   return (
     <canvas
