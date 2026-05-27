@@ -71,6 +71,12 @@
   gap: 2rem;
   padding: 0 0 4rem 0;
   width: 100%;
+  max-width: 780px;
+  align-self: center;
+}
+
+.resultsSearchWrap {
+  margin-bottom: 0.25rem;
 }
 
 .loadingState {

@@ -13,6 +13,7 @@ type SearchBarProps = {
   loading?: boolean;
   placeholder?: string;
   navigateOnSubmit?: boolean;
+  variant?: "hero" | "compact";
 };
 
 export default function SearchBar({
@@ -23,6 +24,7 @@ export default function SearchBar({
   loading = false,
   placeholder = "How can I help you today?",
   navigateOnSubmit = true,
+  variant = "hero",
 }: SearchBarProps) {
   const router = useRouter();
   const [internalQuery, setInternalQuery] = useState(() => initialQuery);
@@ -52,7 +54,10 @@ export default function SearchBar({
   };
 
   return (
-    <form className={styles.searchBar} onSubmit={handleSubmit}>
+    <form
+      className={`${styles.searchBar} ${variant === "compact" ? styles.searchBarCompact : ""}`}
+      onSubmit={handleSubmit}
+    >
       <Search className={styles.icon} />
       <input
         type="text"

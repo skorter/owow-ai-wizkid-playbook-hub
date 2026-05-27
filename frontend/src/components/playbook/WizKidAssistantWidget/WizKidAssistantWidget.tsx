@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./WizKidAssistantWidget.module.css";
-import { Send } from "lucide-react";
+import { Send, X } from "lucide-react";
 import {
   aiSearch,
   askPageAI,
@@ -182,12 +182,22 @@ function WizKidAssistantWidgetInner({
       {open ? (
         <div className={styles.panel} role="dialog" aria-label="WizKid Assistant">
           <div className={styles.panelHeader}>
-            <h2 className={styles.panelTitle}>WizKid Assistant</h2>
-            <p className={styles.panelSubtitle}>
-              {isArticleMode
-                ? "Ask about this article."
-                : "Ask me anything about the Playbook."}
-            </p>
+            <div className={styles.panelHeaderText}>
+              <h2 className={styles.panelTitle}>WizKid Assistant</h2>
+              <p className={styles.panelSubtitle}>
+                {isArticleMode
+                  ? "Ask about this article."
+                  : "Ask me anything about the Playbook."}
+              </p>
+            </div>
+            <button
+              type="button"
+              className={styles.closeButton}
+              aria-label="Close WizKid Assistant"
+              onClick={() => setOpen(false)}
+            >
+              <X className={styles.closeIcon} aria-hidden />
+            </button>
           </div>
 
           <div className={styles.messages}>

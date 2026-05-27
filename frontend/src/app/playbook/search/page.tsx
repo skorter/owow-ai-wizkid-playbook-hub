@@ -29,8 +29,6 @@ export default function SearchPage() {
   const [thumbsUp, setThumbsUp] = useState(false);
   const [thumbsDown, setThumbsDown] = useState(false);
 
-  const [draftQuery, setDraftQuery] = useState("");
-  const barQuery = queryFromUrl || draftQuery;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<AISearchResponse | null>(null);
@@ -114,8 +112,7 @@ export default function SearchPage() {
         {!isSearching && <Greeting />}
         {!isSearching ? (
           <SearchBar
-            query={barQuery}
-            onQueryChange={setDraftQuery}
+            key="hero-search"
             onSearch={handleHeroSearch}
             loading={loading}
             navigateOnSubmit={false}
@@ -153,6 +150,18 @@ export default function SearchPage() {
 
       {isSearching ? (
         <section className={styles.results}>
+          <div className={styles.resultsSearchWrap}>
+            <SearchBar
+              key={queryFromUrl || "searching"}
+              initialQuery={queryFromUrl}
+              onSearch={handleHeroSearch}
+              loading={loading}
+              navigateOnSubmit={false}
+              variant="compact"
+              placeholder="Search the playbook…"
+            />
+          </div>
+
           {loading ? (
             <div className={styles.loadingState} role="status">
               <Loader2 className={styles.spinner} aria-hidden />
