@@ -15,7 +15,9 @@ type RecentActivityProps = {
   onSelectQuestion: (question: string) => void;
 };
 
-export default function RecentActivity({ onSelectQuestion }: RecentActivityProps) {
+export default function RecentActivity({
+  onSelectQuestion,
+}: RecentActivityProps) {
   const [items, setItems] = useState<RecentSearchItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -71,7 +73,10 @@ export default function RecentActivity({ onSelectQuestion }: RecentActivityProps
       <div className={styles.header}>
         <h2 className={styles.title}>Recent Searches</h2>
         {hasMore && !loading && !error ? (
-          <Link href="/playbook/profile/activity" className={styles.viewHistory}>
+          <Link
+            href="/playbook/profile/activity"
+            className={styles.viewHistory}
+          >
             View full history
           </Link>
         ) : null}
@@ -82,7 +87,11 @@ export default function RecentActivity({ onSelectQuestion }: RecentActivityProps
       ) : null}
 
       {error ? (
-        <PageStatus variant="error" message={error} onRetry={() => void load()} />
+        <PageStatus
+          variant="error"
+          message={error}
+          onRetry={() => void load()}
+        />
       ) : null}
 
       {!loading && !error && items.length === 0 ? (
@@ -118,7 +127,8 @@ export default function RecentActivity({ onSelectQuestion }: RecentActivityProps
                   ) : null}
                   {item.sourceCount > 0 ? (
                     <span>
-                      {item.sourceCount} source{item.sourceCount === 1 ? "" : "s"}
+                      {item.sourceCount} source
+                      {item.sourceCount === 1 ? "" : "s"}
                     </span>
                   ) : null}
                 </span>

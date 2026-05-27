@@ -16,7 +16,7 @@
 
 .identity .avatar {
   grid-area: avatar;
-  width: 85%;
+  width: 80%;
   aspect-ratio: 1 / 1;
   align-self: center;
   justify-self: center;

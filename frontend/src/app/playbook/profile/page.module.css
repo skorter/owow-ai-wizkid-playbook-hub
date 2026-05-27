@@ -5,7 +5,7 @@
     "identity identity"
     "personalInformation onboardingProgress"
     "recentActivity savedArticles"
-    "aiSettings aiSettings"
+    /* "aiSettings aiSettings" */
     "aiInsights aiInsights";
   gap: 2rem;
   align-items: stretch;
